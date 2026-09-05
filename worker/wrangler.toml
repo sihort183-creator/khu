@@ -1,0 +1,15 @@
+# Cloudflare Worker 설정. 조회용 정적 JSON 을 R2 에서 읽어 캐시·CORS 를 붙여 내보낸다.
+# 배포: npx wrangler deploy   (Actions 에서는 CLOUDFLARE_API_TOKEN 비밀값 사용)
+
+name = "khu-notice-api"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+# 조회 버킷만 바인딩한다. 원문 증거·백업 버킷은 Worker 에 연결하지 않는다(15.2절).
+[[r2_buckets]]
+binding = "PUBLIC"
+bucket_name = "khu-notice-public"
+
+[observability]
+enabled = true

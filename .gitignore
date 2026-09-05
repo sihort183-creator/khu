@@ -1,0 +1,27 @@
+# 파이썬
+backend/.venv/
+backend/__pycache__/
+**/__pycache__/
+*.py[cod]
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/*.egg-info/
+
+# 비밀값과 로컬 상태
+backend/.env
+backend/.localstore/
+backend/*.db
+.localstore/
+
+# 프론트
+frontend/node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
+worker/node_modules/
+worker/.wrangler/
+
+# 편집기·운영체제
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

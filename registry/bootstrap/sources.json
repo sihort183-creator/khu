@@ -1,0 +1,1881 @@
+{
+ "meta": {
+  "observed_at": "2026-09-05T18:06:22Z",
+  "total": 78,
+  "note": "status=pending 은 아직 검증하지 않은 후보다. 대표 표본만 active 로 승격한다. 대상 범위 기본값은 출처의 소속 조직이며, 본부 게시판을 전교생 대상으로 단정하지 않는다."
+ },
+ "sources": [
+  {
+   "key": "www-BMSR00040-200072",
+   "name": "대학본부 예결산공고",
+   "organization": "khu-headquarters",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://www.khu.ac.kr",
+    "prefix": "kor",
+    "board_code": "BMSR00040",
+    "menu_no": "200072"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "khu-headquarters"
+    }
+   ],
+   "official_evidence_url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200072",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 6건 확인"
+  },
+  {
+   "key": "cs-BMSR00040-12200006",
+   "name": "[확인 필요] cs.khu.ac.kr 이용안내",
+   "organization": "org-cs",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://cs.khu.ac.kr",
+    "prefix": "cs",
+    "board_code": "BMSR00040",
+    "menu_no": "12200006"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-cs"
+    }
+   ],
+   "official_evidence_url": "https://cs.khu.ac.kr/cs/user/bbs/BMSR00040/list.do?menuNo=12200006",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "ce-BMSR00040-21600019",
+   "name": "[확인 필요] ce.khu.ac.kr 공지사항",
+   "organization": "org-ce",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ce.khu.ac.kr",
+    "prefix": "ce25",
+    "board_code": "BMSR00040",
+    "menu_no": "21600019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ce"
+    }
+   ],
+   "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600019",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "ce-BMSR00040-21600022",
+   "name": "[확인 필요] ce.khu.ac.kr 기타공지",
+   "organization": "org-ce",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ce.khu.ac.kr",
+    "prefix": "ce25",
+    "board_code": "BMSR00040",
+    "menu_no": "21600022"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ce"
+    }
+   ],
+   "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600022",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "ce-BMSR00040-21600020",
+   "name": "[확인 필요] ce.khu.ac.kr 취업정보/홍보",
+   "organization": "org-ce",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ce.khu.ac.kr",
+    "prefix": "ce25",
+    "board_code": "BMSR00040",
+    "menu_no": "21600020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ce"
+    }
+   ],
+   "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600020",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "swcon-BMSR00040-21300017",
+   "name": "소프트웨어융합학과 공지사항",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300017"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300017",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "swcon-BMSR00040-21300018",
+   "name": "소프트웨어융합학과 취업정보/대외활동",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300018",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "swcon-BMSR00040-21300019",
+   "name": "소프트웨어융합학과 소식 및 행사",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300019",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "swcon-BMSR00040-21300020",
+   "name": "소프트웨어융합학과 기타공지",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300020",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "ee-BMSR00044-21700021",
+   "name": "[확인 필요] ee.khu.ac.kr 공지사항",
+   "organization": "org-ee",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00044",
+    "menu_no": "21700021"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00044/list.do?menuNo=21700021",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 8건 확인"
+  },
+  {
+   "key": "ee-BMSR00040-21700019",
+   "name": "[확인 필요] ee.khu.ac.kr 학사/장학",
+   "organization": "org-ee",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00040",
+    "menu_no": "21700019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700019",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "ee-BMSR00040-21700020",
+   "name": "[확인 필요] ee.khu.ac.kr 취업정보/대외활동",
+   "organization": "org-ee",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00040",
+    "menu_no": "21700020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700020",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "ee-BMSR00040-21700022",
+   "name": "[확인 필요] ee.khu.ac.kr 기타공지",
+   "organization": "org-ee",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00040",
+    "menu_no": "21700022"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700022",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "khsma-BMSR00040-500020",
+   "name": "정경대학 학사 안내",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500020",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "khsma-BMSR00040-500021",
+   "name": "정경대학 장학 안내",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500021"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500021",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "khsma-BMSR00040-500022",
+   "name": "정경대학 취업정보",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500022"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500022",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "khsma-BMSR00040-13100089",
+   "name": "정경대학 대학원 공지사항",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "gskh_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "13100089"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://gskh.khu.ac.kr/gskh_kor/user/bbs/BMSR00040/list.do?menuNo=13100089",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00040-14500160",
+   "name": "[확인 필요] kbiz.khu.ac.kr 알림마당",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "14500160"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500160",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00040-14500161",
+   "name": "[확인 필요] kbiz.khu.ac.kr 학사안내",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "14500161"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500161",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00040-14500162",
+   "name": "[확인 필요] kbiz.khu.ac.kr 교수안내",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "14500162"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500162",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00040-14500163",
+   "name": "[확인 필요] kbiz.khu.ac.kr 행사 및 기타",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "14500163"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500163",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00045-14500124",
+   "name": "[확인 필요] kbiz.khu.ac.kr 경영대학 소식",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00045",
+    "menu_no": "14500124"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00045/list.do?menuNo=14500124",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 9건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00040-14500101",
+   "name": "[확인 필요] kbiz.khu.ac.kr 공지사항",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "14500101"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500101",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 17건 확인"
+  },
+  {
+   "key": "kbiz-BMSR00040-14500123",
+   "name": "[확인 필요] kbiz.khu.ac.kr 공지사항",
+   "organization": "org-kbiz",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "14500123"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kbiz"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500123",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "science-BMSR00040-1200037",
+   "name": "이과대학 공지사항",
+   "organization": "org-science",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://science.khu.ac.kr",
+    "prefix": "science_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "1200037"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-science"
+    }
+   ],
+   "official_evidence_url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200037",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "science-BMSR00040-1200038",
+   "name": "이과대학 학사",
+   "organization": "org-science",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://science.khu.ac.kr",
+    "prefix": "science_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "1200038"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-science"
+    }
+   ],
+   "official_evidence_url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200038",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "science-BMSR00040-1200039",
+   "name": "이과대학 장학",
+   "organization": "org-science",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://science.khu.ac.kr",
+    "prefix": "science_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "1200039"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-science"
+    }
+   ],
+   "official_evidence_url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200039",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "science-BMSR00040-1200042",
+   "name": "이과대학 취업/창업",
+   "organization": "org-science",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://science.khu.ac.kr",
+    "prefix": "science_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "1200042"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-science"
+    }
+   ],
+   "official_evidence_url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200042",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "science-BMSR00040-1200115",
+   "name": "이과대학 공모/대회",
+   "organization": "org-science",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://science.khu.ac.kr",
+    "prefix": "science_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "1200115"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-science"
+    }
+   ],
+   "official_evidence_url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200115",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "foreign-BMSR00040-16500028",
+   "name": "[확인 필요] foreign.khu.ac.kr 일반공지",
+   "organization": "org-foreign",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://foreign.khu.ac.kr",
+    "prefix": "foreign_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "16500028"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-foreign"
+    }
+   ],
+   "official_evidence_url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500028",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "foreign-BMSR00040-16500029",
+   "name": "[확인 필요] foreign.khu.ac.kr 취업정보",
+   "organization": "org-foreign",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://foreign.khu.ac.kr",
+    "prefix": "foreign_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "16500029"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-foreign"
+    }
+   ],
+   "official_evidence_url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500029",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "foreign-BMSR00040-16500030",
+   "name": "[확인 필요] foreign.khu.ac.kr 장학안내",
+   "organization": "org-foreign",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://foreign.khu.ac.kr",
+    "prefix": "foreign_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "16500030"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-foreign"
+    }
+   ],
+   "official_evidence_url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500030",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "hc-BMSR00040-4300049",
+   "name": "[확인 필요] hc.khu.ac.kr 후마소식",
+   "organization": "org-hc",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://hc.khu.ac.kr",
+    "prefix": "hc_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "4300049"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-hc"
+    }
+   ],
+   "official_evidence_url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300049",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "hc-BMSR00040-4300067",
+   "name": "[확인 필요] hc.khu.ac.kr 기타활동 프로그램",
+   "organization": "org-hc",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://hc.khu.ac.kr",
+    "prefix": "hc_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "4300067"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-hc"
+    }
+   ],
+   "official_evidence_url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300067",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "hc-BMSR00040-4300147",
+   "name": "[확인 필요] hc.khu.ac.kr 학술행사",
+   "organization": "org-hc",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://hc.khu.ac.kr",
+    "prefix": "hc_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "4300147"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-hc"
+    }
+   ],
+   "official_evidence_url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300147",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "hc-BMSR00040-4300162",
+   "name": "[확인 필요] hc.khu.ac.kr 연구소 소식",
+   "organization": "org-hc",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://hc.khu.ac.kr",
+    "prefix": "hc_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "4300162"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-hc"
+    }
+   ],
+   "official_evidence_url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300162",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "eng-BMSR00040-17100042",
+   "name": "[확인 필요] eng.khu.ac.kr 연구 참여생 모집",
+   "organization": "org-eng",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://eng.khu.ac.kr",
+    "prefix": "eng_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "17100042"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-eng"
+    }
+   ],
+   "official_evidence_url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100042",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "eng-BMSR00040-17100023",
+   "name": "[확인 필요] eng.khu.ac.kr 채용정보",
+   "organization": "org-eng",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://eng.khu.ac.kr",
+    "prefix": "eng_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "17100023"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-eng"
+    }
+   ],
+   "official_evidence_url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100023",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "nursing-BMSR00040-19300058",
+   "name": "간호과학대학 장학금",
+   "organization": "org-nursing",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://nursing.khu.ac.kr",
+    "prefix": "nursing_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "19300058"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-nursing"
+    }
+   ],
+   "official_evidence_url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300058",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 1건 확인"
+  },
+  {
+   "key": "nursing-BMSR00040-19300059",
+   "name": "간호과학대학 대학원 간호학과 공지사항",
+   "organization": "org-nursing",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://nursing.khu.ac.kr",
+    "prefix": "nursing_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "19300059"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-nursing"
+    }
+   ],
+   "official_evidence_url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300059",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "nursing-BMSR00040-19300064",
+   "name": "간호과학대학 간호대학원 공지사항",
+   "organization": "org-nursing",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://nursing.khu.ac.kr",
+    "prefix": "nursing_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "19300064"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-nursing"
+    }
+   ],
+   "official_evidence_url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300064",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "pharm-BMSR00040-3900106",
+   "name": "약학대학 공지 +",
+   "organization": "org-pharm",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://pharm.khu.ac.kr",
+    "prefix": "pharm_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "3900106"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-pharm"
+    }
+   ],
+   "official_evidence_url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900106",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "me-BMSR00040-17300018",
+   "name": "기계공학부 취업정보",
+   "organization": "org-me",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://me.khu.ac.kr",
+    "prefix": "me",
+    "board_code": "BMSR00040",
+    "menu_no": "17300018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-me"
+    }
+   ],
+   "official_evidence_url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300018",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "me-BMSR00040-17300016",
+   "name": "기계공학부 학부소식",
+   "organization": "org-me",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://me.khu.ac.kr",
+    "prefix": "me",
+    "board_code": "BMSR00040",
+    "menu_no": "17300016"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-me"
+    }
+   ],
+   "official_evidence_url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300016",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "me-BMSR00040-17300019",
+   "name": "기계공학부 알림판",
+   "organization": "org-me",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://me.khu.ac.kr",
+    "prefix": "me",
+    "board_code": "BMSR00040",
+    "menu_no": "17300019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-me"
+    }
+   ],
+   "official_evidence_url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300019",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "me-BMSR00040-17300021",
+   "name": "기계공학부 FAQ",
+   "organization": "org-me",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://me.khu.ac.kr",
+    "prefix": "me",
+    "board_code": "BMSR00040",
+    "menu_no": "17300021"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-me"
+    }
+   ],
+   "official_evidence_url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300021",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "chemeng-BMSR00040-17600015",
+   "name": "[확인 필요] chemeng.khu.ac.kr 대학원 공지사항",
+   "organization": "org-chemeng",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://chemeng.khu.ac.kr",
+    "prefix": "chemeng",
+    "board_code": "BMSR00040",
+    "menu_no": "17600015"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-chemeng"
+    }
+   ],
+   "official_evidence_url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00040/list.do?menuNo=17600015",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 7건 확인"
+  },
+  {
+   "key": "chemeng-BMSR00040-17600018",
+   "name": "[확인 필요] chemeng.khu.ac.kr 취업정보",
+   "organization": "org-chemeng",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://chemeng.khu.ac.kr",
+    "prefix": "chemeng",
+    "board_code": "BMSR00040",
+    "menu_no": "17600018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-chemeng"
+    }
+   ],
+   "official_evidence_url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00040/list.do?menuNo=17600018",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "space-BMSR00040-2800023",
+   "name": "우주과학과 공지사항",
+   "organization": "org-space",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://space.khu.ac.kr",
+    "prefix": "space",
+    "board_code": "BMSR00040",
+    "menu_no": "2800023"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-space"
+    }
+   ],
+   "official_evidence_url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800023",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "space-BMSR00040-3200042",
+   "name": "우주과학과 응용과학대학 공지",
+   "organization": "org-space",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://space.khu.ac.kr",
+    "prefix": "applsci",
+    "board_code": "BMSR00040",
+    "menu_no": "3200042"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-space"
+    }
+   ],
+   "official_evidence_url": "https://space.khu.ac.kr/applsci/user/bbs/BMSR00040/list.do?menuNo=3200042",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "space-BMSR00040-2800114",
+   "name": "우주과학과 구성원 소식",
+   "organization": "org-space",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://space.khu.ac.kr",
+    "prefix": "space",
+    "board_code": "BMSR00040",
+    "menu_no": "2800114"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-space"
+    }
+   ],
+   "official_evidence_url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800114",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 9건 확인"
+  },
+  {
+   "key": "space-BMSR00040-2800130",
+   "name": "우주과학과 취업정보",
+   "organization": "org-space",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://space.khu.ac.kr",
+    "prefix": "space",
+    "board_code": "BMSR00040",
+    "menu_no": "2800130"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-space"
+    }
+   ],
+   "official_evidence_url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800130",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 4건 확인"
+  },
+  {
+   "key": "physics-BMSR00040-3000054",
+   "name": "응용물리학과 학과 공지사항",
+   "organization": "org-physics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://physics.khu.ac.kr",
+    "prefix": "physics",
+    "board_code": "BMSR00040",
+    "menu_no": "3000054"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-physics"
+    }
+   ],
+   "official_evidence_url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000054",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "physics-BMSR00040-3000055",
+   "name": "응용물리학과 장학정보",
+   "organization": "org-physics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://physics.khu.ac.kr",
+    "prefix": "physics",
+    "board_code": "BMSR00040",
+    "menu_no": "3000055"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-physics"
+    }
+   ],
+   "official_evidence_url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000055",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "physics-BMSR00040-3000051",
+   "name": "응용물리학과 취업정보",
+   "organization": "org-physics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://physics.khu.ac.kr",
+    "prefix": "physics",
+    "board_code": "BMSR00040",
+    "menu_no": "3000051"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-physics"
+    }
+   ],
+   "official_evidence_url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000051",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "chem-BMSR00040-3700015",
+   "name": "화학과 학부 공지사항",
+   "organization": "org-chem",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://chem.khu.ac.kr",
+    "prefix": "chem",
+    "board_code": "BMSR00040",
+    "menu_no": "3700015"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-chem"
+    }
+   ],
+   "official_evidence_url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700015",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "chem-BMSR00040-3700018",
+   "name": "화학과 세미나 공지사항",
+   "organization": "org-chem",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://chem.khu.ac.kr",
+    "prefix": "chem",
+    "board_code": "BMSR00040",
+    "menu_no": "3700018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-chem"
+    }
+   ],
+   "official_evidence_url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700018",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "chem-BMSR00040-3700041",
+   "name": "화학과 취업정보",
+   "organization": "org-chem",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://chem.khu.ac.kr",
+    "prefix": "chem",
+    "board_code": "BMSR00040",
+    "menu_no": "3700041"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-chem"
+    }
+   ],
+   "official_evidence_url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700041",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "math-BMSR00040-3100018",
+   "name": "응용수학과 공지사항",
+   "organization": "org-math",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://math.khu.ac.kr",
+    "prefix": "math",
+    "board_code": "BMSR00040",
+    "menu_no": "3100018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-math"
+    }
+   ],
+   "official_evidence_url": "https://math.khu.ac.kr/math/user/bbs/BMSR00040/list.do?menuNo=3100018",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "math-BMSR00040-3200042",
+   "name": "응용수학과 응용과학대학 공지사항",
+   "organization": "org-math",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://math.khu.ac.kr",
+    "prefix": "applsci",
+    "board_code": "BMSR00040",
+    "menu_no": "3200042"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-math"
+    }
+   ],
+   "official_evidence_url": "https://math.khu.ac.kr/applsci/user/bbs/BMSR00040/list.do?menuNo=3200042",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "math-BMSR00040-3100019",
+   "name": "응용수학과 새소식",
+   "organization": "org-math",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://math.khu.ac.kr",
+    "prefix": "math",
+    "board_code": "BMSR00040",
+    "menu_no": "3100019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-math"
+    }
+   ],
+   "official_evidence_url": "https://math.khu.ac.kr/math/user/bbs/BMSR00040/list.do?menuNo=3100019",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "geo-BMSR00040-3600055",
+   "name": "이과대학 지리학과 공지사항",
+   "organization": "org-geo",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://geo.khu.ac.kr",
+    "prefix": "geo",
+    "board_code": "BMSR00040",
+    "menu_no": "3600055"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-geo"
+    }
+   ],
+   "official_evidence_url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600055",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "geo-BMSR00040-3600056",
+   "name": "이과대학 지리학과 학사(대학원)",
+   "organization": "org-geo",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://geo.khu.ac.kr",
+    "prefix": "geo",
+    "board_code": "BMSR00040",
+    "menu_no": "3600056"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-geo"
+    }
+   ],
+   "official_evidence_url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600056",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "geo-BMSR00040-3600057",
+   "name": "이과대학 지리학과 취업공지",
+   "organization": "org-geo",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://geo.khu.ac.kr",
+    "prefix": "geo",
+    "board_code": "BMSR00040",
+    "menu_no": "3600057"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-geo"
+    }
+   ],
+   "official_evidence_url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600057",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "geo-BMSR00040-3600058",
+   "name": "이과대학 지리학과 장학공지",
+   "organization": "org-geo",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://geo.khu.ac.kr",
+    "prefix": "geo",
+    "board_code": "BMSR00040",
+    "menu_no": "3600058"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-geo"
+    }
+   ],
+   "official_evidence_url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600058",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800017",
+   "name": "정치외교학과 공지사항(학부)",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800017"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800017",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800018",
+   "name": "정치외교학과 취업 정보",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800018",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800025",
+   "name": "정치외교학과 공지사항(대학원)",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800025"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800025",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800044",
+   "name": "정치외교학과 대학원 소식",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800044"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800044",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 4건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800055",
+   "name": "정치외교학과 공지사항",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800055"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800055",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 16건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800028",
+   "name": "정치외교학과 공지사항(특성화)",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800028"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800028",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "politics-BMSR00040-4800034",
+   "name": "정치외교학과 장학 정보",
+   "organization": "org-politics",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://politics.khu.ac.kr",
+    "prefix": "politics",
+    "board_code": "BMSR00040",
+    "menu_no": "4800034"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-politics"
+    }
+   ],
+   "official_evidence_url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800034",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "econ-BMSR00040-4400061",
+   "name": "정경대학 경제학과 대학원공지",
+   "organization": "org-econ",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://econ.khu.ac.kr",
+    "prefix": "econ",
+    "board_code": "BMSR00040",
+    "menu_no": "4400061"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-econ"
+    }
+   ],
+   "official_evidence_url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400061",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "econ-BMSR00040-4400068",
+   "name": "정경대학 경제학과 장학 정보",
+   "organization": "org-econ",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://econ.khu.ac.kr",
+    "prefix": "econ",
+    "board_code": "BMSR00040",
+    "menu_no": "4400068"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-econ"
+    }
+   ],
+   "official_evidence_url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400068",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "startup-BMSR00040-15200127",
+   "name": "창업지원단 입주공고",
+   "organization": "org-startup",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://startup.khu.ac.kr",
+    "prefix": "startup_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "15200127"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-startup"
+    }
+   ],
+   "official_evidence_url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200127",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "startup-BMSR00052-15200048",
+   "name": "창업지원단 KHU(대내) 프로그램",
+   "organization": "org-startup",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://startup.khu.ac.kr",
+    "prefix": "startup_kor",
+    "board_code": "BMSR00052",
+    "menu_no": "15200048"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-startup"
+    }
+   ],
+   "official_evidence_url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00052/list.do?menuNo=15200048",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "startup-BMSR00040-15200065",
+   "name": "창업지원단 KH (경희홍릉) 프로그램 - 서울",
+   "organization": "org-startup",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://startup.khu.ac.kr",
+    "prefix": "startup_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "15200065"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-startup"
+    }
+   ],
+   "official_evidence_url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200065",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  },
+  {
+   "key": "startup-BMSR00040-15200026",
+   "name": "창업지원단 KHU (대외) 프로그램",
+   "organization": "org-startup",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://startup.khu.ac.kr",
+    "prefix": "startup_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "15200026"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-startup"
+    }
+   ],
+   "official_evidence_url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200026",
+   "notes": "2026-09-05T18:06:22Z 조사에서 목록 10건 확인"
+  }
+ ]
+}

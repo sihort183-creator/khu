@@ -1,0 +1,3342 @@
+{
+ "observed_at": "2026-09-05T18:06:22Z",
+ "hosts_probed": 49,
+ "hosts_reachable": 34,
+ "boards_usable": 250,
+ "findings": [
+  {
+   "host": "www.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00057",
+     "menu_no": "200386",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00057/list.do?menuNo=200386",
+     "label": "연설",
+     "status": 200,
+     "has_table": false,
+     "row_count": 3,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00046",
+     "menu_no": "200374",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00046/list.do?menuNo=200374",
+     "label": "영상",
+     "status": 200,
+     "has_table": false,
+     "row_count": 11,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00057",
+     "menu_no": "200359",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00057/list.do?menuNo=200359",
+     "label": "뉴스클리핑",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00058",
+     "menu_no": "200047",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00058/list.do?menuNo=200047",
+     "label": "동정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "200072",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200072",
+     "label": "예결산공고",
+     "status": 200,
+     "has_table": true,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "200390",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200390",
+     "label": "적립금공시",
+     "status": 200,
+     "has_table": true,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "200073",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200073",
+     "label": "업무추진비",
+     "status": 200,
+     "has_table": true,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "200074",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200074",
+     "label": "기부금 모금액 및 활용실적",
+     "status": 200,
+     "has_table": true,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00056",
+     "menu_no": "200291",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00056/list.do?menuNo=200291",
+     "label": "매그놀리아 아너스 클럽",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "200316",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200316",
+     "label": "대학생활",
+     "status": 200,
+     "has_table": true,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "200303",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00059/list.do?menuNo=200303",
+     "label": "커뮤니케이션 21",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "200280",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200280",
+     "label": "경희포럼",
+     "status": 200,
+     "has_table": true,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "200199",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00045/list.do?menuNo=200199",
+     "label": "경희 역사 갤러리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 12,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00044",
+     "menu_no": "200218",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00044/list.do?menuNo=200218",
+     "label": "Focus(old)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 5,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "200220",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00045/list.do?menuNo=200220",
+     "label": "카드뉴스",
+     "status": 200,
+     "has_table": false,
+     "row_count": 12,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00044",
+     "menu_no": "200261",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00044/list.do?menuNo=200261",
+     "label": "경희뉴스",
+     "status": 200,
+     "has_table": false,
+     "row_count": 5,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "200368",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00048/list.do?menuNo=200368",
+     "label": "홍보물",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00046",
+     "menu_no": "200257",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00046/list.do?menuNo=200257",
+     "label": "영상",
+     "status": 200,
+     "has_table": false,
+     "row_count": 11,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "200224",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00045/list.do?menuNo=200224",
+     "label": "포토갤러리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 12,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00063",
+     "menu_no": "200049",
+     "prefix": "kor",
+     "url": "https://www.khu.ac.kr/kor/user/bbs/BMSR00063/list.do?menuNo=200049",
+     "label": "열린총장실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "cs.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "12200006",
+     "prefix": "cs",
+     "url": "https://cs.khu.ac.kr/cs/user/bbs/BMSR00040/list.do?menuNo=12200006",
+     "label": "이용안내",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00057",
+     "menu_no": "12200020",
+     "prefix": "cs",
+     "url": "https://cs.khu.ac.kr/cs/user/bbs/BMSR00057/list.do?menuNo=12200020",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "ce.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "21600011",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00047/list.do?menuNo=21600011",
+     "label": "교수소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "21600037",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00047/list.do?menuNo=21600037",
+     "label": "석좌교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "21600012",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00047/list.do?menuNo=21600012",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "21600025",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00048/list.do?menuNo=21600025",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "21600029",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00048/list.do?menuNo=21600029",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21600019",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600019",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21600022",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600022",
+     "label": "기타공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21600020",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600020",
+     "label": "취업정보/홍보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21600021",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600021",
+     "label": "연구 및 동문소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21600023",
+     "prefix": "ce25",
+     "url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600023",
+     "label": "서식자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "13100090",
+     "prefix": "gskh_kor",
+     "url": "https://gskh.khu.ac.kr/gskh_kor/user/bbs/BMSR00040/list.do?menuNo=13100090",
+     "label": "대학원",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "swcon.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "21300010",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00047/list.do?menuNo=21300010",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "21300012",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00048/list.do?menuNo=21300012",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "21300015",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00048/list.do?menuNo=21300015",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21300017",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300017",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21300018",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300018",
+     "label": "취업정보/대외활동",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21300019",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300019",
+     "label": "소식 및 행사",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21300020",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300020",
+     "label": "기타공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21300021",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300021",
+     "label": "서식자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21300025",
+     "prefix": "swcon",
+     "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300025",
+     "label": "포트폴리오",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "13100090",
+     "prefix": "gskh_kor",
+     "url": "https://gskh.khu.ac.kr/gskh_kor/user/bbs/BMSR00040/list.do?menuNo=13100090",
+     "label": "대학원",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "ee.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "21700012",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00047/list.do?menuNo=21700012",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "21700025",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00048/list.do?menuNo=21700025",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "21700027",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00048/list.do?menuNo=21700027",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00044",
+     "menu_no": "21700021",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00044/list.do?menuNo=21700021",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 8,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21700019",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700019",
+     "label": "학사/장학",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21700020",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700020",
+     "label": "취업정보/대외활동",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00044",
+     "menu_no": "21700046",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00044/list.do?menuNo=21700046",
+     "label": "행사",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21700022",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700022",
+     "label": "기타공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "21700023",
+     "prefix": "ee25",
+     "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700023",
+     "label": "서식자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "13100090",
+     "prefix": "gskh_kor",
+     "url": "https://gskh.khu.ac.kr/gskh_kor/user/bbs/BMSR00040/list.do?menuNo=13100090",
+     "label": "대학원",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "software.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "law.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대학교 법학전문대학원"
+  },
+  {
+   "host": "khsma.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "500025",
+     "prefix": "khsma",
+     "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500025",
+     "label": "커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "500020",
+     "prefix": "khsma",
+     "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500020",
+     "label": "학사 안내",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "500021",
+     "prefix": "khsma",
+     "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500021",
+     "label": "장학 안내",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "500022",
+     "prefix": "khsma",
+     "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500022",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "13100089",
+     "prefix": "gskh_kor",
+     "url": "https://gskh.khu.ac.kr/gskh_kor/user/bbs/BMSR00040/list.do?menuNo=13100089",
+     "label": "대학원 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "500037",
+     "prefix": "khsma",
+     "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00045/list.do?menuNo=500037",
+     "label": "갤러리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "500019",
+     "prefix": "khsma",
+     "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500019",
+     "label": "기타 게시판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "kbiz.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "14500197",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00047/list.do?menuNo=14500197",
+     "label": "교수진",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "14500021",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00047/list.do?menuNo=14500021",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500142",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500142",
+     "label": "교환학생, 전공연수 수기",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500051",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500051",
+     "label": "대학생활",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500110",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500110",
+     "label": "연구동정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500052",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500052",
+     "label": "학생활동",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500160",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500160",
+     "label": "알림마당",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500161",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500161",
+     "label": "학사안내",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500162",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500162",
+     "label": "교수안내",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500146",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500146",
+     "label": "정기현장실습",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500207",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500207",
+     "label": "국제교류",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500147",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500147",
+     "label": "취·창업",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500163",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500163",
+     "label": "행사 및 기타",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "14500124",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00045/list.do?menuNo=14500124",
+     "label": "경영대학 소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "14500216",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00047/list.do?menuNo=14500216",
+     "label": "교수진 - 의료경영학과",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500101",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500101",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 17,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "14500123",
+     "prefix": "biz_kor",
+     "url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00040/list.do?menuNo=14500123",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교 경영대학"
+  },
+  {
+   "host": "science.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "1200119",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00047/list.do?menuNo=1200119",
+     "label": "교수 소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200037",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200037",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200038",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200038",
+     "label": "학사",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200039",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200039",
+     "label": "장학",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200036",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200036",
+     "label": "대학원",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200042",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200042",
+     "label": "취업/창업",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200040",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200040",
+     "label": "연구/세미나",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200115",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200115",
+     "label": "공모/대회",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200110",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200110",
+     "label": "교육/연수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00044",
+     "menu_no": "1200113",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00044/list.do?menuNo=1200113",
+     "label": "수상",
+     "status": 200,
+     "has_table": false,
+     "row_count": 5,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00044",
+     "menu_no": "1200041",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00044/list.do?menuNo=1200041",
+     "label": "Focus",
+     "status": 200,
+     "has_table": false,
+     "row_count": 8,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "1200046",
+     "prefix": "science_kor",
+     "url": "https://science.khu.ac.kr/science_kor/user/bbs/BMSR00040/list.do?menuNo=1200046",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "foreign.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "16500075",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00047/list.do?menuNo=16500075",
+     "label": "교수진 소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "16500019",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500019",
+     "label": "국제교류현황",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "16500027",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500027",
+     "label": "커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "16500028",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500028",
+     "label": "일반공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "16500029",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500029",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "16500030",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500030",
+     "label": "장학안내",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "16500031",
+     "prefix": "foreign_kor",
+     "url": "https://foreign.khu.ac.kr/foreign_kor/user/bbs/BMSR00040/list.do?menuNo=16500031",
+     "label": "사회봉사",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "hc.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300048",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300048",
+     "label": "커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 12,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300071",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300071",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300049",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300049",
+     "label": "후마소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00043",
+     "menu_no": "4300121",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00043/list.do?menuNo=4300121",
+     "label": "묻고 답하기",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300075",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300075",
+     "label": "교수게시판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300067",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300067",
+     "label": "기타활동 프로그램",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300056",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300056",
+     "label": "아카이브",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300052",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300052",
+     "label": "지식광장",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300059",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300059",
+     "label": "후마리브로",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300147",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300147",
+     "label": "학술행사",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300150",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300150",
+     "label": "연구/출판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300152",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300152",
+     "label": "후마니타스포럼",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300158",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300158",
+     "label": "산하 센터",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300162",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300162",
+     "label": "연구소 소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4300165",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00040/list.do?menuNo=4300165",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00046",
+     "menu_no": "4300170",
+     "prefix": "hc_kor",
+     "url": "https://hc.khu.ac.kr/hc_kor/user/bbs/BMSR00046/list.do?menuNo=4300170",
+     "label": "영상 보기",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "eng.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "17100027",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00059/list.do?menuNo=17100027",
+     "label": "연구실 검색",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17100018",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100018",
+     "label": "대학생활",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "17100019",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00059/list.do?menuNo=17100019",
+     "label": "동아리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17100020",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100020",
+     "label": "공대마당",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17100042",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100042",
+     "label": "연구 참여생 모집",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17100021",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100021",
+     "label": "신입생 자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17100022",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100022",
+     "label": "각종서식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17100023",
+     "prefix": "eng_kor",
+     "url": "https://eng.khu.ac.kr/eng_kor/user/bbs/BMSR00040/list.do?menuNo=17100023",
+     "label": "채용정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "medicine.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "nursing.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300013",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300013",
+     "label": "홍보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00056",
+     "menu_no": "19300021",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00056/list.do?menuNo=19300021",
+     "label": "사진갤러리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00056",
+     "menu_no": "19300022",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00056/list.do?menuNo=19300022",
+     "label": "자료실/제양식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "19300026",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00047/list.do?menuNo=19300026",
+     "label": "객원교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 2,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300058",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300058",
+     "label": "장학금",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300059",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300059",
+     "label": "대학원 간호학과 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00054",
+     "menu_no": "19300082",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00054/list.do?menuNo=19300082",
+     "label": "대학원 간호학과 FAQ",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300064",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300064",
+     "label": "간호대학원 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00054",
+     "menu_no": "19300083",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00054/list.do?menuNo=19300083",
+     "label": "간호대학원 FAQ",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300066",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300066",
+     "label": "현황",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300048",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300048",
+     "label": "더보기",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "19300014",
+     "prefix": "nursing_kor",
+     "url": "https://nursing.khu.ac.kr/nursing_kor/user/bbs/BMSR00040/list.do?menuNo=19300014",
+     "label": null,
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "pharm.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3900015",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00047/list.do?menuNo=3900015",
+     "label": "교수소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3900016",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00047/list.do?menuNo=3900016",
+     "label": "한약학과",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3900017",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00047/list.do?menuNo=3900017",
+     "label": "약과학과",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3900020",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00047/list.do?menuNo=3900020",
+     "label": "비전임",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900138",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900138",
+     "label": "졸업자 정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900041",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900041",
+     "label": "강의시간표",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3900120",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00048/list.do?menuNo=3900120",
+     "label": "기초약학과",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3900153",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00048/list.do?menuNo=3900153",
+     "label": "융합생명의약학과",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3900123",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00048/list.do?menuNo=3900123",
+     "label": "천연물융합신약개발학과",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900044",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900044",
+     "label": "전공 및 연구실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900103",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900103",
+     "label": "대학생활",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900069",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900069",
+     "label": "[학생]정보/정책 공유",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900068",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900068",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "3900110",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00045/list.do?menuNo=3900110",
+     "label": "활동 사진(Gallery)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900106",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900106",
+     "label": "공지 +",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900128",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900128",
+     "label": "발전기금",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3900129",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00040/list.do?menuNo=3900129",
+     "label": "캡스출입카드 신청",
+     "status": 200,
+     "has_table": false,
+     "row_count": 2,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3900026",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00048/list.do?menuNo=3900026",
+     "label": "약학과(2+4) 교육과정(시행세칙)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3900143",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00048/list.do?menuNo=3900143",
+     "label": "약학과 6년제 교육과정(시행세칙)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 5,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3900030",
+     "prefix": "pharm_kor",
+     "url": "https://pharm.khu.ac.kr/pharm_kor/user/bbs/BMSR00048/list.do?menuNo=3900030",
+     "label": "한약학과 교육과정(시행세칙)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "dent.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "korme.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "art.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "Home"
+  },
+  {
+   "host": "music.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "dance.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "300067",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00047/list.do?menuNo=300067",
+     "label": "교수소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "300068",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00047/list.do?menuNo=300068",
+     "label": "현대무용 전공",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "300013",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00047/list.do?menuNo=300013",
+     "label": "발레전공",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300032",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300032",
+     "label": "교과목 편성표",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300035",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300035",
+     "label": "규정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300017",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300017",
+     "label": "규정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300021",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300021",
+     "label": "수업·특강자료",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300039",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300039",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "300038",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00045/list.do?menuNo=300038",
+     "label": "갤러리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300049",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300049",
+     "label": "게시판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "300062",
+     "prefix": "dance",
+     "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00040/list.do?menuNo=300062",
+     "label": "무용공연",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "sports.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "hm.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "life.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "applied.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "elec.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "me.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300010",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300010",
+     "label": "학부교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "17300013",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00059/list.do?menuNo=17300013",
+     "label": "연구실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300014",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300014",
+     "label": "교과관련",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "17300037",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00047/list.do?menuNo=17300037",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300015",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300015",
+     "label": "학생광장",
+     "status": 200,
+     "has_table": false,
+     "row_count": 22,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300018",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300018",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300016",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300016",
+     "label": "학부소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300017",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300017",
+     "label": "학회/세미나",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300019",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300019",
+     "label": "알림판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "17300020",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00059/list.do?menuNo=17300020",
+     "label": "동아리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 8,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300038",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300038",
+     "label": "졸업 수기",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17300021",
+     "prefix": "me",
+     "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/list.do?menuNo=17300021",
+     "label": "FAQ",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "civil.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "chemeng.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17600011",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00040/list.do?menuNo=17600011",
+     "label": "학과교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "17600014",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00059/list.do?menuNo=17600014",
+     "label": "연구실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17600015",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00040/list.do?menuNo=17600015",
+     "label": "대학원 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "17600020",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00047/list.do?menuNo=17600020",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 8,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17600017",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00040/list.do?menuNo=17600017",
+     "label": "학생광장",
+     "status": 200,
+     "has_table": false,
+     "row_count": 13,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "17600018",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00040/list.do?menuNo=17600018",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00059",
+     "menu_no": "17600019",
+     "prefix": "chemeng",
+     "url": "https://chemeng.khu.ac.kr/chemeng/user/bbs/BMSR00059/list.do?menuNo=17600019",
+     "label": "동아리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "ibs.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "space.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "2800123",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00047/list.do?menuNo=2800123",
+     "label": "교수 및 연구분야",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "2800013",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00048/list.do?menuNo=2800013",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800125",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800125",
+     "label": "대학원 과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800112",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800112",
+     "label": "콜로키움",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800023",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800023",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3200042",
+     "prefix": "applsci",
+     "url": "https://space.khu.ac.kr/applsci/user/bbs/BMSR00040/list.do?menuNo=3200042",
+     "label": "응용과학대학 공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800114",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800114",
+     "label": "구성원 소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800025",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800025",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800130",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800130",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "2800024",
+     "prefix": "space",
+     "url": "https://space.khu.ac.kr/space/user/bbs/BMSR00040/list.do?menuNo=2800024",
+     "label": "앨범",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "physics.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3000060",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00047/list.do?menuNo=3000060",
+     "label": "교수진",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3000024",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00048/list.do?menuNo=3000024",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3000022",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000022",
+     "label": "수업관련 게시판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3000037",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000037",
+     "label": "연구소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3200042",
+     "prefix": "applsci",
+     "url": "https://physics.khu.ac.kr/applsci/user/bbs/BMSR00040/list.do?menuNo=3200042",
+     "label": "알람/커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3000054",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000054",
+     "label": "학과 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3000050",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000050",
+     "label": "세미나/콜로키움",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3000055",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000055",
+     "label": "장학정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3000051",
+     "prefix": "physics",
+     "url": "https://physics.khu.ac.kr/physics/user/bbs/BMSR00040/list.do?menuNo=3000051",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "chem.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3700024",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00047/list.do?menuNo=3700024",
+     "label": "교수 소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3700059",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00047/list.do?menuNo=3700059",
+     "label": "명예 / 역대 / 겸임교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700015",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700015",
+     "label": "학부 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700016",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700016",
+     "label": "행정자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700022",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700022",
+     "label": "대학원",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700018",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700018",
+     "label": "세미나 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700023",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700023",
+     "label": "행정자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "3700042",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00045/list.do?menuNo=3700042",
+     "label": "사진첩",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700040",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700040",
+     "label": "게시판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700041",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700041",
+     "label": "취업정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3700045",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00040/list.do?menuNo=3700045",
+     "label": "동문회",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3700052",
+     "prefix": "chem",
+     "url": "https://chem.khu.ac.kr/chem/user/bbs/BMSR00047/list.do?menuNo=3700052",
+     "label": "FACULTY",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "math.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3100029",
+     "prefix": "math",
+     "url": "https://math.khu.ac.kr/math/user/bbs/BMSR00047/list.do?menuNo=3100029",
+     "label": "교수진소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "3100011",
+     "prefix": "math",
+     "url": "https://math.khu.ac.kr/math/user/bbs/BMSR00048/list.do?menuNo=3100011",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3100018",
+     "prefix": "math",
+     "url": "https://math.khu.ac.kr/math/user/bbs/BMSR00040/list.do?menuNo=3100018",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3200042",
+     "prefix": "applsci",
+     "url": "https://math.khu.ac.kr/applsci/user/bbs/BMSR00040/list.do?menuNo=3200042",
+     "label": "응용과학대학 공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3100016",
+     "prefix": "math",
+     "url": "https://math.khu.ac.kr/math/user/bbs/BMSR00040/list.do?menuNo=3100016",
+     "label": "커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3100019",
+     "prefix": "math",
+     "url": "https://math.khu.ac.kr/math/user/bbs/BMSR00040/list.do?menuNo=3100019",
+     "label": "새소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "bio.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "geo.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3600008",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00047/list.do?menuNo=3600008",
+     "label": "현직교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "3600009",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00047/list.do?menuNo=3600009",
+     "label": "역대교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600055",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600055",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600056",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600056",
+     "label": "학사(대학원)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600065",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600065",
+     "label": "대학원게시판(BK21사업단)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600083",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600083",
+     "label": "공간정보 특성화",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600057",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600057",
+     "label": "취업공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600058",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600058",
+     "label": "장학공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "3600060",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00040/list.do?menuNo=3600060",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "3600112",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00045/list.do?menuNo=3600112",
+     "label": "사진첩",
+     "status": 200,
+     "has_table": false,
+     "row_count": 2,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "3600115",
+     "prefix": "geo",
+     "url": "https://geo.khu.ac.kr/geo/user/bbs/BMSR00045/list.do?menuNo=3600115",
+     "label": "대학원",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "politics.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "4800012",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00047/list.do?menuNo=4800012",
+     "label": "교수진",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "4800013",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00047/list.do?menuNo=4800013",
+     "label": "명예교수",
+     "status": 200,
+     "has_table": false,
+     "row_count": 5,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "4800015",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00048/list.do?menuNo=4800015",
+     "label": "교육과정 시행세칙",
+     "status": 200,
+     "has_table": false,
+     "row_count": 7,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800017",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800017",
+     "label": "공지사항(학부)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800018",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800018",
+     "label": "취업 정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800019",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800019",
+     "label": "서식자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800023",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800023",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800025",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800025",
+     "label": "공지사항(대학원)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800044",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800044",
+     "label": "대학원 소식",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00046",
+     "menu_no": "4800046",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00046/list.do?menuNo=4800046",
+     "label": "대학원 설명회",
+     "status": 200,
+     "has_table": false,
+     "row_count": 1,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800055",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800055",
+     "label": "공지사항",
+     "status": 200,
+     "has_table": false,
+     "row_count": 16,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800028",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800028",
+     "label": "공지사항(특성화)",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800034",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800034",
+     "label": "장학 정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4800036",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00040/list.do?menuNo=4800036",
+     "label": "홍보 게시판",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "4800037",
+     "prefix": "politics",
+     "url": "https://politics.khu.ac.kr/politics/user/bbs/BMSR00045/list.do?menuNo=4800037",
+     "label": "포토갤러리",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "public.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "media.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대학교 미디어센터"
+  },
+  {
+   "host": "econ.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00047",
+     "menu_no": "4400064",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00047/list.do?menuNo=4400064",
+     "label": "교수진소개",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400060",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400060",
+     "label": "학부",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00048",
+     "menu_no": "4400072",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00048/list.do?menuNo=4400072",
+     "label": "교육과정",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400054",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400054",
+     "label": "자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400061",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400061",
+     "label": "대학원공지",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400059",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400059",
+     "label": "커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400068",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400068",
+     "label": "장학 정보",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400062",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400062",
+     "label": "세미나",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400070",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400070",
+     "label": "대외활동",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "4400040",
+     "prefix": "econ",
+     "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/list.do?menuNo=4400040",
+     "label": "더보기",
+     "status": 200,
+     "has_table": false,
+     "row_count": 3,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "trade.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "hotel.khu.ac.kr",
+   "home_status": 0,
+   "boards": [],
+   "error": "첫 화면을 열지 못했습니다."
+  },
+  {
+   "host": "tourism.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대학교 관광대학원"
+  },
+  {
+   "host": "swedu.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대 SW중심대학사업단"
+  },
+  {
+   "host": "startup.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "15200127",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200127",
+     "label": "입주공고",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00052",
+     "menu_no": "15200048",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00052/list.do?menuNo=15200048",
+     "label": "KHU(대내) 프로그램",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "15200065",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200065",
+     "label": "KH (경희홍릉) 프로그램 - 서울",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "15200026",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200026",
+     "label": "KHU (대외) 프로그램",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "15200019",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00040/list.do?menuNo=15200019",
+     "label": "커뮤니티",
+     "status": 200,
+     "has_table": false,
+     "row_count": 12,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00054",
+     "menu_no": "15200056",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00054/list.do?menuNo=15200056",
+     "label": "FAQ",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00045",
+     "menu_no": "15200057",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00045/list.do?menuNo=15200057",
+     "label": "KHU NEWS",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00052",
+     "menu_no": "15200020",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00052/list.do?menuNo=15200020",
+     "label": "서식 자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00046",
+     "menu_no": "15200023",
+     "prefix": "startup_kor",
+     "url": "https://startup.khu.ac.kr/startup_kor/user/bbs/BMSR00046/list.do?menuNo=15200023",
+     "label": "영상 자료실",
+     "status": 200,
+     "has_table": false,
+     "row_count": 9,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "oia.khu.ac.kr",
+   "home_status": 200,
+   "boards": [
+    {
+     "board_code": "BMSR00051",
+     "menu_no": "5800015",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00051/list.do?menuNo=5800015",
+     "label": "Partnerships",
+     "status": 200,
+     "has_table": false,
+     "row_count": 0,
+     "usable": false
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "5800010",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00040/list.do?menuNo=5800010",
+     "label": null,
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "5800012",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00040/list.do?menuNo=5800012",
+     "label": "Outgoing Program",
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "5800011",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00040/list.do?menuNo=5800011",
+     "label": "Incoming Program",
+     "status": 200,
+     "has_table": false,
+     "row_count": 5,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "5800089",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00040/list.do?menuNo=5800089",
+     "label": "Partner University Program",
+     "status": 200,
+     "has_table": false,
+     "row_count": 6,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00040",
+     "menu_no": "5800093",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00040/list.do?menuNo=5800093",
+     "label": null,
+     "status": 200,
+     "has_table": false,
+     "row_count": 10,
+     "usable": true
+    },
+    {
+     "board_code": "BMSR00046",
+     "menu_no": "5800088",
+     "prefix": "oiak_kor",
+     "url": "https://oia.khu.ac.kr/oiak_kor/user/bbs/BMSR00046/list.do?menuNo=5800088",
+     "label": "Videos",
+     "status": 200,
+     "has_table": false,
+     "row_count": 4,
+     "usable": true
+    }
+   ],
+   "error": null,
+   "title": "경희대학교"
+  },
+  {
+   "host": "neoscholar.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대학교 사이트 가이드"
+  },
+  {
+   "host": "intern.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대 현장실습 지원센터"
+  },
+  {
+   "host": "lib.khu.ac.kr",
+   "home_status": 200,
+   "boards": [],
+   "error": null,
+   "title": "경희대학교 중앙도서관"
+  }
+ ]
+}

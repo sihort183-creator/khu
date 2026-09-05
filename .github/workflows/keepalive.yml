@@ -1,0 +1,39 @@
+name: 예약 실행 유지
+
+# GitHub 은 저장소에 60일간 활동이 없으면 예약 워크플로를 자동으로 끈다.
+# 수집이 조용히 멈추는 것을 막기 위해 3주마다 상태 파일에 실행 기록을 남긴다(16절).
+on:
+  schedule:
+    - cron: "11 3 */21 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: khu-keepalive
+  cancel-in-progress: true
+
+jobs:
+  touch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 실행 기록 갱신
+        run: |
+          mkdir -p .github
+          printf '예약 워크플로 유지용 기록. 마지막 갱신: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > .github/last-keepalive.txt
+
+      - name: 변경이 있으면 커밋
+        run: |
+          if git diff --quiet; then
+            echo "변경 없음"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/last-keepalive.txt
+          git commit -m "chore: keep scheduled workflows enabled"
+          git push

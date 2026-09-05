@@ -1,0 +1,42 @@
+[project]
+name = "khu-notice-backend"
+version = "0.1.0"
+description = "경희 통합 공지·연락처 수집기. 상시 서버 없이 GitHub Actions에서 실행한다."
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.27,<0.29",
+    "lxml>=5.2,<7",
+    "pydantic>=2.7,<3",
+    "SQLAlchemy>=2.0.30,<2.1",
+    "psycopg[binary]>=3.1,<4",
+    "alembic>=1.13,<2",
+    "boto3>=1.34,<2",
+    "python-dateutil>=2.9,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-asyncio>=0.23,<0.25",
+    "ruff>=0.5,<0.13",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501", "UP046"]  # UP046: pydantic 제네릭 응답 모델은 Generic 상속 형태를 쓴다
