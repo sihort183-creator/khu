@@ -212,7 +212,7 @@ def build_contacts(parsed: dict, observed_at: str) -> list[dict]:
             implicit = org["name"] == section
             otype = SECTION_TYPE.get(section, "office")
             last: dict | None = None
-            for e in org["entries"]:
+            for idx, e in enumerate(org["entries"]):
                 label, group, raw, kind = e["label"], e["group"], e["raw"], e["kind"]
                 if kind == "fax":
                     if last is not None:
@@ -243,7 +243,7 @@ def build_contacts(parsed: dict, observed_at: str) -> list[dict]:
                 elif group:
                     service = f"{group} · {label}" if label != group else group
                 path.append(org_name)
-                cid = "kc-" + hid(campus, section, org["name"], group or "", label, raw)
+                cid = "kc-" + hid(campus, section, org["name"], group or "", label, raw, str(idx))
                 chans = phone_channels(cid, raw, campus, "phone")
                 contact = {
                     "id": cid,
