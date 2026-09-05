@@ -1,0 +1,8209 @@
+{
+ "source": {
+  "seoul": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+  "global": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092"
+ },
+ "observed_at": "2026-09-05T16:59:09Z",
+ "dial_rules": {
+  "seoul": {
+   "main": "02-961-0114",
+   "external": "02-961-내선번호",
+   "from_global": "4 + 내선번호",
+   "from_medical": "6 + 내선번호"
+  },
+  "global": {
+   "main": "031-201-3114",
+   "external": "031-201-내선번호",
+   "from_seoul": "3 + 내선번호"
+  }
+ },
+ "campuses": {
+  "seoul": [
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "대학본부",
+    "entries": []
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "총장실",
+      "raw": "0005~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정책실",
+      "raw": "2238~9",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "서울부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "0007~8",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "의무부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "0317~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0319",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "행·재정부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "2100~1",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "대외협력부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "0202",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0203",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9575",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "기획조정처",
+    "entries": [
+     {
+      "group": null,
+      "label": "전략기획팀",
+      "raw": "0022,0027",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학술진흥팀",
+      "raw": "0020~1",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예산팀",
+      "raw": "2116~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0930",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "감사팀",
+      "raw": "2360~1, 0488",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "옴부즈",
+      "raw": "2337~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "2362",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "LINC+사업단",
+    "entries": [
+     {
+      "group": null,
+      "label": "서울사무국",
+      "raw": "2351~2, 0969",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9527",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "교무처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "0050",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교무과",
+      "raw": "0051~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0056",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학사지원팀",
+      "raw": "0053~4, 0057, 0528",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9572",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "교직팀",
+      "raw": "9668~9",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "미래혁신원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "9416",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "9413",
+      "kind": "phone"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "학생지원",
+      "raw": "0047~8",
+      "kind": "phone"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "FAX",
+      "raw": "9345",
+      "kind": "fax"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "장학",
+      "raw": "0045~6, 9568",
+      "kind": "phone"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "FAX",
+      "raw": "0179",
+      "kind": "fax"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "심리상담센터",
+      "raw": "2204~7",
+      "kind": "phone"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "제증명",
+      "raw": "9335~7",
+      "kind": "phone"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "FAX",
+      "raw": "9345",
+      "kind": "fax"
+     },
+     {
+      "group": "학생지원센터",
+      "label": "의료공제회",
+      "raw": "0055",
+      "kind": "phone"
+     },
+     {
+      "group": "미래인재센터",
+      "label": "미래인재센터",
+      "raw": "0167~8, 0206",
+      "kind": "phone"
+     },
+     {
+      "group": "미래인재센터",
+      "label": "오픈랩",
+      "raw": "0243",
+      "kind": "phone"
+     },
+     {
+      "group": "장애학생지원센터",
+      "label": "장애학생지원센터",
+      "raw": "2104~5",
+      "kind": "phone"
+     },
+     {
+      "group": "장애학생지원센터",
+      "label": "FAX",
+      "raw": "0315",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "창업보육센터",
+      "raw": "9330~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9333",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "연구처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "9126",
+      "kind": "phone"
+     },
+     {
+      "group": "연구처",
+      "label": "연구지원과",
+      "raw": "0554~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9140",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "산학협력단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "958-4603",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경영지원팀",
+      "raw": "958-4674",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "감사팀",
+      "raw": "958-4678",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "958-4659",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "R&D 기획팀",
+      "raw": "958-4664",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "기술혁신팀",
+      "raw": "958-4670",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "958-4668",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "연구지원팀",
+      "raw": "958-4616, 4630,4645",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "958-4637",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "입학처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "9206",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "입학팀",
+      "raw": "0028~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "입학전형연구센터",
+      "raw": "0750~1, 0909,0935,0970",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0049",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "입시상담",
+      "raw": "1544-2828",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "인사처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "9560",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인사기획팀",
+      "raw": "0036~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0219",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "총무관리처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "0034",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "총무팀",
+      "raw": "0120,0035,0038~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9578",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "관리팀",
+      "raw": "0040~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0660",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "관재팀",
+      "raw": "0043~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0526",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "안전팀",
+      "raw": "0119",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "국제처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "0117",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제교류팀",
+      "raw": "0030~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9554",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "글로벌입학팀",
+      "raw": "9286~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "2230",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "글로벌교육지원팀",
+      "raw": "0920",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "대외협력처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "0931",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "발전기금팀",
+      "raw": "0932~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9554",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "교류협력팀",
+      "raw": "2370~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9400",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "재정운영본부",
+    "entries": [
+     {
+      "group": null,
+      "label": "본부장실",
+      "raw": "9603",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "재정운영팀",
+      "raw": "2118~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0067",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "디자인팀",
+      "raw": "9100~1",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9115",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "재무처",
+    "entries": [
+     {
+      "group": null,
+      "label": "재무처장실",
+      "raw": "0060",
+      "kind": "phone"
+     },
+     {
+      "group": "재무회계팀",
+      "label": "대외지불/법인카드/국고",
+      "raw": "0061, 0091",
+      "kind": "phone"
+     },
+     {
+      "group": "재무회계팀",
+      "label": "급여/연말정손/대내지불",
+      "raw": "0062",
+      "kind": "phone"
+     },
+     {
+      "group": "재무회계팀",
+      "label": "등록/장학/자금",
+      "raw": "0064",
+      "kind": "phone"
+     },
+     {
+      "group": "재무회계팀",
+      "label": "결산/기금/각종보고",
+      "raw": "0063",
+      "kind": "phone"
+     },
+     {
+      "group": "재무회계팀",
+      "label": "재무회계팀장",
+      "raw": "0092",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9150",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "정보처",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0507",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "IT 문의",
+      "raw": "0304, 0521",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0504",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "교육사업추진단",
+    "entries": [
+     {
+      "group": null,
+      "label": "교육사업추진팀",
+      "raw": "2388~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "고등교육연구센터",
+      "raw": "2391~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "2393",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "평화의전당",
+    "entries": [
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "9247",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9394",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "관리운영팀",
+      "raw": "9250,9244",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9249",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "청운관 B117",
+      "raw": "9139",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "커뮤니케이션센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0024",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "커뮤니케이션팀",
+      "raw": "0025~6, 0113",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "멀티미디어팀",
+      "raw": "0113",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "출판·디자인팀",
+      "raw": "0106~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0291",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "캠퍼스타운사업단",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무국",
+      "raw": "9514~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0067",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "홍릉 바이오·의료 창업센터",
+      "raw": "6213-1101",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학본부",
+    "name": "DX추진단",
+    "entries": [
+     {
+      "group": null,
+      "label": "DX추진사무국",
+      "raw": "0352, 0358",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "대학",
+    "entries": []
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "문과대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0220",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0221~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "963-3152",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "국어국문학과",
+      "raw": "0223",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사학과",
+      "raw": "0227",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "철학과",
+      "raw": "0228",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "영어학부",
+      "raw": "0224",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "통역센터",
+      "raw": "0967",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "정경대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0620",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "9184",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0622",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "정치외교학과",
+      "raw": "0623",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정학과",
+      "raw": "0699",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사회학과",
+      "raw": "9314",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "무역학과",
+      "raw": "9137",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "언론정보학과",
+      "raw": "0624",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경제학과",
+      "raw": "0621",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제통상금융투자학부",
+      "raw": "9138",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "호텔관광대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0800",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0802~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "964-2537",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "호스피탈리티경영학부",
+      "raw": "0836",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "관광학부",
+      "raw": "0822",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인턴십/장학",
+      "raw": "0804",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔경영학과",
+      "raw": "0823",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "컨벤션경영학과",
+      "raw": "0843",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외식경영학과",
+      "raw": "0830",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "조리·서비스경영학과",
+      "raw": "0830",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "관광학과",
+      "raw": "0823",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문화관광콘텐츠학과",
+      "raw": "0843",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "이과대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0645",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0887~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0646",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "수학과",
+      "raw": "0255",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "물리학과",
+      "raw": "0230",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "화학과",
+      "raw": "0237",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생물학과",
+      "raw": "0244",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "지리학과",
+      "raw": "0251",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정보디스플레이학과",
+      "raw": "0971",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "한의과대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0320",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0321",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "965-5969",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "대학원",
+      "raw": "0328",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "BK21 PLUS 한의과학사업단",
+      "raw": "0563",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "암예방소재개발연구센터(MRC)",
+      "raw": "964-1074",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "침구경락과학연구센터(SRC)",
+      "raw": "0975",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의학임상연구센터",
+      "raw": "9278",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제한의학교육원",
+      "raw": "9157",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "융합한의학연구소",
+      "raw": "9316",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "OPEM연구실",
+      "raw": "0812",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "간호과학대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "9320",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0305, 0308",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9398",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "간호학과, RN-BSN사무실",
+      "raw": "0310",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "명예교수실",
+      "raw": "9422",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "통합조교실",
+      "raw": "0695",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "미술대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0630",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0631",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0632",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "미술학부",
+      "raw": "0636",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미술관",
+      "raw": "0640",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "후마니타스칼리지",
+    "entries": [
+     {
+      "group": null,
+      "label": "대학장실",
+      "raw": "2373",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학장행정실",
+      "raw": "9280~1",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9282",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "9339",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0642, 9311, 9340",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9305",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "글쓰기센터",
+      "raw": "0991",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "기자재관리실",
+      "raw": "0992",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교양체육지도실",
+      "raw": "0960",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중핵교과사무실",
+      "raw": "2380",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교양교육연구소장실",
+      "raw": "2397",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교양교육연구소",
+      "raw": "2398",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "영어교과사무실",
+      "raw": "9261",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "법과대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0610",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0611~3, 9218~9, 0905",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9134",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "취업진로센터",
+      "raw": "0938",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "고시부",
+      "raw": "9322",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생회실",
+      "raw": "0652",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "경영대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0511",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0512~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0515",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "경영학부(학부)",
+      "raw": "9497",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "회계·세무학과(학부·대학원)",
+      "raw": "0628",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "빅데이터응용학과(학부)",
+      "raw": "0512~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학원 경영컨설팅학과",
+      "raw": "9358",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학원 경영학과",
+      "raw": "0626",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학원 의료경영학과",
+      "raw": "0494",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "생활과학대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0550",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0551",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0261",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "아동가족학과",
+      "raw": "0538",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주거환경학과",
+      "raw": "0256",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의상학과",
+      "raw": "0265",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "식품영양학과",
+      "raw": "0260",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "의과대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0273",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0301, 0274",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "969-6958",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "연구지원실",
+      "raw": "9303",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교육지원실",
+      "raw": "0275, 9203",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "약학대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0355",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0356",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "966-3885",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "음악대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "0570",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0571~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0574",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "무용학부",
+    "entries": [
+     {
+      "group": null,
+      "label": "학부장실",
+      "raw": "0540",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0539, 0541",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0542",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학",
+    "name": "자율전공학부",
+    "entries": [
+     {
+      "group": null,
+      "label": "학과장실",
+      "raw": "0944",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0945",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0879",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "대학원",
+    "entries": []
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "대 학 원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0160",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0121~4, 0105",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "967-6937",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학술단체협의회",
+      "raw": "9341",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "총학생회",
+      "raw": "0125",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학원보사",
+      "raw": "0139",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교육학과",
+      "raw": "0210",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "나노의약생명과학과",
+      "raw": "0367",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "치의학전문대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0340",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0341~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "960-1457",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "경영대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0126",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0127~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "962-9688",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "계약학과",
+      "raw": "2384",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "0365",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "최고경영자과정",
+      "raw": "2176",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "공공대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0130, 9240",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0131~2, 9241",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9574",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "0133",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "법무대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0610",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0611~3, 9218~9, 0905",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9134",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "9414",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "의학전문대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0273",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0301, 0274",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "969-6958",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "연구지원실",
+      "raw": "9303",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교육지원실",
+      "raw": "0275, 9203",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "임상수기센터",
+      "raw": "9149",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "법학전문대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0610",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0611~3, 9218~9, 0905",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9134",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학생지도센터",
+      "raw": "0392",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "리걸클리닉",
+      "raw": "2343",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제교류센터",
+      "raw": "0516",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Faculty Lounge",
+      "raw": "0982",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생회실",
+      "raw": "9390",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "교육대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0134",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0135~6, 9228",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "964-6674",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "0137",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교육발전연구원",
+      "raw": "9235, 0210",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교원임용고시반",
+      "raw": "0506",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "미디어커뮤니케이션대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0560",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0561",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "967-7083",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "스피치아트클리닉",
+      "raw": "0562",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9415",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "9221",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "대학원",
+    "name": "관광대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0800",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0813~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0811",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "0809",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "부속기관",
+    "entries": []
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "중앙도서관",
+    "entries": [
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "0070",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학술연구지원팀장",
+      "raw": "0071",
+      "kind": "phone"
+     },
+     {
+      "group": "학술연구지원팀",
+      "label": "행정 및 시설",
+      "raw": "0072, 9158",
+      "kind": "phone"
+     },
+     {
+      "group": "학술연구지원팀",
+      "label": "자료개발실(수서)",
+      "raw": "0073",
+      "kind": "phone"
+     },
+     {
+      "group": "학술연구지원팀",
+      "label": "자료개발실(정리)",
+      "raw": "0069",
+      "kind": "phone"
+     },
+     {
+      "group": "학술연구지원팀",
+      "label": "학술DB/이용교육",
+      "raw": "9285, 0079",
+      "kind": "phone"
+     },
+     {
+      "group": "학술연구지원팀",
+      "label": "FAX",
+      "raw": "9555",
+      "kind": "fax"
+     },
+     {
+      "group": "학술서비스팀",
+      "label": "중앙자료실",
+      "raw": "0074, 0078",
+      "kind": "phone"
+     },
+     {
+      "group": "학술서비스팀",
+      "label": "타도서관이용 (상호대차, 원문복사)",
+      "raw": "0077",
+      "kind": "phone"
+     },
+     {
+      "group": "학술서비스팀",
+      "label": "참고자료실",
+      "raw": "0075",
+      "kind": "phone"
+     },
+     {
+      "group": "학술서비스팀",
+      "label": "정기간행물실",
+      "raw": "0076",
+      "kind": "phone"
+     },
+     {
+      "group": "학술서비스팀",
+      "label": "FAX",
+      "raw": "9556",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "법학도서관",
+      "raw": "9323~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9243",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "의학계열도서관",
+      "raw": "9419",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9480",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "한의학도서관",
+      "raw": "0322",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미술자료실",
+      "raw": "0640",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희기록관",
+      "raw": "0759",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "국제교육원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0080",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0081~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "959-9018",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "부원장실",
+      "raw": "0799",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한국어교육부장실",
+      "raw": "0084",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국어교육부장실",
+      "raw": "0785",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국인교원연구실",
+      "raw": "0784",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한국어교수연구실",
+      "raw": "0782, 9327",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한국어강사실",
+      "raw": "9174, 0797, 0786, 0911",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "일본어강사실",
+      "raw": "0794",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "GAVI, 경희한국어문화센터",
+      "raw": "0838",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "신문방송국",
+    "entries": [
+     {
+      "group": null,
+      "label": "국장실",
+      "raw": "0093",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0094",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학주보사",
+      "raw": "0095",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "V.O.U.",
+      "raw": "0096",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "영자신문사",
+      "raw": "0097",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "6442-5849",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "사회교육원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0870",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0871~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교·강사실",
+      "raw": "9177",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주말특별과정",
+      "raw": "0756",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0873",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "중앙박물관",
+    "entries": [
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "0140",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0141",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희자료실",
+      "raw": "0098",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "작업실",
+      "raw": "9269",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9222",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "자연사박물관",
+    "entries": [
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "0142",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0143",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "표본제작실",
+      "raw": "9392",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9321",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "중앙기기센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0215",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9399",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "건강센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "소장실",
+      "raw": "0144",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0145",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "생활관",
+    "entries": [
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "9169",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "삼의원",
+      "raw": "0505, 0767",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "959-1584",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "삼의원 교환기",
+      "raw": "0761~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "세화원",
+      "raw": "9475~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9479",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "세화원 교환기",
+      "raw": "9471~4",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "예비군연대본부",
+    "entries": [
+     {
+      "group": null,
+      "label": "연대장실",
+      "raw": "0148",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0149",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9195",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "교수학습개발원",
+    "entries": [
+     {
+      "group": null,
+      "label": "행정/이러닝지원부",
+      "raw": "0889",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교수/학습개발부",
+      "raw": "0901",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Global Education지원부",
+      "raw": "0902",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Global Zone",
+      "raw": "9366",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0178",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "성평등상담실",
+    "entries": [
+     {
+      "group": null,
+      "label": "상담실",
+      "raw": "0246",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "9417",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "미래문명원",
+    "entries": [
+     {
+      "group": null,
+      "label": "글로벌사업팀",
+      "raw": "0995~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인류사회재건연구원",
+      "raw": "0998",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0997",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "지구사회봉사단",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2213",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "학군단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "962-9004",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "0085~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0087",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "교관실",
+      "raw": "0089",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "의학계열실습지원센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2224~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0850",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "출판문화원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "0106",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0107~8, 0113",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "962-8840",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "국제한의학교육원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "958-9125",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "9157",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "966-0535",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "노동조합",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0600",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0731",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "교수의회",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0018~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "962-5010",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부속기관",
+    "name": "학생생활연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "소장실",
+      "raw": "0204",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "상담실",
+      "raw": "0207",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "부설연구소(원)",
+    "name": "부설연구소(원)",
+    "entries": [
+     {
+      "group": null,
+      "label": "건강가정지원센터",
+      "raw": "0247",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경영연구원",
+      "raw": "0476",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경영패러다임",
+      "raw": "0676",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희법학연구소",
+      "raw": "0744",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "고황의학연구소",
+      "raw": "0303",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "관광개발연구소",
+      "raw": "0819",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "관광산업연구소",
+      "raw": "9402",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "관광산업연구원",
+      "raw": "0819",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교육발전연구원",
+      "raw": "9235, 0210",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교육부특성화사업단",
+      "raw": "9147",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제관광전략연구소",
+      "raw": "0819",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제평화연구소",
+      "raw": "0716",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "글로컬역사문화연구소",
+      "raw": "0209",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국토종합연구소",
+      "raw": "0209",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "기초과학연구소",
+      "raw": "0271",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "나노기반차세대방사선 진단기연구단",
+      "raw": "0617",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "내분비연구소",
+      "raw": "958-8131",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "노인성 및 뇌질환연구소",
+      "raw": "969-6942",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동서간호학연구소",
+      "raw": "9113",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동서골관절연구원",
+      "raw": "440-6791",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동서신장병연구소",
+      "raw": "958-9777",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동서의학연구소",
+      "raw": "958-9080",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "마케팅공학연구센터",
+      "raw": "0476",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문화아이템팩토리센터",
+      "raw": "0973",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문화예술경영연구소",
+      "raw": "9211",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미래혁신정책연구원",
+      "raw": "0457",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "민속학연구소",
+      "raw": "0214",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "바이오나노컴포지트연구소",
+      "raw": "2350",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "밝은사회연구소",
+      "raw": "0163, 741-2274",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "벤처농업경영센터",
+      "raw": "0476",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "보건의료산업연구원",
+      "raw": "0240",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "비폭력연구소",
+      "raw": "0697",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사회과학연구원",
+      "raw": "0903",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "산업관계연구소",
+      "raw": "967-5155~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생활과학연구소",
+      "raw": "9297",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "커뮤니케이션전략연구소",
+      "raw": "0560",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "스마트관광연구소",
+      "raw": "2353",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "신경퇴화제어연구센터",
+      "raw": "2216, 969-4564",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "아동연구센터",
+      "raw": "9186",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "양자 기후-바이오헬스 융합 연구소",
+      "raw": "9279",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "양자물질글로벌연구소",
+      "raw": "0643",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "언어정보연구소",
+      "raw": "0211",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "융합약학연구소",
+      "raw": "0860",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "융합한의학연구소",
+      "raw": "9316",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외식산업경영연구소",
+      "raw": "0819",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "유학생교육지원센터",
+      "raw": "0530",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의과학연구소",
+      "raw": "0534",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의료산업연구원",
+      "raw": "0290",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의학전문BK21사업단",
+      "raw": "0534",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인류사회재건연구원",
+      "raw": "0201, 0205",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인문·사회과학 데이터 연구소",
+      "raw": "9510",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인문학연구원",
+      "raw": "0212",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "임상영양연구소",
+      "raw": "969-7715",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정보디스플레이연구소",
+      "raw": "0688",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정보사회연구소",
+      "raw": "9367",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "종교시민문화연구소",
+      "raw": "0481, 9523",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "차세대디스플레이연구센터",
+      "raw": "0607, 0688",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "첨단소재 및 디바이스 기반 악안면 조직재건 연구소",
+      "raw": "0345",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "침구경락과학연구센터(SRC)",
+      "raw": "0975",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "커뮤니케이션전략연구소",
+      "raw": "9187",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "컨벤션전시정책연구소",
+      "raw": "0819",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "K-컬처·스토리콘텐츠연구소",
+      "raw": "0418",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한국조류연구소",
+      "raw": "0849,0554~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의대 암예방소재개발 연구센터(MRC)",
+      "raw": "964-1074",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "현대미술연구소",
+      "raw": "0912",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔관광정보연구소",
+      "raw": "0819",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "활성산소연구센터(MRC)",
+      "raw": "0524",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "BK21 한의과학사업단",
+      "raw": "0563",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "HATIS기획평가디자인연구소",
+      "raw": "9402",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "LCD거점연구소",
+      "raw": "9153",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "NGO국제연구소",
+      "raw": "0104, 0293",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "학생회",
+    "name": "학생회",
+    "entries": [
+     {
+      "group": null,
+      "label": "총학생회",
+      "raw": "0651",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "0734",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "문과대학",
+      "raw": "0653",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "법과대학",
+      "raw": "0652",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정경대학",
+      "raw": "0654",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경영대학",
+      "raw": "0717",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔관광대학",
+      "raw": "0864",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "이과대학",
+      "raw": "0663",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생활과학대학",
+      "raw": "0708",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의과대학",
+      "raw": "0656",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의과대학",
+      "raw": "0657",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "약학대학",
+      "raw": "0659",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "음악대학",
+      "raw": "0662",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "무용학부",
+      "raw": "0587",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "자율전공학과",
+      "raw": "2340",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "치의학전문대학원",
+      "raw": "0658",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동아리연합회",
+      "raw": "0692",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "고황편집실",
+      "raw": "0699",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "응원단",
+      "raw": "0693",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동아리 교환",
+      "raw": "9116~20",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "편의시설",
+    "name": "편의시설",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "0233~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "962-0498",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학생생활지원존",
+      "raw": "9295",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "편의시설",
+    "name": "식당 및 매점",
+    "entries": [
+     {
+      "group": null,
+      "label": "청운관 식당",
+      "raw": "9348~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "청운관 매점",
+      "raw": "9124",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "청운관 커피점 다향",
+      "raw": "966-2340",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "푸른솔문화관 식당",
+      "raw": "0172~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "푸른솔문화관 커피점 앤유",
+      "raw": "967-2556",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔관광대학 매점",
+      "raw": "0955",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관 매점",
+      "raw": "0950",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문과대학 매점",
+      "raw": "0952",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정경대학 매점",
+      "raw": "0951",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의과대학 매점",
+      "raw": "0954",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의과대학 매점",
+      "raw": "0953",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "오비스홀 매점",
+      "raw": "2187",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "치의학관 매점",
+      "raw": "9162",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "법학관 커피점 다향",
+      "raw": "0471",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "편의시설",
+    "name": "복사실",
+    "entries": [
+     {
+      "group": null,
+      "label": "청운관 복사실",
+      "raw": "962-2876",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관 복사실",
+      "raw": "962-2879",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정경대학 복사실",
+      "raw": "957-0196",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문과대학 복사실",
+      "raw": "969-2811",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "법학관 복사실",
+      "raw": "963-6705",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의과대학 복사실",
+      "raw": "967-4688",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생활과학대학 복사실",
+      "raw": "968-4814",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔관광대학 복사실",
+      "raw": "964-1691",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "이과대학(동관) 복사실",
+      "raw": "963-6045",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의과대학 복사실",
+      "raw": "967-2405",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "음악대학 복사실",
+      "raw": "969-3385",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "치의학관 복사실",
+      "raw": "962-1739",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "네오르네상스관 복사실",
+      "raw": "966-5654",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경영대학 복사실",
+      "raw": "969-2184",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "편의시설",
+    "name": "입점 상가",
+    "entries": [
+     {
+      "group": null,
+      "label": "문구점",
+      "raw": "962-0469",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "서점",
+      "raw": "962-0467",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "기념품점",
+      "raw": "966-2350",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "아름다운세상",
+      "raw": "962-2872",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희안경점",
+      "raw": "960-6595",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "다우컴퓨터",
+      "raw": "965-4000",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "플랜컴",
+      "raw": "969-2244",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "세계유학닷컴",
+      "raw": "3295-5803",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "핸드폰점(니즈텔레콤)",
+      "raw": "3551",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "관리실",
+    "name": "관리실",
+    "entries": [
+     {
+      "group": null,
+      "label": "본관",
+      "raw": "0182",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "본관(당직실)",
+      "raw": "0300",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "본관(직통전화)",
+      "raw": "966-0904",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정문",
+      "raw": "0180",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "후문",
+      "raw": "0907",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공관",
+      "raw": "0183",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교수회관",
+      "raw": "0184",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관",
+      "raw": "0185",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문과대학",
+      "raw": "0187",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "법학관",
+      "raw": "0757",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "제2법학관",
+      "raw": "0747",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "삼의원",
+      "raw": "0768",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "세화원",
+      "raw": "9478",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정경대학",
+      "raw": "0189",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔관광대학",
+      "raw": "0861",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "이과대학 서관",
+      "raw": "0186",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생활과학대학",
+      "raw": "0835",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의과대학",
+      "raw": "0195",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의학계열도서관",
+      "raw": "9481",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의과대학",
+      "raw": "0192",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "약학대학",
+      "raw": "0758",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "음악대학",
+      "raw": "0193",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미술대학",
+      "raw": "0196",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "무용학부",
+      "raw": "0129",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "네오르네상스관",
+      "raw": "0198",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "치의학관",
+      "raw": "0174",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제교육원",
+      "raw": "0199",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "청운관",
+      "raw": "0190",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "자연사박물관",
+      "raw": "0191",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생회관",
+      "raw": "0194",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "평화의전당",
+      "raw": "9245",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "푸른솔문화관",
+      "raw": "9418",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "오비스홀",
+      "raw": "9277",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "선동호",
+      "raw": "0197",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "팔각정",
+      "raw": "0664",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "관리실",
+    "name": "환경미화원실",
+    "entries": [
+     {
+      "group": null,
+      "label": "네오관",
+      "raw": "0110",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문과대학관",
+      "raw": "2189",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "법학관",
+      "raw": "2198",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "제2법학관",
+      "raw": "2202",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정경대학관",
+      "raw": "2196",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "오비스홀",
+      "raw": "2188",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "호텔관광대학관",
+      "raw": "2203",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "이과대학 서관",
+      "raw": "2190",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생활과학대학관",
+      "raw": "2192",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의학관",
+      "raw": "2194",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의과대학관",
+      "raw": "2197",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "약학대학관",
+      "raw": "2192",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제교육원",
+      "raw": "9395",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관",
+      "raw": "2199",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의학계열도서관",
+      "raw": "2195",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "관리실",
+    "name": "보수반 및 기관실",
+    "entries": [
+     {
+      "group": null,
+      "label": "영선반",
+      "raw": "0150",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전기반",
+      "raw": "0152",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "통신실",
+      "raw": "0088",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교환실",
+      "raw": "0114",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "기계설비반",
+      "raw": "0157",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "위생설비반",
+      "raw": "0162",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "양수실",
+      "raw": "0161",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "환경관리실",
+      "raw": "0156",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "온실",
+      "raw": "0153",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "본관 기관실",
+      "raw": "0157",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "치의학관 기관실",
+      "raw": "0155",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "의과대학 기관실",
+      "raw": "0159",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한의과대학 기관실",
+      "raw": "0175",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "청운관 기관실",
+      "raw": "9253",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "평화의전당 기관실",
+      "raw": "9371",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "푸른솔문화관 기관실",
+      "raw": "9420",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "오비스홀 기관실",
+      "raw": "2162",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "삼의원 기관실",
+      "raw": "9238",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "세화원 기관실",
+      "raw": "0158",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "관리실",
+    "name": "불편신고",
+    "entries": [
+     {
+      "group": null,
+      "label": "시설불편사항",
+      "raw": "0040~0042",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전화관련",
+      "raw": "0088",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "기자재 고장관련",
+      "raw": "0400",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "컴퓨터관련",
+      "raw": "9350",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "seoul",
+    "section": "기타",
+    "name": "기타",
+    "entries": [
+     {
+      "group": null,
+      "label": "우편실",
+      "raw": "0166",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "차량반",
+      "raw": "0151",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주차관리소(사무실)",
+      "raw": "0181",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주차관리소(정문)",
+      "raw": "0896",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주차관리소(후문)",
+      "raw": "0907",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "우편취급국",
+      "raw": "957-5100",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "하나은행",
+      "raw": "0138",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "크라운관",
+      "raw": "0111",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "헬스장(청운관)",
+      "raw": "0386",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "골프장(청운관)",
+      "raw": "9412",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교수회관 휴게실",
+      "raw": "9168",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희봉사단",
+      "raw": "0669",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미화용역 사무실",
+      "raw": "9418",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "캡스사무실",
+      "raw": "2181~4",
+      "kind": "phone"
+     }
+    ]
+   }
+  ],
+  "global": [
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "대학본부",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "총장실",
+      "raw": "3002",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3003~4",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "학무부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "3010",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3012~4",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "행·재정부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "3015",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "대외부총장실",
+    "entries": [
+     {
+      "group": null,
+      "label": "부총장실",
+      "raw": "3025",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "기획조정처",
+    "entries": [
+     {
+      "group": null,
+      "label": "전략기획팀",
+      "raw": "3019~20",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학술진흥팀",
+      "raw": "3021~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예산팀",
+      "raw": "2005~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "감사팀",
+      "raw": "2008~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "205-3164",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "재무처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3360",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "재무회계팀",
+      "raw": "3150~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2197",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "대외협력처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3194",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "발전기금팀",
+      "raw": "3190~1",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "교류협력팀",
+    "entries": [
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3192",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "재정운영본부",
+    "entries": [
+     {
+      "group": null,
+      "label": "본부장실",
+      "raw": "3140",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "재정운영팀",
+      "raw": "3141~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8128",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "교무처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3030",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교무팀",
+      "raw": "3031~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학사지원과",
+      "raw": "3038~44",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교직팀",
+      "raw": "3047~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3046",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "미래혁신원 미래혁신단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "3050",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생지원센터(학생)",
+      "raw": "3051~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Fax",
+      "raw": "204-8107",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학생지원센터(장학)",
+      "raw": "3055~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생지원센터(제증명)",
+      "raw": "3180~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생지원센터(상담)",
+      "raw": "3070~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "장애학생지원센터",
+      "raw": "3460~1",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미래인재센터(취업)",
+      "raw": "3061~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "미래인재센터(경력)",
+      "raw": "3061~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "오픈랩",
+      "raw": "3075",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "채용지원서비스",
+      "raw": "3189",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "심리상담센터",
+      "raw": "3070~4",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "미래혁신원 창업지원단",
+    "entries": [
+     {
+      "group": null,
+      "label": "창업보육센터",
+      "raw": "3713~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "206-5150",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "연구처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3520",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구지원팀",
+      "raw": "3522~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8106",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "G-LAMP 사업단",
+      "raw": "3380~3385",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "입학처",
+    "entries": [
+     {
+      "group": null,
+      "label": "대표번호",
+      "raw": "3300",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3080",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "입학팀",
+      "raw": "3081~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "입학전형연구센터",
+      "raw": "3086~99",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8105",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "입시상담",
+      "raw": "1544-2828",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "인사처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3900",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인사운영팀",
+      "raw": "3901~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8129",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "커뮤니케이션센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "커뮤니케이션팀",
+      "raw": "3395~6",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "총무관리처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3100",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "총무팀",
+      "raw": "3101~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "구매",
+      "raw": "3106~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8109",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "관리팀",
+      "raw": "3120~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8110",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "관재팀",
+      "raw": "3130~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8109",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "안전팀",
+      "raw": "3129",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "국제처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3960",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제교류팀/글로벌입학팀 /글로벌교육지원팀",
+      "raw": "3961~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3969",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "정보처",
+    "entries": [
+     {
+      "group": null,
+      "label": "처장실",
+      "raw": "3160",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정보화전략팀",
+      "raw": "3168~3172, 3341",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정보인프라팀",
+      "raw": "3175~3179",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정보시스템개발팀",
+      "raw": "3163~3167",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "IT 문의",
+      "raw": "3171~3172",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2882",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "교육혁신사업단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "3910",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사업추진팀",
+      "raw": "3911~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-8009",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "LINC+사업단",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무국",
+      "raw": "3921~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "현장실습지원센터",
+      "raw": "3925",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학본부",
+    "name": "실감미디어 혁신공유대학사업단",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무국",
+      "raw": "3745~7",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "대학",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "전자정보대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2500",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2501~2, 2936",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8115",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "교수휴게실",
+      "raw": "2528",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "전자공학",
+      "raw": "2520, 2589",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "생체의공학",
+      "raw": "2943",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "소프트웨어융합대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "3700",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3701~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8115",
+      "kind": "fax"
+     },
+     {
+      "group": "학과사무실",
+      "label": "컴퓨터공학",
+      "raw": "3722",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "소프트웨어융합학",
+      "raw": "3721",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "인공지능학",
+      "raw": "2516",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "공과대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2400",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2401~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "202-8106, 204-8114, 202-8854",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "교수휴게실",
+      "raw": "2503",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "명예교수실",
+      "raw": "2556",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "CAL LAB",
+      "raw": "2659",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "기계공학",
+      "raw": "2504",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "산업경영공학",
+      "raw": "2552",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "원자력공학",
+      "raw": "2558",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "화학공학",
+      "raw": "2529",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "신소재공학과",
+      "raw": "2989",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "사회기반시스템공학",
+      "raw": "2545",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "건축공학",
+      "raw": "2536",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "환경학및환경공학",
+      "raw": "2426",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "건축학",
+      "raw": "3651",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "생명과학대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2600",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2601~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8116",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "전산실",
+      "raw": "2624",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "BK 생명과학원행정실",
+      "raw": "2613",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "203-8127",
+      "kind": "fax"
+     },
+     {
+      "group": "학과사무실",
+      "label": "유전공학",
+      "raw": "2433",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "식품생명공학",
+      "raw": "2623",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "한방재료가공학",
+      "raw": "2604",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "식물·환경신소재공학",
+      "raw": "2616",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "원예생명공학",
+      "raw": "2169",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "국제대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2300",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2301~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8120",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "예술디자인대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2671",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2672~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8127",
+      "kind": "fax"
+     },
+     {
+      "group": "학과사무실",
+      "label": "도예학",
+      "raw": "2637",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "FAX",
+      "raw": "201-2642",
+      "kind": "fax"
+     },
+     {
+      "group": "학과사무실",
+      "label": "디지털콘텐츠학",
+      "raw": "2052",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "산업디자인학",
+      "raw": "2644",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "시각정보디자인학",
+      "raw": "2051",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "연극영화학",
+      "raw": "2054",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "의류디자인학",
+      "raw": "2053",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "전공기초사무실",
+      "raw": "2363",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "환경조경디자인학",
+      "raw": "2630",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "Post Modern 음악학",
+      "raw": "2055",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "후마니타스칼리지",
+    "entries": [
+     {
+      "group": null,
+      "label": "대학장실",
+      "raw": "3400",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "3401",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3402~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교강사휴게실",
+      "raw": "3420",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "수업지원실(멀티관)",
+      "raw": "3421",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "수업지원실(글로벌관)",
+      "raw": "3422",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인터내셔널라운지",
+      "raw": "3423",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "휘트니스센터",
+      "raw": "3424",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3399",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "응용과학대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "3800",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3801~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8122",
+      "kind": "fax"
+     },
+     {
+      "group": "학과사무실",
+      "label": "응용수학",
+      "raw": "2404",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "응용물리학",
+      "raw": "2411",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "응용화학",
+      "raw": "2419",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "우주과학",
+      "raw": "2440",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "외국어대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2200",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2201~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8112",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "학과사무실",
+      "raw": "3777",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교수휴게실",
+      "raw": "2283",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "명예교수실",
+      "raw": "2266",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "자료실",
+      "raw": "2250",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국인전용학습실",
+      "raw": "2238",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전산실습실",
+      "raw": "2237",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한국언어문화자료실",
+      "raw": "2891",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "회의실",
+      "raw": "2295",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "프랑스어학",
+      "raw": "2212",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "스페인어학",
+      "raw": "2232",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "러시아어학",
+      "raw": "2225",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "중국어학",
+      "raw": "2219",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "일본어학",
+      "raw": "2226",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "한국어학",
+      "raw": "2239",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "글로벌커뮤니케이션학부",
+      "raw": "2204",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "자유전공학부",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "3443",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3440",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학",
+    "name": "체육대학",
+    "entries": [
+     {
+      "group": null,
+      "label": "학장실",
+      "raw": "2700",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2701~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8117",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "교·강사휴게실",
+      "raw": "2703",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "명예교수실",
+      "raw": "2707",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제태권도아카데미(ITA)",
+      "raw": "2016",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "동문회실",
+      "raw": "2725",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "스포츠과학연구원",
+      "raw": "2249",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "실험준비실(기재실)",
+      "raw": "2704",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "웨이트장",
+      "raw": "2737",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전산실",
+      "raw": "2739",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "체육학",
+      "raw": "2705",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "스포츠학",
+      "raw": "2741",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "골프산업학",
+      "raw": "2742",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "스포츠지도학",
+      "raw": "2740",
+      "kind": "phone"
+     },
+     {
+      "group": "학과사무실",
+      "label": "태권도학",
+      "raw": "2718",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "대학원",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "일반대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "3500",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3501~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8118",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "국제대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2307",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2146~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8120",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "교육대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2024",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2021~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2023",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "2258",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "체육대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "3740",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3741~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3743",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "동문회실",
+      "raw": "3745",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "3744",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "테크노경영대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2133",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2130~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2777",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "2138",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "논문지도실",
+      "raw": "2193",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교수휴게실",
+      "raw": "2145",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "아트·퓨전디자인대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2165",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2166~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8127",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "도자유리연구실",
+      "raw": "2686",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "원우회실",
+      "raw": "2050",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "대학원",
+    "name": "동서의학대학원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2746",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2743~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8119",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3808~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8119",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "부속기관",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "중앙도서관",
+    "entries": [
+     {
+      "group": null,
+      "label": "대표전화",
+      "raw": "3217",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "3200",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무국장실",
+      "raw": "3201",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사서과 서무계",
+      "raw": "3205",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사서과 수서계",
+      "raw": "3202~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사서과 정리계",
+      "raw": "3206~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8111",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "열람과 열람계",
+      "raw": "3210, 3213~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "열람과 장서계",
+      "raw": "3211, 3218",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "열람과 학위논문계",
+      "raw": "3212, 3174",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2657",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "참고열람과",
+      "raw": "3219~24",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "UN자료실",
+      "raw": "3221",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "분관관리팀(영상음향자료실)",
+      "raw": "3226~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학도서관",
+      "raw": "3225",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "평생교육원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "3370",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대표 전화",
+      "raw": "3377",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교학부",
+      "raw": "3371~4",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8124",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "한국어 교육부",
+      "raw": "3590",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희요가교육센터",
+      "raw": "3623",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "국제교육원(국제)",
+    "entries": [
+     {
+      "group": null,
+      "label": "교학부",
+      "raw": "3940~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Fax",
+      "raw": "204-8124",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "건강센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3118~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3379",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "생활관",
+    "entries": [
+     {
+      "group": null,
+      "label": "관장실",
+      "raw": "3453",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "우정원사감실",
+      "raw": "3640",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Fax",
+      "raw": "8092-7111",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "운영팀",
+      "raw": "3645",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "시설팀",
+      "raw": "8092-7116",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "제2기숙사사감실",
+      "raw": "3638~9",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "체육부",
+    "entries": [
+     {
+      "group": null,
+      "label": "부장실",
+      "raw": "3261",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3262~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2887",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "감독실",
+      "raw": "2761~71",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "체육시설운영단",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2790~3",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "공학교육혁신센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "센터장실",
+      "raw": "2986",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3254~5, 3287",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3288",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "공동기기원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2497",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "2246~7",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2248",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "방사선계측실",
+      "raw": "2247",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "부품가공실",
+      "raw": "2971",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "분석기기실1",
+      "raw": "2245",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "분석기기실2",
+      "raw": "3661",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "분석기기실3",
+      "raw": "3662",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "분석기기실4",
+      "raw": "2143",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전처리실",
+      "raw": "3661",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "SEM실",
+      "raw": "2930",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "TEM실",
+      "raw": "3662",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "XRD실",
+      "raw": "2245",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "예비군연대본부",
+    "entries": [
+     {
+      "group": null,
+      "label": "연대장실",
+      "raw": "3265",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3266~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8125",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "교수학습개발원",
+    "entries": [
+     {
+      "group": null,
+      "label": "센터장실",
+      "raw": "3950",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3951~5",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "이러닝지원실(KLAS)",
+      "raw": "3198",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3959",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "GSN",
+      "raw": "3586~7",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "혜정박물관",
+    "entries": [
+     {
+      "group": null,
+      "label": "혜정박물관",
+      "raw": "2010",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2011~4, 2140~1",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2015",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "학교기업(한방재료가공)",
+    "entries": [
+     {
+      "group": null,
+      "label": "대표이사실",
+      "raw": "2606",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "운영사무실",
+      "raw": "3657~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-3657, 273-6322",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "우정원전시판매장",
+      "raw": "3624",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "소비자상담실",
+      "raw": "273-6323",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "원자로센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2059, 2060",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2066",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "지구사회봉사단(GSC)",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무국",
+      "raw": "3581~3",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "천문대",
+    "entries": [
+     {
+      "group": null,
+      "label": "대장실",
+      "raw": "2473",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "분광연구실",
+      "raw": "2471",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2470",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "206-2470",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "연구실(1)",
+      "raw": "2479",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(2)",
+      "raw": "2480",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(3)",
+      "raw": "3679",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(5)",
+      "raw": "2474",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(6)",
+      "raw": "2445",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(7)",
+      "raw": "2690",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(8)",
+      "raw": "2478",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실(9)",
+      "raw": "3877",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "202호교수연구실",
+      "raw": "3870",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "203호연구박사실",
+      "raw": "3871",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "207호연구박사실",
+      "raw": "3873",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "208호연구박사실",
+      "raw": "3874",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "209호교수연구실",
+      "raw": "3875",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "가공실",
+      "raw": "3668",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "부품실",
+      "raw": "3669",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "실험실",
+      "raw": "3667",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주관측실",
+      "raw": "2483",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주조종실",
+      "raw": "2482",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "지자기실",
+      "raw": "2478",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "천문대부속실",
+      "raw": "3872",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "클린룸",
+      "raw": "3670",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "출판문화원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3395~6",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "노동조합",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3285~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8126",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "교수의회",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3280~1",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "총동문회",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "학군단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "3270",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3271~2",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3273",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "신문방송국",
+    "entries": [
+     {
+      "group": null,
+      "label": "국장실",
+      "raw": "3230",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "행정실",
+      "raw": "3231",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "Fax",
+      "raw": "204-8121",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "대학주보편집실",
+      "raw": "3232",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "영어저널 편집실",
+      "raw": "3233",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "대학의 소리 방송국 편집실",
+      "raw": "3234",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부속기관",
+    "name": "산학협력단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "3520",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무국장",
+      "raw": "3521",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "산학기획팀",
+      "raw": "3526~9",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "산학지원팀",
+      "raw": "3530~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "교수 R&D 지원센터",
+      "raw": "3535~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구관리팀",
+      "raw": "3537~54",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8106",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "부설연구소(원)",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "감정문화연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2215",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "결정기능화공정기술센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2997",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "국제지역연구원",
+    "entries": [
+     {
+      "group": null,
+      "label": "원장실",
+      "raw": "2380",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2384",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "205-2384",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "HK연구실",
+      "raw": "2382",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "HK자료실",
+      "raw": "2383",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "국제학연구원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2349",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2128",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "근골격계바이오장기센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3829",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "실험실",
+      "raw": "3781",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "글로벌류큐·오키나와연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2267",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "글로벌인문기술연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2215",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "글로벌인문학술원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2215",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "동서신의학 U-라이프케어연구센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2514",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "202-2520",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "동아시아서지문헌연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2214",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "202-2520",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "디스플레이부품·소재 RIC",
+    "entries": [
+     {
+      "group": null,
+      "label": "소장실",
+      "raw": "3257",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "회계행정팀",
+      "raw": "3257~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구개발팀",
+      "raw": "3259",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공정분석팀",
+      "raw": "3295~6",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-3294",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "FPD Fab.",
+      "raw": "3297",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "준비실",
+      "raw": "3297",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "소재화학실험실",
+      "raw": "3297",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "박막공정실험실",
+      "raw": "3298",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "소재물성평가실",
+      "raw": "3298",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "디스플레이특성평가실",
+      "raw": "3298",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "레이저공학연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "연구실",
+      "raw": "2126, 2181",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "206-2820",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "멀티미디어기술연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2493",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "메타트랜스포메이션연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3632",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "비교문화연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2215",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "생명자원과학연구원",
+    "entries": [
+     {
+      "group": null,
+      "label": "연구실",
+      "raw": "2681, 3827",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-8116",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "스포츠과학연구원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2249",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2249",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "국민체육과학연구부",
+      "raw": "2249",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제태권도연구부",
+      "raw": "2249",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "스포츠산업경영연구부",
+      "raw": "2249",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한국골프산업연구부",
+      "raw": "2249",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "스포츠커뮤니케이션 융합센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2775",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "실감형유비쿼터스 IPTV 연구센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3239",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-0599",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "실시간모바일클라우드연구센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2958",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "언어대조·언어교육연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2215",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "예술디자인연구원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2122",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "인삼소재은행",
+    "entries": [
+     {
+      "group": null,
+      "label": "은행장실",
+      "raw": "2100",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "연구실",
+      "raw": "3243",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "실험실",
+      "raw": "3836~7",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "임피던스영상신기술연구센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "센터장실",
+      "raw": "2538",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2376",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-2378",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "IIRC 연구실",
+      "raw": "2379, 3727",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "MRI실",
+      "raw": "3656",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "영재교육센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3856",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "융합지식연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2372~3",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "204-2530",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "실험실",
+      "raw": "2374",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "수리계산센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2038",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "자연과학종합연구원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2810",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "자연과학종합연구부",
+      "raw": "2152",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "중소기업산학협력센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3720",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "지속가능건강건축연구센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "센터장실",
+      "raw": "2539",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2109",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "206-2109",
+      "kind": "fax"
+     },
+     {
+      "group": null,
+      "label": "연구실",
+      "raw": "2728",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "실험실",
+      "raw": "2729",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "피부생명공학센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "888-6171",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "888-6173",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "천연물의약소재개발 및 표준화지원사업단",
+    "entries": [
+     {
+      "group": null,
+      "label": "단장실",
+      "raw": "3595",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "3596",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "FAX",
+      "raw": "201-3594",
+      "kind": "fax"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "체육영재교육원",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2785",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "현대문학연구소",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2215",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "부설연구소(원)",
+    "name": "환경연구센터",
+    "entries": [
+     {
+      "group": null,
+      "label": "사무실",
+      "raw": "2158",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "학생회",
+    "name": "학생회",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "학생회",
+    "name": "총학생회",
+    "entries": [
+     {
+      "group": "대학원 총학생회",
+      "label": "대학원 총학생회",
+      "raw": "2137",
+      "kind": "phone"
+     },
+     {
+      "group": "대학원 총학생회",
+      "label": "FAX",
+      "raw": "201-2890",
+      "kind": "fax"
+     },
+     {
+      "group": "총학생회",
+      "label": "총학생회",
+      "raw": "2800",
+      "kind": "phone"
+     },
+     {
+      "group": "총학생회",
+      "label": "동아리연합회",
+      "raw": "2802",
+      "kind": "phone"
+     },
+     {
+      "group": "총학생회",
+      "label": "응원단",
+      "raw": "2808",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "학생회",
+    "name": "대학 학생회",
+    "entries": [
+     {
+      "group": null,
+      "label": "공과대학",
+      "raw": "2884",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생명과학대학",
+      "raw": "2814",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제대학",
+      "raw": "2863",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국어대학",
+      "raw": "2812",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "체육대학",
+      "raw": "2816",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "편의시설",
+    "entries": []
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "우정원 입점 상가",
+    "entries": [
+     {
+      "group": null,
+      "label": "경희타운(기념품)",
+      "raw": "273-7775",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희맛고을",
+      "raw": "202-2939",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희요가교육센터",
+      "raw": "201-3623",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "구두수선",
+      "raw": "205-1553",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "김밥라면",
+      "raw": "205-0552",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희꽃화원",
+      "raw": "205-2600",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "데일리레스토랑",
+      "raw": "205-2055",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "문구점",
+      "raw": "205-7291",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희헤어",
+      "raw": "205-0207",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "인쇄실",
+      "raw": "202-6976",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "빨래방",
+      "raw": "205-1400",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희사이버대학교",
+      "raw": "206-3277",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "사진관",
+      "raw": "205-0641",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "서점",
+      "raw": "202-5167",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "스포츠잡화점",
+      "raw": "203-5951",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "세일안경",
+      "raw": "202-1470",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "약국",
+      "raw": "205-4339",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "일층카페",
+      "raw": "206-5085",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "설우동",
+      "raw": "205-3220",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "매그놀리아",
+      "raw": "202-2193",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "맘스터치",
+      "raw": "205-5400",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "옛날짜장",
+      "raw": "205-0849",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "맛두레(칼국수)",
+      "raw": "202-5249",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "태권도 문화연구원",
+      "raw": "273-2966",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "토스피아",
+      "raw": "205-8204",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "재니하우스(피자)",
+      "raw": "203-0189",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "한방바이오",
+      "raw": "202-8245",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "방가밥죠",
+      "raw": "206-3611",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희화장품,네일",
+      "raw": "204-5846",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희레코드",
+      "raw": "203-4543",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "GS25",
+      "raw": "205-0575",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예인에셋",
+      "raw": "205-6968",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "조인스유학원",
+      "raw": "205-2430",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "캠퍼(핫도그점)",
+      "raw": "205-1580",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "떼르드글라스",
+      "raw": "205-0711",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "경희보감전시판매점",
+      "raw": "273-6323",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "밥리알버거",
+      "raw": "273-2159",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "아델리꼬(의류)",
+      "raw": "204-1780",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "와우통신",
+      "raw": "203-4023",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "플랜컴(여행사)",
+      "raw": "203-2248",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "제2기숙사 매점",
+    "entries": [
+     {
+      "group": null,
+      "label": "영푸드(분식)",
+      "raw": "202-1050",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "세탁소",
+      "raw": "203-9258",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "편의점",
+    "entries": [
+     {
+      "group": null,
+      "label": "오피스디포/CRS컴퓨터",
+      "raw": "206-7576",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "매점",
+    "entries": [
+     {
+      "group": null,
+      "label": "공학관",
+      "raw": "273-8576",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보대학관",
+      "raw": "2106, 202-7173",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제학관",
+      "raw": "202-3039",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제·경영대학관",
+      "raw": "2105",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국어대학관",
+      "raw": "202-7669",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예술디자인대학관",
+      "raw": "2906, 203-2014",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "체육대학관",
+      "raw": "273-5096",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관",
+      "raw": "204-0874",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생회관",
+      "raw": "2107",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "복사실",
+    "entries": [
+     {
+      "group": null,
+      "label": "공학관",
+      "raw": "202-8578",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제학관",
+      "raw": "202-3039",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "멀티미디어관",
+      "raw": "203-9560",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생명과학대학관",
+      "raw": "202-9562",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국어대학관",
+      "raw": "202-7452",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보응용과학대학관",
+      "raw": "206-9407",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "체육대학관",
+      "raw": "203-9503",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관 취업정보카페",
+      "raw": "3690",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예디관 CALE VOICE",
+      "raw": "273-7319",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "편의시설",
+    "name": "제2기숙사(여) 플라타너스",
+    "entries": [
+     {
+      "group": null,
+      "label": "우정원 일층까페",
+      "raw": "206-5085",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "까페데땅",
+      "raw": "205-6814",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관",
+      "raw": "273-8576",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "우정원",
+      "raw": "8092-7131, 273-9202",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생회관",
+      "raw": "2018",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "관리실",
+    "name": "관리실",
+    "entries": [
+     {
+      "group": null,
+      "label": "멀티관기관실",
+      "raw": "2084",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관기관실",
+      "raw": "2086",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "체육대학관기관실",
+      "raw": "2085",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "도서관기관실",
+      "raw": "2087~8",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예술관기관실",
+      "raw": "2083",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관전기실",
+      "raw": "2090",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "도서관전기실",
+      "raw": "2929",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관통신실",
+      "raw": "3115",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "도서관통신실",
+      "raw": "2115",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "목공실",
+      "raw": "2091",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "온실",
+      "raw": "2089",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "차량반",
+      "raw": "2093",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "오수처리장(1호)",
+      "raw": "2904",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "쓰레기분리장",
+      "raw": "2914",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중기사무실",
+      "raw": "2097",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주차장관리사무실",
+      "raw": "3773",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주차장정산소",
+      "raw": "3774~6",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "관리실",
+    "name": "수위실",
+    "entries": [
+     {
+      "group": null,
+      "label": "멀티미디어교육관",
+      "raw": "2018",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관",
+      "raw": "2071",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보대학관(구)",
+      "raw": "2099",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보대학관(신)",
+      "raw": "2076",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제학관",
+      "raw": "2389",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "정문",
+      "raw": "2070",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "공학관",
+      "raw": "2071",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "외국어 대학관",
+      "raw": "2072",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "체육대학관",
+      "raw": "2073",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "생명과학대학관",
+      "raw": "2074",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제·경영대학관",
+      "raw": "2075",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보대학관(신)",
+      "raw": "2099",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보대학관(구)",
+      "raw": "2076",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "애지원",
+      "raw": "3726",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "우정원",
+      "raw": "8092-7112",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "학생회관",
+      "raw": "2079",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "천문대",
+      "raw": "2918",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관",
+      "raw": "2081",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제학관",
+      "raw": "2389",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "멀티미디어교육관",
+      "raw": "2018",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "도서관광장",
+      "raw": "2439",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예술디자인대학관",
+      "raw": "2098",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "관리실",
+    "name": "환경미화원 대기실",
+    "entries": [
+     {
+      "group": null,
+      "label": "공학관",
+      "raw": "3724",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "국제학관",
+      "raw": "2346",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "글로벌관",
+      "raw": "2342",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "도예관",
+      "raw": "2679",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "멀티미디어관",
+      "raw": "2666",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "실험연구동A",
+      "raw": "2092",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "애지원",
+      "raw": "3726",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "예술 디자인대학관",
+      "raw": "2772",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보·응용과학대학관(구)",
+      "raw": "2491",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "전자정보·응용과학대학관(신)",
+      "raw": "3718",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관2층",
+      "raw": "2342, 2856",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "중앙도서관4층",
+      "raw": "2798",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "지하주차장",
+      "raw": "2082",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "체육대학관",
+      "raw": "3725",
+      "kind": "phone"
+     }
+    ]
+   },
+   {
+    "campus": "global",
+    "section": "기타",
+    "name": "기타",
+    "entries": [
+     {
+      "group": null,
+      "label": "버스주차장",
+      "raw": "2915",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "주차관리실",
+      "raw": "3773",
+      "kind": "phone"
+     },
+     {
+      "group": null,
+      "label": "하나은행",
+      "raw": "2120, 203-3111",
+      "kind": "phone"
+     }
+    ]
+   }
+  ]
+ }
+}
