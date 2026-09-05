@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>경희공지 — 흩어진 경희대 공지를 한 곳에</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --khu-red:#A40F16; --khu-red-deep:#7E0B11; --khu-blue:#0D326F; --khu-gold:#C0A353; --khu-gray:#717171; --khu-silver:#B5B5B5;
+  --bg:#F4F2EE; --paper:#FFFFFF; --ink:#2B2B2B; --ink-2:#555; --line:#E3DFD7; --line-2:#EFECE6;
+  --sans:'Noto Sans KR',system-ui,sans-serif; --serif:'Noto Serif KR',serif; --num:'Roboto Condensed','Noto Sans KR',sans-serif;
+  --r:12px; --shadow:0 1px 2px rgba(43,43,43,.05),0 8px 24px -12px rgba(43,43,43,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:14px;line-height:1.55;
+  background-image:radial-gradient(rgba(164,15,22,.045) 1px,transparent 1px);background-size:22px 22px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--khu-blue);text-decoration:none}
+.num{font-family:var(--num);letter-spacing:.01em}
+
+/* ---------- header ---------- */
+.hdr{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hdr::before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--khu-gold) 0 18%,var(--khu-red) 18% 82%,var(--khu-blue) 82%)}
+.hdr-in{max-width:1240px;margin:0 auto;padding:10px 16px 0;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand img{height:34px;width:auto;display:block}
+.brand .t{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--khu-red);letter-spacing:-.01em;line-height:1}
+.brand .s{font-size:10.5px;color:var(--khu-gray);letter-spacing:.02em;margin-top:3px;white-space:nowrap}
+@media(max-width:480px){.brand .s{display:none}.brand .t{font-size:18px}.hdr-in{gap:8px}}
+.campus{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#fff}
+.campus button{white-space:nowrap;padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:500;color:var(--khu-gray)}
+.campus button.on{background:var(--khu-blue);color:#fff}
+.ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--ink-2)}
+.ico:hover{background:var(--line-2)}
+.tabs{max-width:1240px;margin:0 auto;padding:0 8px;display:flex;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 12px 9px;font-size:14.5px;font-weight:500;color:var(--khu-gray);border-bottom:2.5px solid transparent;white-space:nowrap;position:relative}
+.tab.on{color:var(--khu-red);border-color:var(--khu-red);font-weight:700}
+.tab .badge{display:inline-block;font-family:var(--num);font-size:11px;background:var(--khu-red);color:#fff;border-radius:999px;padding:0 6px;margin-left:5px;vertical-align:2px}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1240px;margin:0 auto;padding:14px 16px 90px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+main{min-width:0}
+.col-l,.col-r{display:none}
+@media(min-width:1024px){
+  .wrap{grid-template-columns:240px minmax(0,720px) 260px;justify-content:center;gap:24px;padding-top:22px}
+  .col-l,.col-r{display:block}
+  .col-l{position:sticky;top:94px;align-self:start}.col-r{position:sticky;top:94px;align-self:start}
+  .m-only{display:none!important}
+}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.panel h4{font-size:12px;letter-spacing:.06em;color:var(--khu-gray);text-transform:uppercase;padding:12px 14px 6px;font-family:var(--num);font-weight:700}
+.tree{padding:4px 8px 10px;font-size:13.5px}
+.tree li{list-style:none}
+.tree .row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px}
+.tree .row:hover{background:var(--line-2)}
+.tree .row.mine{background:#FBEEEF;color:var(--khu-red);font-weight:700}
+.tree ul ul .row{padding-left:22px}.tree ul ul ul .row{padding-left:36px}
+.tree .cnt{margin-left:auto;font-family:var(--num);font-size:12px;color:var(--khu-silver)}
+.chk{padding:6px 14px 12px;display:flex;flex-direction:column;gap:2px}
+.chk label{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13.5px;cursor:pointer}
+.chk input{accent-color:var(--khu-red)}
+
+/* ---------- new banner ---------- */
+.newbar{display:flex;align-items:center;gap:10px;background:var(--khu-blue);color:#fff;border-radius:var(--r);padding:10px 14px;font-size:13.5px;box-shadow:var(--shadow);animation:rise .5s .05s both}
+.newbar b{font-family:var(--num);font-size:18px;font-weight:700}
+.newbar .x{margin-left:auto;opacity:.7}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- deadline strip ---------- */
+.dl h3,.sec h3{font-family:var(--serif);font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin:4px 2px 8px}
+.dl h3 .pip{width:8px;height:8px;border-radius:50%;background:var(--khu-gold);box-shadow:0 0 0 3px rgba(192,163,83,.25)}
+.dl-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+.dl-row::-webkit-scrollbar{display:none}
+.dlc{flex:0 0 200px;min-width:0;background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--khu-gold);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.dlc:hover{transform:translateY(-2px)}
+.dday{font-family:var(--num);font-weight:700;font-size:13px;color:var(--khu-gold);display:inline-flex;align-items:center;gap:4px}
+.dday.hot{color:var(--khu-red)}
+.dlc .t{font-weight:500;font-size:13.5px;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}
+.dlc .m{font-size:11.5px;color:var(--khu-gray);margin-top:4px}
+@media(min-width:1024px){.col-r .dl-row{flex-direction:column;overflow:visible}.col-r .dlc{flex:none}}
+
+/* ---------- chips ---------- */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none;position:sticky;top:98px;z-index:10;background:linear-gradient(var(--bg) 80%,transparent)}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:500;color:var(--ink-2);transition:all .12s}
+.chip:hover{border-color:var(--khu-silver)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.all.on{background:var(--khu-red);border-color:var(--khu-red)}
+
+/* ---------- cards ---------- */
+.feed{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 12px 18px;position:relative;box-shadow:var(--shadow);cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0;animation:rise .45s both;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(43,43,43,.06),0 14px 30px -12px rgba(43,43,43,.18)}
+.card.unread::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:var(--khu-red)}
+.card.ig{grid-template-columns:76px minmax(0,1fr);column-gap:14px}
+.card.ig .thumb{grid-row:1/4;width:76px;height:76px;border-radius:8px;overflow:hidden;position:relative;background:#ddd}
+.card.ig .thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,transparent 50%,rgba(0,0,0,.25))}
+.thumb.p1{background:linear-gradient(135deg,#A40F16,#E2712C)}
+.thumb.p2{background:linear-gradient(135deg,#0D326F,#00B0B9)}
+.thumb.p3{background:linear-gradient(135deg,#C0A353,#A40F16)}
+.thumb.p4{background:linear-gradient(135deg,#2c2c2c,#0D326F)}
+.thumb .poster{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-family:var(--serif);font-weight:700;font-size:13px;text-align:center;padding:6px;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.card .title{font-size:15.5px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:-.01em}
+.card.read .title{font-weight:500;color:var(--ink-2)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tg{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;line-height:1.5}
+.org{font-size:11.5px;font-weight:500;padding:1.5px 8px;border-radius:6px;border:1px solid var(--line);color:var(--khu-gray);background:#fff}
+.meta{font-size:12px;color:var(--khu-gray);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.meta .src{color:var(--ink-2);font-weight:500}
+.meta .clu{color:var(--khu-blue);font-weight:500}
+.meta svg{width:13px;height:13px;vertical-align:-2px}
+.meta .dday{font-size:12px;margin-left:auto}
+.c-학사{background:#E8EDF6;color:#0D326F}.c-졸업{background:#EDE9F5;color:#4B3A8C}.c-장학{background:#F7F1DF;color:#8A6D1F}
+.c-취업인턴{background:#DFF3F4;color:#0F6F75}.c-창업{background:#E4F2E8;color:#1F6B3A}.c-프로그램공모전{background:#FDEBDD;color:#A3501A}
+.c-국제{background:#E3EEF8;color:#1C5B8E}.c-행사{background:#F8E3E4;color:#A40F16}.c-학생회{background:#F3E6EA;color:#7A2140}
+.c-생활{background:#EEF0F2;color:#4A5560}.c-기타{background:#F0F0F0;color:#717171}.c-연락처{background:#FFF4E5;color:#8C5A00}
+
+.ad{border:1px dashed var(--khu-silver);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:14px;background:repeating-linear-gradient(-45deg,#fff 0 8px,#faf8f4 8px 16px)}
+.ad .lab{font-family:var(--num);font-size:10px;letter-spacing:.12em;color:var(--khu-gray);border:1px solid var(--khu-silver);padding:1px 5px;border-radius:4px;flex:none}
+.ad .box{width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#0D326F,#1C5B8E);flex:none}
+.ad b{display:block;font-size:13.5px}.ad small{color:var(--khu-gray)}
+
+.empty{text-align:center;padding:60px 16px;color:var(--khu-gray)}
+.empty .big{font-family:var(--serif);font-size:18px;color:var(--ink);margin-bottom:6px}
+
+/* ---------- 전체 filters ---------- */
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.sel{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500}
+.sel.on{border-color:var(--khu-blue);color:var(--khu-blue);background:#F1F4FA}
+.sel svg{width:12px;height:12px;opacity:.6}
+
+/* ---------- 출처 ---------- */
+.srcs{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.grp{padding:12px 14px 6px;font-family:var(--serif);font-weight:700;font-size:15px;display:flex;align-items:baseline;gap:8px;border-top:1px solid var(--line-2)}
+.grp:first-child{border-top:0}
+.grp small{font-family:var(--num);font-weight:400;font-size:12px;color:var(--khu-gray)}
+.srow{display:grid;grid-template-columns:22px 1fr auto auto;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--line-2)}
+.srow:hover{background:#FBFAF7}
+.srow .n{font-size:13.5px;font-weight:500;display:flex;flex-direction:column}
+.srow .n small{font-size:11.5px;color:var(--khu-gray);font-weight:400}
+.st{display:inline-flex;align-items:center;gap:5px;font-family:var(--num);font-size:12px;color:var(--khu-gray)}
+.dot{width:7px;height:7px;border-radius:50%;background:#2FA36B}.dot.warn{background:#D9A400}.dot.err{background:var(--khu-red)}
+.sw{width:40px;height:22px;border-radius:999px;background:var(--khu-silver);position:relative;transition:background .15s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.sw.on{background:var(--khu-red)}.sw.on::after{left:20px}
+.igico{width:14px;height:14px}
+
+/* ---------- 연락처 ---------- */
+.search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:10px}
+.search input{border:0;outline:0;font:inherit;flex:1;background:none}
+.search svg{width:16px;height:16px;color:var(--khu-gray)}
+.contacts{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:640px){.contacts{grid-template-columns:1fr 1fr}}
+.cc{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.cc::after{content:"";position:absolute;right:-18px;top:-18px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(192,163,83,.18),transparent 70%)}
+.cc .k{font-size:11px;font-weight:700;color:var(--khu-gold);letter-spacing:.06em;font-family:var(--num)}
+.cc .n{font-family:var(--serif);font-weight:700;font-size:16px;margin:2px 0 8px}
+.cc dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}
+.cc dt{color:var(--khu-gray);font-size:12px}.cc dd a{font-family:var(--num);font-size:13.5px}
+.cc .acts{display:flex;gap:6px;margin-top:10px}
+.cc .acts a{font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;background:#F1F4FA;color:var(--khu-blue)}
+.cc .acts a.call{background:#FBEEEF;color:var(--khu-red)}
+
+/* ---------- detail sheet ---------- */
+.ov{position:fixed;inset:0;background:rgba(43,43,43,.45);z-index:40;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.ov.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:8px 20px 28px;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+@media(min-width:640px){.ov{align-items:center}.sheet{border-radius:16px;max-height:84vh}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 14px}
+.sheet h2{font-family:var(--serif);font-size:19px;line-height:1.35;margin:6px 0 10px}
+.sheet .body{font-size:14px;color:var(--ink-2);white-space:pre-line;margin:14px 0;padding:14px;background:#FAF9F6;border-radius:10px;border:1px solid var(--line-2)}
+.sheet .att{display:flex;gap:6px;flex-wrap:wrap}
+.sheet .att span{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;background:#fff}
+.sheet h5{font-size:12px;letter-spacing:.06em;color:var(--khu-gray);font-family:var(--num);margin:16px 0 6px}
+.srcl{display:flex;flex-direction:column;gap:6px}
+.srcl a{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;color:var(--ink)}
+.srcl a:hover{border-color:var(--khu-blue)}
+.srcl a .go{margin-left:auto;color:var(--khu-blue);font-weight:700;font-size:12px}
+.srcl a.main{border-color:var(--khu-red);background:#FFF8F8}
+.btnrow{display:flex;gap:8px;margin-top:16px}
+.btn{flex:1;padding:12px;border-radius:10px;font-weight:700;font-size:14px;text-align:center}
+.btn.p{background:var(--khu-red);color:#fff}.btn.p:hover{background:var(--khu-red-deep)}
+.btn.s{background:#fff;border:1px solid var(--line)}
+
+/* ---------- onboarding ---------- */
+.onb{position:fixed;inset:0;z-index:50;background:var(--khu-red);color:#fff;display:none;flex-direction:column;overflow:hidden}
+.onb.show{display:flex}
+.onb::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.14),transparent 40%),radial-gradient(circle at 80% 90%,rgba(13,50,111,.6),transparent 45%)}
+.onb .in{position:relative;max-width:480px;margin:auto;width:100%;padding:28px 24px}
+.onb .seal{width:96px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));margin-bottom:22px;border-radius:8px}
+.onb .step{font-family:var(--num);letter-spacing:.14em;font-size:12px;opacity:.75}
+.onb h1{font-family:var(--serif);font-size:28px;line-height:1.3;margin:6px 0 20px}
+.onb .opts{display:grid;gap:8px}
+.onb .opt{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:14px 16px;text-align:left;font-size:15px;font-weight:500;display:flex;align-items:center;transition:background .12s}
+.onb .opt:hover,.onb .opt.on{background:#fff;color:var(--khu-red)}
+.onb .opt small{margin-left:auto;font-size:12px;opacity:.6;font-family:var(--num)}
+.onb .foot{display:flex;justify-content:space-between;margin-top:22px;font-size:13px;opacity:.85}
+.onb .foot button{text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- mobile bottom nav ---------- */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+.bnav button{flex:1;padding:8px 0 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--khu-gray)}
+.bnav button svg{width:22px;height:22px}
+.bnav button.on{color:var(--khu-red)}
+@media(min-width:1024px){.bnav{display:none}}
+.hide{display:none!important}
+.foot-note{max-width:1240px;margin:0 auto;padding:0 16px 28px;font-size:11.5px;color:var(--khu-silver);text-align:center}
+</style>
+</head>
+<body>
+
+<!-- ============ ONBOARDING ============ -->
+<div class="onb" id="onb">
+  <div class="in">
+    <img class="seal" src="https://www.khu.ac.kr/upload/cross/images/000001/imgSub0401.jpg" alt="경희대학교 휘장">
+    <div class="step" id="onbStep">STEP 1 / 3 · 캠퍼스</div>
+    <h1 id="onbQ">어느 캠퍼스에<br>다니고 있나요?</h1>
+    <div class="opts" id="onbOpts"></div>
+    <div class="foot"><button onclick="onbBack()" id="onbBack" style="visibility:hidden">← 이전</button><button onclick="finishOnb()">건너뛰기</button></div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="brand">
+      <img src="https://www.khu.ac.kr/upload/cross/images/000001/imgSub0401.jpg" alt="">
+      <div><div class="t">경희공지</div><div class="s">흩어진 경희대 공지, 한 곳에서</div></div>
+    </div>
+    <div class="campus"><button class="on" onclick="setCampus(this,'서울')">서울</button><button onclick="setCampus(this,'국제')">국제</button></div>
+    <button class="ico" title="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    <button class="ico" title="설정" onclick="document.getElementById('onb').classList.add('show');onbStage=0;renderOnb()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-v="my" onclick="go('my')">내 공지<span class="badge">7</span></button>
+    <button class="tab" data-v="all" onclick="go('all')">전체</button>
+    <button class="tab" data-v="src" onclick="go('src')">출처</button>
+    <button class="tab" data-v="contact" onclick="go('contact')">연락처</button>
+  </nav>
+</header>
+
+<!-- ============ MAIN ============ -->
+<div class="wrap">
+  <aside class="col-l">
+    <div class="panel">
+      <h4>내 조직</h4>
+      <div class="tree"><ul>
+        <li><div class="row">경희대학교<span class="cnt">전체</span></div>
+          <ul><li><div class="row">서울캠퍼스<span class="cnt">96</span></div>
+            <ul><li><div class="row">정경대학<span class="cnt">14</span></div>
+              <ul><li><div class="row mine">행정학과<span class="cnt">2</span></div></li></ul></li>
+              <li><div class="row">미래인재센터</div></li>
+              <li><div class="row">서울 총학생회</div></li>
+              <li><div class="row">창업지원단</div></li></ul></li>
+          <li><div class="row" style="color:var(--khu-silver)">국제캠퍼스<span class="cnt">88</span></div></li></ul></li>
+      </ul></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h4>주제</h4>
+      <div class="chk" id="sideChk"></div>
+    </div>
+  </aside>
+
+  <main id="main"></main>
+
+  <aside class="col-r">
+    <div class="dl" id="dlDesk"></div>
+    <div class="ad" style="margin-top:14px;flex-direction:column;align-items:flex-start"><span class="lab">AD</span><div class="box" style="width:100%;height:120px"></div><div><b>토익 900+ 4주 특강</b><small>경희대 학생 20% 할인</small></div></div>
+  </aside>
+</div>
+<p class="foot-note">경희공지는 학생이 만든 비공식 편의 서비스입니다. 모든 공지의 원문과 저작권은 각 게시 기관에 있습니다.</p>
+
+<nav class="bnav">
+  <button class="on" data-v="my" onclick="go('my')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11 12 3l9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>내 공지</button>
+  <button data-v="all" onclick="go('all')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>전체</button>
+  <button data-v="src" onclick="go('src')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>출처</button>
+  <button data-v="contact" onclick="go('contact')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.6a2 2 0 0 1-.5 2.1L8 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.7a2 2 0 0 1 1.7 2z"/></svg>연락처</button>
+</nav>
+
+<!-- ============ DETAIL SHEET ============ -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+/* ---------------- MOCK DATA ---------------- */
+const CATS=['학사','졸업','장학','취업·인턴','창업','프로그램·공모전','국제','행사','학생회','생활','기타'];
+const ck=c=>'c-'+c.replace(/[·]/g,'');
+const IG='<svg class="igico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>';
+const WEB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+const N=[
+ {id:1,t:'2026학년도 2학기 학점포기 신청 안내',c:'학사',camp:'서울',org:['정경대'],src:'정경대학 교학팀',d:'9월 3일',type:'web',clu:3,unread:1,body:'2026학년도 2학기 학점포기 신청을 아래와 같이 안내합니다.\n\n신청기간: 2026.09.08(월) 10:00 ~ 2026.09.11(목) 17:00\n신청방법: Info21 → 수업/성적 → 학점포기 신청\n대상: 4학년 및 졸업예정자(F학점 제외)\n\n※ 학점포기 후 취소는 불가하니 신중히 신청 바랍니다.',dead:'9월 11일',dd:5,att:['학점포기_안내문.hwp'],srcs:['정경대학 교학팀','행정학과 홈페이지','경희대학교 학사공지']},
+ {id:2,t:'2026 대동제 부스 참가 단체 모집',c:'행사',camp:'서울',org:['총학생회'],src:'서울캠퍼스 총학생회',d:'9월 5일',type:'ig',p:'p1',poster:'2026\n대동제',clu:1,unread:1,body:'🔥 2026 대동제 부스 모집 🔥\n\n올해 축제를 함께 만들어갈 부스 참가 단체를 모집합니다!\n\n📅 모집기간: 9/5 ~ 9/14\n📍 신청: 프로필 링크\n💬 문의: DM',dead:'9월 14일',dd:8,att:[],srcs:['서울캠퍼스 총학생회 Instagram']},
+ {id:3,t:'2026학년도 2학기 국가장학금 2차 신청 안내 (신입생·복학생·재학생 재신청)',c:'장학',camp:'서울',org:['경희대'],src:'학생지원센터',d:'9월 4일',type:'web',clu:4,unread:1,body:'한국장학재단 국가장학금 2차 신청 기간을 안내합니다.\n\n신청기간: 2026.08.28(목) 09:00 ~ 2026.09.08(월) 18:00\n서류제출 및 가구원 동의: ~ 2026.09.15(월) 18:00\n\n신청대상: 1차 신청을 놓친 재학생, 신입생, 편입생, 복학생',dead:'9월 8일',dd:2,att:['국가장학금_2차_신청안내.pdf'],srcs:['학생지원센터','정경대학 교학팀','행정학과 홈페이지','서울캠퍼스 총학생회 Instagram']},
+ {id:4,t:'[미래인재센터] 2026-2 하반기 채용연계형 인턴십 참여기업 및 모집 공고',c:'취업·인턴',camp:'서울',org:['미래인재센터'],src:'미래인재센터',d:'9월 4일',type:'web',clu:2,unread:1,body:'2026학년도 2학기 채용연계형 인턴십 프로그램 참여 학생을 모집합니다.\n\n접수기간: 2026.09.01 ~ 2026.09.19 17:00\n참여기업: 삼성SDS, 카카오엔터프라이즈, 한화시스템 외 12개사\n지원자격: 3학년 이상 재학생 (졸업예정자 포함)',dead:'9월 19일',dd:13,att:['참여기업_목록.xlsx','신청서.hwp'],srcs:['미래인재센터','경희대학교 취업공지']},
+ {id:5,t:'행정학과 학생회 2학기 개강총회 안내',c:'학생회',camp:'서울',org:['정경대','행정학과'],src:'행정학과 학생회',d:'9월 5일',type:'ig',p:'p2',poster:'개강총회\n9.10',clu:1,unread:1,body:'📢 2026-2 행정학과 개강총회\n\n일시: 9/10(수) 18:30\n장소: 청운관 B117\n\n총회 후 뒤풀이 있습니다 🍻 많은 참여 부탁드려요!',dead:null,att:[],srcs:['행정학과 학생회 Instagram']},
+ {id:6,t:'2027학년도 전기 졸업논문(졸업시험) 신청 및 제출 일정',c:'졸업',camp:'서울',org:['정경대','행정학과'],src:'행정학과 홈페이지',d:'9월 2일',type:'web',clu:1,unread:0,body:'졸업논문 신청기간: 2026.09.15 ~ 2026.09.26\n제출기한: 2026.11.20 17:00\n\n지도교수 배정 후 논문계획서를 제출하시기 바랍니다.',dead:'9월 26일',dd:20,att:['졸업논문_양식.hwp'],srcs:['행정학과 홈페이지']},
+ {id:7,t:'SW중심대학사업단 2026 KHU 해커톤 참가팀 모집',c:'프로그램·공모전',camp:'서울',org:['SW중심대학'],src:'SW중심대학사업단',d:'9월 1일',type:'web',clu:2,unread:0,body:'모집기간: 2026.09.01 ~ 2026.09.21\n대상: 전공 무관 재학생 3~4인 팀\n시상: 대상 300만원 외',dead:'9월 21일',dd:15,att:['해커톤_포스터.jpg'],srcs:['SW중심대학사업단','SW중심대학 Instagram']},
+ {id:8,t:'2027-1학기 교환학생 파견 선발 설명회 (서울/국제 동시 진행)',c:'국제',camp:'서울',org:['국제처'],src:'국제교류처',d:'9월 3일',type:'web',clu:2,unread:0,body:'설명회 일시: 2026.09.12(금) 15:00\n장소: 서울 청운관 지하1층 / 국제 중앙도서관 시청각실\n\n파견 신청기간: 2026.09.22 ~ 2026.10.02',dead:'10월 2일',dd:26,att:[],srcs:['국제교류처','경희대학교 일반공지']},
+ {id:9,t:'제2생활관 2학기 추가모집 및 입사 안내',c:'생활',camp:'서울',org:['생활관'],src:'서울 생활관',d:'8월 30일',type:'web',clu:1,unread:0,body:'추가모집 신청: 2026.09.01 ~ 2026.09.05\n입사일: 2026.09.07',dead:null,att:[],srcs:['서울 생활관']},
+ {id:10,t:'[창업지원단] 예비창업패키지 사전 멘토링 프로그램 참가자 모집',c:'창업',camp:'서울',org:['창업지원단'],src:'창업지원단',d:'8월 29일',type:'web',clu:1,unread:0,body:'모집기간: 2026.09.01 ~ 2026.09.17\n대상: 창업 아이템을 보유한 재학생·휴학생',dead:'9월 17일',dd:11,att:[],srcs:['창업지원단']},
+ {id:11,t:'정경대 학생회 × 총학 연합 중고서적 나눔장터',c:'학생회',camp:'서울',org:['정경대','총학생회'],src:'정경대학 학생회',d:'9월 4일',type:'ig',p:'p3',poster:'중고서적\n나눔장터',clu:2,unread:0,body:'📚 개강 맞이 중고서적 나눔장터\n9/9(화) ~ 9/10(수) 청운관 1층 로비',dead:null,att:[],srcs:['정경대학 학생회 Instagram','서울캠퍼스 총학생회 Instagram']},
+ {id:12,t:'2026학년도 2학기 수강신청 정정기간 및 증원 요청 절차 안내',c:'학사',camp:'서울',org:['경희대'],src:'경희대학교 학사공지',d:'8월 28일',type:'web',clu:5,unread:0,body:'정정기간: 2026.09.01 ~ 2026.09.05\n증원 요청은 각 학과 사무실로 문의하시기 바랍니다.',dead:null,att:[],srcs:['경희대학교 학사공지','정경대학 교학팀','행정학과 홈페이지','공과대학','서울캠퍼스 총학생회 Instagram']},
+ {id:13,t:'중앙도서관 야간 열람실 운영시간 변경 안내 (9/8~)',c:'생활',camp:'서울',org:['도서관'],src:'중앙도서관',d:'9월 5일',type:'web',clu:1,unread:1,body:'9월 8일부터 야간열람실을 24시간 운영합니다.',dead:null,att:[],srcs:['중앙도서관']},
+ {id:14,t:'2026 KHU 창업동아리 데모데이 관람 신청',c:'창업',camp:'서울',org:['창업보육센터'],src:'창업보육센터 Instagram',d:'9월 5일',type:'ig',p:'p4',poster:'DEMO\nDAY',clu:1,unread:1,body:'🚀 데모데이 9/18 오후 2시, 청운관 대강당\n관람 신청 링크는 프로필 참고',dead:null,att:[],srcs:['창업보육센터 Instagram']},
+ {id:15,t:'RISE 사업단 지역연계 캡스톤디자인 참여팀 모집',c:'프로그램·공모전',camp:'국제',org:['RISE'],src:'RISE사업단',d:'9월 2일',type:'web',clu:1,unread:0,body:'모집기간: ~ 2026.09.16',dead:'9월 16일',dd:10,att:[],srcs:['RISE사업단']},
+];
+const CONTACTS=[
+ {k:'학과',n:'행정학과 사무실',tel:'02-961-0489',mail:'pa@khu.ac.kr',loc:'서울 청운관 4층 404호',hr:'평일 09:00–17:30 (점심 12:00–13:00)'},
+ {k:'단과대',n:'정경대학 교학팀',tel:'02-961-0499',mail:'khsma@khu.ac.kr',loc:'서울 청운관 1층',hr:'평일 09:00–17:30'},
+ {k:'행정부서',n:'학생지원센터 (장학)',tel:'02-961-0067',mail:'scholarship@khu.ac.kr',loc:'서울 학생회관 2층',hr:'평일 09:00–17:30'},
+ {k:'행정부서',n:'교무처 학사팀',tel:'02-961-0031',mail:'haksa@khu.ac.kr',loc:'서울 본관 1층',hr:'평일 09:00–17:30'},
+ {k:'지원센터',n:'미래인재센터 (취업·인턴)',tel:'02-961-0173',mail:'career@khu.ac.kr',loc:'서울 청운관 지하 1층',hr:'평일 09:00–17:30'},
+ {k:'지원센터',n:'국제교류처',tel:'02-961-0033',mail:'oia@khu.ac.kr',loc:'서울 본관 2층',hr:'평일 09:00–17:30'},
+ {k:'학생자치',n:'서울캠퍼스 총학생회',tel:'02-961-0821',mail:'-',loc:'서울 학생회관 3층',hr:'학기 중 10:00–18:00'},
+ {k:'부속기관',n:'서울 생활관 행정실',tel:'02-961-0221',mail:'dorm@khu.ac.kr',loc:'서울 제2생활관 1층',hr:'평일 09:00–17:30'},
+ {k:'부속기관',n:'인권센터',tel:'02-961-0891',mail:'humanrights@khu.ac.kr',loc:'서울 학생회관 4층',hr:'평일 09:00–17:30'},
+ {k:'사업단',n:'SW중심대학사업단',tel:'031-201-3873',mail:'sw@khu.ac.kr',loc:'국제 전자정보대학관 3층',hr:'평일 09:00–17:30'},
+];
+const SRCS=[
+ {g:'서울캠퍼스 · 정경대학',items:[
+  {n:'행정학과 홈페이지',s:'공지사항 · 학과',type:'web',st:'15분 전',ok:'ok',on:1},
+  {n:'행정학과 학생회',s:'Instagram @khu_pa',type:'ig',st:'2시간 전',ok:'ok',on:1},
+  {n:'정경대학 교학팀',s:'공지사항 · 단과대',type:'web',st:'15분 전',ok:'ok',on:1},
+  {n:'정경대학 학생회',s:'Instagram @khu_sma',type:'ig',st:'1일 전',ok:'warn',on:1},
+  {n:'경제학과 홈페이지',s:'공지사항 · 학과',type:'web',st:'15분 전',ok:'ok',on:0}]},
+ {g:'서울캠퍼스 · 기관·사업단',items:[
+  {n:'미래인재센터',s:'취업공지 · 인턴십',type:'web',st:'15분 전',ok:'ok',on:1},
+  {n:'학생지원센터',s:'장학공지',type:'web',st:'15분 전',ok:'ok',on:1},
+  {n:'창업지원단',s:'공지사항',type:'web',st:'3일째 수집 실패',ok:'err',on:1},
+  {n:'SW중심대학사업단',s:'공지사항 + Instagram',type:'web',st:'30분 전',ok:'ok',on:0},
+  {n:'중앙도서관',s:'공지사항',type:'web',st:'15분 전',ok:'ok',on:1}]},
+ {g:'서울캠퍼스 · 학생자치',items:[
+  {n:'서울캠퍼스 총학생회',s:'홈페이지 + Instagram',type:'ig',st:'40분 전',ok:'ok',on:1},
+  {n:'동아리연합회',s:'Instagram @khu_dongyeon',type:'ig',st:'5시간 전',ok:'ok',on:0}]},
+];
+
+/* ---------------- STATE ---------------- */
+let view='my', campus='서울', actCats=new Set(), sideOn=new Set(CATS);
+const $=s=>document.querySelector(s);
+
+/* ---------------- RENDER HELPERS ---------------- */
+function tagHtml(n){return `<span class="tg ${ck(n.c)}">${n.c}</span>`+n.org.map(o=>`<span class="org">${o}</span>`).join('');}
+function metaHtml(n){
+  return `<div class="meta"><span class="src">${n.src}</span><span>·</span><span class="num">${n.d}</span><span>·</span><span>${n.type==='ig'?IG+' Instagram':WEB+' 웹'}</span>`
+   +(n.clu>1?`<span>·</span><span class="clu">동일 공지 ${n.clu}곳</span>`:'')
+   +(n.dd!=null?`<span class="dday ${n.dd<=3?'hot':''}">D-${n.dd}</span>`:'')+`</div>`;
+}
+function cardHtml(n,i){
+  const cls=`card ${n.type==='ig'?'ig':''} ${n.unread?'unread':'read'}`;
+  const th=n.type==='ig'?`<div class="thumb ${n.p}"><div class="poster">${n.poster.replace('\n','<br>')}</div></div>`:'';
+  return `<article class="${cls}" style="animation-delay:${Math.min(i,10)*35}ms" onclick="openSheet(${n.id})">${th}<div class="title">${n.t}</div><div class="tags">${tagHtml(n)}</div>${metaHtml(n)}</article>`;
+}
+function adHtml(){return `<div class="ad"><span class="lab">AD</span><div class="box"></div><div><b>토익 900+ 4주 특강</b><small>경희대 학생 20% 할인 · 9월 개강반</small></div></div>`;}
+function chipsHtml(){
+  return `<div class="chips"><button class="chip all ${actCats.size===0?'on':''}" onclick="toggleCat(null)">전체</button>`+CATS.map(c=>`<button class="chip ${actCats.has(c)?'on':''}" onclick="toggleCat('${c}')">${c}</button>`).join('')+`</div>`;
+}
+function dlHtml(){
+  const list=N.filter(n=>n.dd!=null&&n.camp===campus).sort((a,b)=>a.dd-b.dd).slice(0,5);
+  return `<h3><span class="pip"></span>마감 임박</h3><div class="dl-row">`+list.map(n=>`<div class="dlc" onclick="openSheet(${n.id})"><span class="dday ${n.dd<=3?'hot':''}">D-${n.dd} <small style="font-weight:400;color:var(--khu-gray)">${n.dead}</small></span><div class="t">${n.t}</div><div class="m">${n.src}</div></div>`).join('')+`</div>`;
+}
+function feedHtml(list){
+  if(!list.length)return `<div class="empty"><div class="big">아직 보여줄 공지가 없어요</div>선택한 주제·조직에 새 공지가 올라오면 여기에 모입니다.</div>`;
+  let h='';list.forEach((n,i)=>{h+=cardHtml(n,i);if(i===5)h+=adHtml();});return `<div class="feed">${h}</div>`;
+}
+function filtered(){
+  return N.filter(n=>n.camp===campus).filter(n=>actCats.size===0||actCats.has(n.c)).filter(n=>sideOn.has(n.c));
+}
+
+/* ---------------- VIEWS ---------------- */
+function render(){
+  const m=$('#main');
+  document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  if(view==='my'){
+    m.innerHTML=`<div class="newbar"><b>7</b> 마지막 방문(어제 22:40) 이후 새 공지 <button class="x" onclick="this.parentNode.remove()">✕</button></div>
+      <div class="dl m-only" style="margin-top:14px">${dlHtml()}</div>
+      <div style="margin-top:6px">${chipsHtml()}</div>${feedHtml(filtered())}`;
+  }else if(view==='all'){
+    m.innerHTML=`<div class="filters">
+      <button class="sel on">${campus}캠퍼스 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sel">단과대 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sel">학과 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sel">기관·사업단 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sel">출처 유형 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg></button></div>
+      ${chipsHtml()}${feedHtml(N.filter(n=>n.camp===campus).filter(n=>actCats.size===0||actCats.has(n.c)))}`;
+  }else if(view==='src'){
+    m.innerHTML=`<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="기관·학과·학생회 검색 (예: SW중심대학)"></div>
+      <div class="srcs">`+SRCS.map(g=>`<div class="grp">${g.g}<small>구독 ${g.items.filter(i=>i.on).length} / ${g.items.length}</small></div>`+g.items.map(i=>`<div class="srow"><span style="color:var(--khu-gray)">${i.type==='ig'?IG:WEB.replace('<svg','<svg class="igico"')}</span><div class="n">${i.n}<small>${i.s}</small></div><span class="st"><span class="dot ${i.ok}"></span>${i.st}</span><button class="sw ${i.on?'on':''}" onclick="this.classList.toggle('on')" aria-label="구독"></button></div>`).join('')).join('')+`</div>`;
+  }else if(view==='contact'){
+    m.innerHTML=`<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="cq" placeholder="부서·학과·업무로 검색 (예: 장학, 휴학, 기숙사)" oninput="renderContacts(this.value)"></div>
+      <div class="sec"><h3>내 학과·단과대 먼저</h3></div><div class="contacts" id="cl"></div>
+      <p style="font-size:12px;color:var(--khu-gray);margin-top:14px">연락처는 각 기관 홈페이지에 공개된 정보를 수집한 것입니다. 변경된 정보가 있으면 알려주세요.</p>`;
+    renderContacts('');
+  }
+  $('#dlDesk').innerHTML=dlHtml();
+  window.scrollTo({top:0});
+}
+function renderContacts(q){
+  const list=CONTACTS.filter(c=>!q||(c.n+c.k+c.loc).includes(q));
+  $('#cl').innerHTML=list.map(c=>`<div class="cc"><div class="k">${c.k}</div><div class="n">${c.n}</div>
+    <dl><dt>전화</dt><dd><a href="tel:${c.tel}">${c.tel}</a></dd><dt>이메일</dt><dd>${c.mail==='-'?'<span style="color:var(--khu-silver)">—</span>':`<a href="mailto:${c.mail}">${c.mail}</a>`}</dd><dt>위치</dt><dd>${c.loc}</dd><dt>운영</dt><dd>${c.hr}</dd></dl>
+    <div class="acts"><a class="call" href="tel:${c.tel}">전화하기</a><a href="#">홈페이지</a><a href="#">이 기관 공지</a></div></div>`).join('')||`<div class="empty">검색 결과가 없어요</div>`;
+}
+function go(v){view=v;render();}
+function toggleCat(c){if(c===null)actCats.clear();else actCats.has(c)?actCats.delete(c):actCats.add(c);render();}
+function setCampus(btn,c){campus=c;document.querySelectorAll('.campus button').forEach(b=>b.classList.toggle('on',b===btn));render();}
+$('#sideChk').innerHTML=CATS.map(c=>`<label><input type="checkbox" checked onchange="this.checked?sideOn.add('${c}'):sideOn.delete('${c}');render()"><span class="tg ${ck(c)}" style="font-weight:500">${c}</span></label>`).join('');
+
+/* ---------------- SHEET ---------------- */
+function openSheet(id){
+  const n=N.find(x=>x.id===id);n.unread=0;
+  $('#sheet').innerHTML=`<div class="grab"></div><div class="tags">${tagHtml(n)}</div><h2>${n.t}</h2>${metaHtml(n)}
+    ${n.dead?`<div style="margin-top:10px;display:inline-flex;align-items:center;gap:8px;background:#FBF6E8;border:1px solid #EAD9A6;border-radius:8px;padding:6px 10px;font-size:13px"><span class="dday ${n.dd<=3?'hot':''}">D-${n.dd}</span> 마감 <b class="num">${n.dead}</b></div>`:''}
+    <div class="body">${n.body}</div>
+    ${n.att.length?`<h5>첨부파일</h5><div class="att">${n.att.map(a=>`<span>📎 ${a}</span>`).join('')}</div>`:''}
+    <h5>출처 ${n.srcs.length}곳</h5><div class="srcl">${n.srcs.map((s,i)=>`<a href="#" class="${i===0?'main':''}">${s.includes('Instagram')?IG:WEB.replace('<svg','<svg class="igico"')} ${s}<span class="go">원문 →</span></a>`).join('')}</div>
+    <div class="btnrow"><button class="btn s" onclick="closeSheet()">닫기</button><a class="btn p" href="#">${n.type==='ig'?'Instagram에서 보기':'원문 보기'}</a></div>`;
+  $('#ov').classList.add('show');document.body.style.overflow='hidden';
+}
+function closeSheet(){$('#ov').classList.remove('show');document.body.style.overflow='';render();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+
+/* ---------------- ONBOARDING ---------------- */
+let onbStage=0,onbSel={};
+const ONB=[
+ {step:'캠퍼스',q:'어느 캠퍼스에<br>다니고 있나요?',opts:[['서울캠퍼스','회기'],['국제캠퍼스','영통']]},
+ {step:'단과대',q:'소속 단과대를<br>골라주세요',opts:[['정경대학','6개 학과'],['경영대학','2개 학과'],['문과대학','7개 학과'],['이과대학','5개 학과'],['생활과학대학','4개 학과'],['호텔관광대학','4개 학과']]},
+ {step:'학과',q:'마지막으로,<br>학과를 골라주세요',opts:[['행정학과',''],['정치외교학과',''],['경제학과',''],['사회학과',''],['무역학과',''],['언론정보학과','']]},
+];
+function renderOnb(){
+  const s=ONB[onbStage];$('#onbStep').textContent=`STEP ${onbStage+1} / 3 · ${s.step}`;$('#onbQ').innerHTML=s.q;
+  $('#onbOpts').innerHTML=s.opts.map(o=>`<button class="opt" onclick="pickOnb('${o[0]}')">${o[0]}<small>${o[1]}</small></button>`).join('');
+  $('#onbBack').style.visibility=onbStage?'visible':'hidden';
+}
+function pickOnb(v){onbSel[onbStage]=v;if(onbStage<2){onbStage++;renderOnb();}else finishOnb();}
+function onbBack(){if(onbStage>0){onbStage--;renderOnb();}}
+function finishOnb(){$('#onb').classList.remove('show');}
+if(location.hash==='#onboarding'){$('#onb').classList.add('show');renderOnb();}
+render();
+</script>
+</body>
+</html>
