@@ -181,21 +181,20 @@ font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
 
 ---
 
-## 6. 구현 스택 제안
+## 6. 구현 (2026-09-06 완료, `frontend/`)
 
-- 역할 분담: **백엔드는 Codex, 프론트엔드는 Claude** 가 담당한다(2026-09-06).
-- 애니메이션 컴포넌트는 [SmoothUI](https://smoothui.dev/) (shadcn/ui 기반, React 19 + Tailwind v4 + Motion, MIT)에서 가져다 쓴다. 설치: `npx shadcn@latest add @smoothui/<component>`. 후보: Animated Tags(주제 칩), Number Flow(새 공지 카운트), Scrollable Card Stack(마감 임박), Dynamic Island(새 공지 토스트).
-- 목업: `mockup/index.html` (정적 HTML + mock 데이터, 의존성 없음).
+- 역할 분담: **백엔드는 Codex, 프론트엔드는 Claude**.
+- 스택: Next.js 16(App Router) + React 19 + Tailwind v4 + SWR. 서체는 next/font의 Noto Sans KR.
+- 데이터 계약: `KHU_API_CONTRACT_DRAFT.md`를 `src/lib/types.ts`로 옮겼고, `src/lib/api.ts`가 `NEXT_PUBLIC_API_BASE`가 비어 있으면 `src/mocks/data.ts`(규격 9절 시나리오 포함)로 동작한다. 실제 서버가 생기면 `.env.local`에 주소만 넣는다.
+- 화면: `/`(내 공지, `POST /v1/feeds/preview`), `/all`(전체, `GET /v1/notices` + 단과대/학과/기관/출처 유형 필터 + 검색), `/notices/[id]`(상세), `/sources`(출처 + 구독 토글), `/contacts`(연락처). 온보딩은 첫 방문 시 전체 화면, 헤더 사람 아이콘·우측 "변경"으로 다시 연다.
+- 비회원 설정은 localStorage `khu-notice.settings.v1`에만 저장(useSyncExternalStore). 로그인 없음.
+- 주제 코드 목록은 `/v1/catalog`에서 오고, 프론트는 코드 → 배지 색만 `src/lib/category.ts`에 가진다.
+- 상태 표현: 원문 확인 불가·등록일 미확정·대상 미확정·첨부 다운로드 불가·연락처 확인 오래됨/충돌·출처 갱신 지연/접근 제한/연결 대기·FEED_CHANGED 재조회·빈 결과·오류 재시도·404.
+- 애니메이션 컴포넌트가 필요해지면 [SmoothUI](https://smoothui.dev/) (shadcn/ui 기반, `npx shadcn@latest add @smoothui/<component>`)에서 가져온다. 현재는 미사용.
+- 정적 목업 `mockup/index.html`은 디자인 참고용으로 남긴다.
 
-- 프론트: Next.js(App Router) + Tailwind, 토큰은 위 CSS 변수. SSR로 첫 피드를 빠르게.
-- 상태: localStorage(설정/읽음/구독) → 추후 계정 동기화.
-- 아이콘: Lucide. 폰트: Google Fonts Noto Sans KR + Roboto.
-- 광고: 초기엔 자체 배너 1슬롯 컴포넌트만 두고 네트워크 연동은 뒤로.
+## 7. 다음 단계 (백엔드 합류 후)
 
----
-
-## 7. 다음 단계
-
-1. 주제 분류 체계(카테고리·키워드·prefix 규칙) 코드화 → 카드 배지가 이 결과를 그대로 쓴다.
-2. 카드·칩·배지 컴포넌트를 먼저 HTML 목업으로 확정.
-3. 온보딩 → 내 공지 → 출처 순으로 화면 구현.
+1. Codex가 OpenAPI를 확정하면 `src/lib/types.ts`를 생성 코드로 교체하고 mock 분기를 제거한다.
+2. `.env.local`에 `NEXT_PUBLIC_API_BASE`를 넣고 실제 응답으로 규격 9절 시나리오를 재확인한다.
+3. 광고 슬롯 네트워크 연동, 웹 푸시, 다크모드는 그 뒤.

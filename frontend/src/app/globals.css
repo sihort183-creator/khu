@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* 경희공지 디자인 토큰 v0.3 (docs/UI_CONCEPT.md) */
+:root {
+  --red: #a40f16;
+  --red-2: #8c0b12;
+  --navy: #0d326f;
+  --gold: #c0a353;
+  --text: #292929;
+  --text-2: #444444;
+  --gray: #737373;
+  --gray-2: #a6a6a6;
+  --bg: #f6f5f2;
+  --white: #ffffff;
+  --line: #e6e3dd;
+  --line-2: #f0eeea;
+  --cream: #fbfaf8;
+  --r: 10px;
+  --shadow: 0 1px 2px rgba(20, 20, 20, 0.04);
+}
+
+@theme inline {
+  --color-red: var(--red);
+  --color-red-2: var(--red-2);
+  --color-navy: var(--navy);
+  --color-gold: var(--gold);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-gray: var(--gray);
+  --color-gray-2: var(--gray-2);
+  --color-bg: var(--bg);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-cream: var(--cream);
+  --radius-box: var(--r);
+  --shadow-box: var(--shadow);
+  --font-sans: var(--font-noto), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 원문 HTML 본문 */
+.notice-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.notice-body th,
+.notice-body td {
+  border: 1px solid var(--line);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.notice-body th {
+  background: var(--cream);
+  font-weight: 600;
+}
+.notice-body p {
+  margin: 0 0 10px;
+}
+.notice-body a {
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
