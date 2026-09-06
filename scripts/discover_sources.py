@@ -31,11 +31,13 @@ from urllib.parse import urlsplit
 REPO_ROOT = Path(__file__).resolve().parents[1]
 UA = "khu-notice-bot/0.1 (+https://github.com/sihort183-creator/khu)"
 SITES_PATH = REPO_ROOT / "registry" / "bootstrap" / "sites.json"
+HOSTS_PATH = REPO_ROOT / "registry" / "bootstrap" / "hosts.json"
 
 # 경희대 CMS 의 게시판 목록과 일반 내용 페이지. 둘 다 메뉴를 그대로 달고 있어서
 # 어느 쪽을 열든 사이트의 나머지 메뉴가 따라온다.
 BOARD_LINK = re.compile(r"/([A-Za-z0-9_]+)/user/bbs/([A-Za-z0-9]+)/list\.do\?menuNo=(\d+)")
 CONTENT_LINK = re.compile(r"/([A-Za-z0-9_]+)/user/contents/view\.do\?menuNo=(\d+)")
+GNU_BOARD = re.compile(r"/bbs/board\.php\?bo_table=([A-Za-z0-9_]+)")
 TITLE_TAG = re.compile(r"<title>([^<]*)</title>")
 BOARD_TABLE = re.compile(r'<table[^>]*class="[^"]*board01')
 # 게시판 한 줄은 view('...') 호출이나 상세 링크로 나타난다.
@@ -160,13 +162,85 @@ def crawl_host(host: str, fetcher: Fetcher, *, depth: int = 3, page_budget: int 
     return result
 
 
-def load_hosts() -> list[str]:
+def crawl_gnuboard_host(host: str, fetcher: Fetcher, *, page_budget: int = 40) -> dict:
+    """그누보드 사이트의 게시판을 훑는다.
+
+    CMS 와 달리 메뉴가 bo_table 이름으로 드러나 있어 첫 화면과 각 게시판 화면에서
+    링크를 모으면 대부분 찾을 수 있다.
+    """
+    base = f"https://{host}"
+    result: dict = {
+        "host": host, "adapter": "gnuboard", "home_status": 0,
+        "boards": [], "error": None, "pages_fetched": 0,
+    }
+    status, home = fetcher.get(base + "/")
+    result["home_status"] = status
+    if status != 200 or not home:
+        result["error"] = "첫 화면을 열지 못했습니다."
+        return result
+
+    title = TITLE_TAG.search(home)
+    result["title"] = re.sub(r"\s+", " ", title.group(1)).strip() if title else None
+
+    labels: dict[str, str] = {}
+    tables: dict[str, dict] = {}
+    queue: deque[str] = deque()
+    seen: set[str] = set()
+
+    def note(html: str) -> None:
+        for href, inner in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', html, re.S):
+            found = GNU_BOARD.search(href.replace("&amp;", "&"))
+            if not found:
+                continue
+            table = found.group(1)
+            text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", inner)).strip()
+            # 글 링크(wr_id)가 아니라 게시판 링크의 글자만 이름으로 쓴다.
+            if text and 1 < len(text) <= 40 and "wr_id=" not in href:
+                labels.setdefault(table, text)
+            if table not in seen:
+                seen.add(table)
+                queue.append(table)
+
+    note(home)
+    pages = 1
+    while queue and pages < page_budget:
+        table = queue.popleft()
+        url = f"{base}/bbs/board.php?bo_table={table}"
+        page_status, html = fetcher.get(url)
+        pages += 1
+        if page_status == 200 and html:
+            note(html)
+        rows = len(set(re.findall(rf"bo_table={re.escape(table)}&(?:amp;)?wr_id=(\d+)", html))) if html else 0
+        tables[table] = {
+            "board_code": table,
+            "menu_no": "",
+            "prefix": "",
+            "url": url,
+            "label": labels.get(table),
+            "status": page_status,
+            "depth": 1,
+            "has_table": bool(html and "td_subject" in html),
+            "row_count": rows,
+            "usable": bool(page_status == 200 and rows > 0),
+        }
+
+    result["pages_fetched"] = pages
+    result["queue_remaining"] = len(queue)
+    result["boards"] = sorted(tables.values(), key=lambda b: b["board_code"])
+    return result
+
+
+def load_hosts() -> list[tuple[str, str]]:
+    """수집 대상 호스트와 어댑터를 읽는다."""
+    if HOSTS_PATH.exists():
+        doc = json.loads(HOSTS_PATH.read_text(encoding="utf-8"))
+        return [(r["host"], r["adapter"]) for r in doc["hosts"] if r.get("adapter")]
     if not SITES_PATH.exists():
         raise SystemExit(
-            f"{SITES_PATH} 가 없습니다. 먼저 "
-            "`python scripts/discover_sites.py --out registry/bootstrap/sites.json` 을 실행하세요."
+            f"{HOSTS_PATH} 도 {SITES_PATH} 도 없습니다. 먼저 "
+            "`python scripts/discover_sites.py` 와 `python scripts/discover_hosts.py` 를 실행하세요."
         )
-    return json.loads(SITES_PATH.read_text(encoding="utf-8"))["hosts"]
+    return [(h, "khu_board") for h in json.loads(SITES_PATH.read_text(encoding="utf-8"))["hosts"]]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -179,11 +253,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=6, help="동시에 조사할 호스트 수")
     args = parser.parse_args(argv)
 
-    hosts = args.hosts or load_hosts()
+    pairs = [(h, "khu_board") for h in args.hosts] if args.hosts else load_hosts()
     fetcher = Fetcher(delay=args.delay)
 
-    def run(host: str) -> dict:
-        finding = crawl_host(host, fetcher, depth=args.depth, page_budget=args.page_budget)
+    def run(pair: tuple[str, str]) -> dict:
+        host, adapter = pair
+        if adapter == "gnuboard":
+            finding = crawl_gnuboard_host(host, fetcher, page_budget=args.page_budget)
+        else:
+            finding = crawl_host(host, fetcher, depth=args.depth, page_budget=args.page_budget)
+        finding.setdefault("adapter", adapter)
         usable = sum(1 for b in finding["boards"] if b["usable"])
         print(
             f"{host}: home={finding['home_status']} pages={finding['pages_fetched']} "
@@ -193,11 +272,11 @@ def main(argv: list[str] | None = None) -> int:
         return finding
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        findings = list(pool.map(run, hosts))
+        findings = list(pool.map(run, pairs))
 
     payload = {
         "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "hosts_probed": len(hosts),
+        "hosts_probed": len(pairs),
         "hosts_reachable": sum(1 for f in findings if f["home_status"] == 200),
         "boards_found": sum(len(f["boards"]) for f in findings),
         "boards_usable": sum(1 for f in findings for b in f["boards"] if b["usable"]),
