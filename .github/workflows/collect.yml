@@ -1,11 +1,12 @@
 name: 공지 수집
 
-# 매시간 수집한다(7.3절). 예약 실행은 최선 노력이라 30~60분 늦을 수 있고,
+# 30분마다 수집한다(7.3절). 예약 실행은 최선 노력이라 늦을 수 있고,
 # 제품에는 '2시간 내 반영'으로 표기한다.
+# 첫 백필이 끝나면 매시간으로 되돌리는 것을 검토한다.
 on:
   schedule:
     # 정각을 피해 지연을 줄인다.
-    - cron: "17 * * * *"
+    - cron: "17,47 * * * *"
   workflow_dispatch:
     inputs:
       sources:
@@ -28,7 +29,7 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 55
     defaults:
       run:
         working-directory: backend
@@ -42,9 +43,14 @@ jobs:
       KHU_R2_BUCKET_EVIDENCE: ${{ vars.KHU_R2_BUCKET_EVIDENCE || 'khu-notice-evidence' }}
       KHU_R2_BUCKET_BACKUP: ${{ vars.KHU_R2_BUCKET_BACKUP || 'khu-notice-backup' }}
       KHU_HEARTBEAT_URL: ${{ secrets.KHU_HEARTBEAT_URL }}
-      # 실행 상한 30분. 워크플로 상한 40분보다 짧게 두어 정리 단계를 남긴다.
-      # 워크플로 타임아웃은 40분이다. 수집을 25분에 끊어 내보내기·정리 시간을 남긴다.
-      KHU_RUN_BUDGET_SECONDS: "1500"
+      # 워크플로 상한 55분. 수집을 40분에 끊어 내보내기·정리에 15분을 남긴다.
+      KHU_RUN_BUDGET_SECONDS: "2400"
+      # 첫 백필을 빨리 끝내기 위한 설정이다. 사이트가 125개인데 기본값(registrable)은
+      # 이를 한 줄로 세워 2초에 1건씩만 받는다. host 모드는 사이트마다 따로 세어
+      # 훨씬 빠르다. 백필이 끝나면 기본값으로 되돌리는 것을 검토한다.
+      KHU_HOST_GROUP_MODE: host
+      KHU_HTTP_DELAY_SECONDS: "0.5"
+      KHU_HTTP_CONCURRENCY: "16"
 
     steps:
       - uses: actions/checkout@v4

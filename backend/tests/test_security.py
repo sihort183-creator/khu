@@ -143,13 +143,21 @@ def test_error_kinds_are_distinguished(status, kind):
 
 
 def test_host_group_shares_rate_limit_across_subdomains():
-    """7.3절: 하위 도메인이 같은 기반 서버를 쓰면 묶어서 제한한다."""
+    """7.3절: 기본값은 하위 도메인을 하나로 묶어 제한한다."""
     assert HostLimiter.group_of("https://cs.khu.ac.kr/a") == HostLimiter.group_of(
         "https://ce.khu.ac.kr/b"
     )
     assert HostLimiter.group_of("https://cs.khu.ac.kr/a") != HostLimiter.group_of(
         "https://example.org/b"
     )
+
+
+def test_host_group_can_count_subdomains_separately():
+    """host 모드에서는 하위 도메인마다 따로 센다. 훨씬 빠르지만 부담이 크다."""
+    assert HostLimiter.group_of("https://cs.khu.ac.kr/a", "host") != HostLimiter.group_of(
+        "https://ce.khu.ac.kr/b", "host"
+    )
+    assert HostLimiter.group_of("https://cs.khu.ac.kr/a", "host") == "cs.khu.ac.kr"
 
 
 def test_encoding_is_detected_for_korean_pages():

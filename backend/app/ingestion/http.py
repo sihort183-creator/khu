@@ -119,24 +119,33 @@ def check_url(url: str, *, allowed_hosts: set[str] | None = None) -> str:
 
 
 class HostLimiter:
-    """원문 서버 묶음별 동시 1개·간격 2초."""
+    """원문 서버 묶음별 동시 1개·간격 유지.
 
-    def __init__(self, delay_seconds: float) -> None:
+    묶는 단위는 둘 중 하나다(7.3절).
+      registrable  하위 도메인을 하나로 묶는다. 같은 기반 서버를 쓸 때 안전하다.
+                   경희대는 사이트가 125개라 이 방식이면 전부 한 줄로 선다.
+      host         하위 도메인마다 따로 센다. 훨씬 빠르지만 서버 부담이 커진다.
+                   기반 서버를 공유하지 않는다고 확인했을 때만 쓴다.
+    """
+
+    def __init__(self, delay_seconds: float, group_mode: str = "registrable") -> None:
         self._delay = delay_seconds
+        self._group_mode = group_mode
         self._locks: dict[str, asyncio.Lock] = {}
         self._last: dict[str, float] = {}
 
     @staticmethod
-    def group_of(url: str) -> str:
-        """하위 도메인이 같은 기반 서버를 쓰면 묶어서 제한한다(7.3절)."""
+    def group_of(url: str, mode: str = "registrable") -> str:
         host = (urlsplit(url).hostname or "").lower()
+        if mode == "host":
+            return host
         parts = host.split(".")
         if len(parts) >= 3:
             return ".".join(parts[-3:])
         return host
 
     async def acquire(self, url: str) -> str:
-        group = self.group_of(url)
+        group = self.group_of(url, self._group_mode)
         lock = self._locks.setdefault(group, asyncio.Lock())
         await lock.acquire()
         wait = self._delay - (time.monotonic() - self._last.get(group, 0.0))
@@ -156,7 +165,7 @@ class Fetcher:
 
     def __init__(self, cfg: Settings | None = None, *, transport: httpx.AsyncBaseTransport | None = None):
         self.cfg = cfg or default_settings
-        self._limiter = HostLimiter(self.cfg.http_delay_seconds)
+        self._limiter = HostLimiter(self.cfg.http_delay_seconds, self.cfg.host_group_mode)
         self._gate = asyncio.Semaphore(self.cfg.http_concurrency)
         self._client = httpx.AsyncClient(
             follow_redirects=False,

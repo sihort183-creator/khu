@@ -81,6 +81,8 @@ class Settings:
     run_budget_seconds: int = 1800
     http_concurrency: int = 5
     http_delay_seconds: float = 2.0
+    # 원문 서버를 묶는 단위: registrable(하위 도메인을 하나로) 또는 host(따로).
+    host_group_mode: str = "registrable"
     http_timeout_seconds: float = 25.0
     max_response_bytes: int = 8_000_000
     user_agent: str = "khu-notice-bot/0.1 (+https://github.com/sihort183-creator/khu)"
@@ -135,6 +137,7 @@ def load_settings() -> Settings:
         run_budget_seconds=_int("KHU_RUN_BUDGET_SECONDS", 1800),
         http_concurrency=_int("KHU_HTTP_CONCURRENCY", 5),
         http_delay_seconds=_float("KHU_HTTP_DELAY_SECONDS", 2.0),
+        host_group_mode=os.getenv("KHU_HOST_GROUP_MODE", "registrable"),
         http_timeout_seconds=_float("KHU_HTTP_TIMEOUT_SECONDS", 25.0),
         max_response_bytes=_int("KHU_MAX_RESPONSE_BYTES", 8_000_000),
         user_agent=os.environ.get("KHU_USER_AGENT", "").strip()
