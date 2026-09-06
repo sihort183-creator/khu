@@ -581,7 +581,10 @@ def record_dedupe_decision(
     rule_version: str,
     decided_by: str = "auto",
 ) -> None:
-    session.add(
+    # 열쇠가 입력에서 결정되므로 같은 두 글을 다음 실행에서 다시 비교하면 열쇠가 같다.
+    # add() 로 넣으면 두 번째 실행이 중복 열쇠로 멈춘다. 판정은 다시 해도 같은 사실이라
+    # 이미 있으면 갱신한다. merge() 는 PostgreSQL 과 SQLite 에서 같게 동작한다.
+    session.merge(
         m.DedupeDecision(
             id=ids._digest(left_item, right_item, left_revision, right_revision),
             left_item_id=left_item,

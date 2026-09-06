@@ -350,3 +350,39 @@ def test_pending_sources_are_not_collected_automatically(db, source):
     source.status = "active"
     db.flush()
     assert len(repo.load_due_sources(db)) == 1
+
+
+def test_same_dedupe_pair_can_be_recorded_twice(db, source):
+    """같은 두 글을 다음 실행에서 다시 비교해도 멈추지 않아야 한다.
+
+    판정 열쇠가 (좌항목, 우항목, 좌개정, 우개정) 에서 만들어지므로 실행마다 같다.
+    예전에는 두 번째 실행이 중복 열쇠로 죽어 수집 전체가 멈췄다.
+    """
+    left = _listed(external_id="201", title="첫 번째 공지")
+    right = _listed(external_id="202", title="두 번째 공지")
+    left_written = _write(db, source, left, _detail(left))
+    right_written = _write(db, source, right, _detail(right))
+    db.flush()
+
+    def record(score: float) -> None:
+        repo.record_dedupe_decision(
+            db,
+            left_item=left_written.item_id,
+            right_item=right_written.item_id,
+            left_revision=left_written.revision_id,
+            right_revision=right_written.revision_id,
+            decision="distinct",
+            score=score,
+            signals={"title": score},
+            rule_version="test/1",
+        )
+
+    record(0.60)
+    db.flush()
+    record(0.75)  # 다음 실행이 같은 쌍을 다시 판정한다.
+    db.flush()
+
+    rows = db.execute(select(m.DedupeDecision)).scalars().all()
+    assert len(rows) == 1
+    # 다시 판정한 값으로 갱신된다.
+    assert float(rows[0].score) == pytest.approx(0.75)
