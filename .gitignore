@@ -26,3 +26,8 @@ Thumbs.db
 .vscode/
 .idea/
 backend/.backup_passphrase.txt
+backend/.cf_token
+backend/.r2_keys.json
+
+# 로컬에서 수집을 돌릴 때 남는 기록
+collect*.log
