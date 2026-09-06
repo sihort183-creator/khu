@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.config import CONTRACT_VERSION, Settings
@@ -347,14 +347,23 @@ def _load_notices(
 
     floor = window_floor(window_start)
 
+    today = now.astimezone(KST).date()
+
     def within_window(notice: m.Notice) -> bool:
         """공개 범위 안인지 판정한다."""
         # sqlite 는 시간대 없이 돌려주므로 먼저 UTC 로 정규화한다.
         published = as_utc(notice.published_at)
         if published is None:
-            # 발행일을 모르면 범위 안이라고 볼 근거가 없다. 사용자 결정(2026-09-07)에 따라
-            # 공개하지 않는다. 원문은 남으므로 날짜를 알아내면 다시 공개된다.
-            return floor is None
+            # 원문에 시각이 없으면 파서는 시각을 지어내지 않고 날짜만 남긴다.
+            # 날짜를 아는 글까지 불명으로 묶으면 멀쩡한 공지가 가려지므로 날짜로 판정한다.
+            stamp = notice.published_date
+            if stamp is None:
+                # 정말로 발행일을 모르면 범위 안이라고 볼 근거가 없다. 사용자 결정(2026-09-07)에
+                # 따라 공개하지 않는다. 원문은 남으므로 날짜를 알아내면 다시 공개된다.
+                return window_start is None
+            if stamp > today:
+                return False
+            return window_start is None or stamp >= window_start
         if published > now:
             # 원문에 2099년 같은 값이 있다. 아직 오지 않은 날짜는 공개하지 않는다.
             return False
@@ -954,14 +963,25 @@ def refresh_public_status(
             .join(m.Source, m.Source.id == m.SourceItem.source_id)
             .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
         )
+        window_start = cfg.initial_window_start
+        today = now.astimezone(KST).date()
+        # 시각을 아는 글은 published_at 으로, 날짜만 아는 글은 published_date 로 판정한다.
+        # 정말로 발행일을 모르는 글만 총계에서 뺀다(_load_notices 의 within_window 와 같은 규칙).
+        by_date = and_(
+            m.Notice.published_at.is_(None),
+            m.Notice.published_date.is_not(None),
+            m.Notice.published_date <= today,
+        )
         if floor is None:
             notices_query = notices_query.where(
-                m.Notice.published_at.is_(None) | (m.Notice.published_at <= now)
+                or_(m.Notice.published_at <= now, by_date)
             )
         else:
-            # 발행일을 모르는 글은 공개하지 않으므로 총계에서도 뺀다.
             notices_query = notices_query.where(
-                m.Notice.published_at.between(floor, now)
+                or_(
+                    m.Notice.published_at.between(floor, now),
+                    and_(by_date, m.Notice.published_date >= window_start),
+                )
             )
         notices_total = int(session.execute(notices_query).scalar() or 0)
         contacts_total = int(

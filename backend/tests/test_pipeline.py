@@ -16,6 +16,7 @@ from sqlalchemy import select
 
 from app.config import Settings
 from app.contracts import models as api
+from app.domain.dates import KST
 from app.export.static import export_static
 from app.ingestion.http import Fetcher
 from app.run.collect import TimeBudget, collect_source, run_dedupe_pass
@@ -299,20 +300,27 @@ def test_publish_window_hides_old_and_future_notices(seeded, settings, store, bo
 
     저장은 그대로 두고 공개만 막는다. 경계는 표시 기준인 Asia/Seoul 날짜로 판정하므로
     3월 1일 오전 한국시간(= 2월 28일 UTC) 글은 남아야 한다.
+
+    원문에 시각이 없으면 파서는 시각을 지어내지 않고 날짜만 남긴다. 날짜를 아는 글은
+    그 날짜로 판정한다. 정말로 발행일을 모르는 글만 공개하지 않는다.
     """
     session, source = seeded
     asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
     session.commit()
 
     notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
-    assert len(notices) >= 4
-    old_one, future_one, edge_one, undated_one = notices[0], notices[1], notices[2], notices[3]
+    assert len(notices) >= 5
+    old_one, future_one, edge_one, undated_one, dated_one = notices[:5]
     old_one.published_at = datetime(2025, 12, 31, 3, 0, tzinfo=UTC)
     future_one.published_at = datetime(2099, 12, 31, 0, 30, tzinfo=UTC)
     # 2026-02-28T15:00Z 는 한국시간으로 2026-03-01 00:00 이다. 경계 안쪽이다.
     edge_one.published_at = datetime(2026, 2, 28, 15, 0, tzinfo=UTC)
-    # 발행일을 모르면 범위 안이라고 볼 근거가 없다. 공개하지 않는다.
+    # 날짜도 시각도 모르면 범위 안이라고 볼 근거가 없다. 공개하지 않는다.
     undated_one.published_at = None
+    undated_one.published_date = None
+    # 시각만 모르고 날짜는 아는 글이다. 범위 안이므로 공개한다.
+    dated_one.published_at = None
+    dated_one.published_date = date(2026, 4, 15)
     session.commit()
 
     windowed = replace(settings, initial_window_start=date(2026, 3, 1))
@@ -328,12 +336,17 @@ def test_publish_window_hides_old_and_future_notices(seeded, settings, store, bo
     assert future_one.id not in listed and future_one.id not in indexed
     assert undated_one.id not in listed and undated_one.id not in indexed
     assert edge_one.id in listed and edge_one.id in indexed
+    assert dated_one.id in listed and dated_one.id in indexed
     # 표본의 나머지 글은 날짜가 제각각이다. 규칙대로 셈한 값과 맞는지 본다.
-    expected = sum(
-        1 for n in notices
-        if n.published_at is not None
-        and datetime(2026, 2, 28, 15, 0, tzinfo=UTC) <= n.published_at.replace(tzinfo=UTC) <= datetime.now(UTC)
-    )
+    today = datetime.now(UTC).astimezone(KST).date()
+
+    def counted(n: m.Notice) -> bool:
+        if n.published_at is not None:
+            floor = datetime(2026, 2, 28, 15, 0, tzinfo=UTC)
+            return floor <= n.published_at.replace(tzinfo=UTC) <= datetime.now(UTC)
+        return n.published_date is not None and date(2026, 3, 1) <= n.published_date <= today
+
+    expected = sum(1 for n in notices if counted(n))
     assert result.notices == expected
 
     # 상세 파일도 함께 사라진다. 목록에만 없고 주소로는 열리는 상태를 만들지 않는다.
