@@ -348,11 +348,13 @@ def _load_notices(
     floor = window_floor(window_start)
 
     def within_window(notice: m.Notice) -> bool:
-        """발행일을 아는 글만 판정한다. 날짜가 없으면 지어내지 않고 공개한다."""
+        """공개 범위 안인지 판정한다."""
         # sqlite 는 시간대 없이 돌려주므로 먼저 UTC 로 정규화한다.
         published = as_utc(notice.published_at)
         if published is None:
-            return True
+            # 발행일을 모르면 범위 안이라고 볼 근거가 없다. 사용자 결정(2026-09-07)에 따라
+            # 공개하지 않는다. 원문은 남으므로 날짜를 알아내면 다시 공개된다.
+            return floor is None
         if published > now:
             # 원문에 2099년 같은 값이 있다. 아직 오지 않은 날짜는 공개하지 않는다.
             return False
@@ -951,11 +953,15 @@ def refresh_public_status(
             .join(m.SourceItem, m.SourceItem.id == m.Notice.primary_source_item_id)
             .join(m.Source, m.Source.id == m.SourceItem.source_id)
             .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
-            .where(m.Notice.published_at.is_(None) | (m.Notice.published_at <= now))
         )
-        if floor is not None:
+        if floor is None:
             notices_query = notices_query.where(
-                m.Notice.published_at.is_(None) | (m.Notice.published_at >= floor)
+                m.Notice.published_at.is_(None) | (m.Notice.published_at <= now)
+            )
+        else:
+            # 발행일을 모르는 글은 공개하지 않으므로 총계에서도 뺀다.
+            notices_query = notices_query.where(
+                m.Notice.published_at.between(floor, now)
             )
         notices_total = int(session.execute(notices_query).scalar() or 0)
         contacts_total = int(

@@ -305,12 +305,14 @@ def test_publish_window_hides_old_and_future_notices(seeded, settings, store, bo
     session.commit()
 
     notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
-    assert len(notices) >= 3
-    old_one, future_one, edge_one = notices[0], notices[1], notices[2]
+    assert len(notices) >= 4
+    old_one, future_one, edge_one, undated_one = notices[0], notices[1], notices[2], notices[3]
     old_one.published_at = datetime(2025, 12, 31, 3, 0, tzinfo=UTC)
     future_one.published_at = datetime(2099, 12, 31, 0, 30, tzinfo=UTC)
     # 2026-02-28T15:00Z 는 한국시간으로 2026-03-01 00:00 이다. 경계 안쪽이다.
     edge_one.published_at = datetime(2026, 2, 28, 15, 0, tzinfo=UTC)
+    # 발행일을 모르면 범위 안이라고 볼 근거가 없다. 공개하지 않는다.
+    undated_one.published_at = None
     session.commit()
 
     windowed = replace(settings, initial_window_start=date(2026, 3, 1))
@@ -324,11 +326,18 @@ def test_publish_window_hides_old_and_future_notices(seeded, settings, store, bo
     indexed = {e["id"] for e in index["entries"]}
     assert old_one.id not in listed and old_one.id not in indexed
     assert future_one.id not in listed and future_one.id not in indexed
+    assert undated_one.id not in listed and undated_one.id not in indexed
     assert edge_one.id in listed and edge_one.id in indexed
-    assert result.notices == len(notices) - 2
+    # 표본의 나머지 글은 날짜가 제각각이다. 규칙대로 셈한 값과 맞는지 본다.
+    expected = sum(
+        1 for n in notices
+        if n.published_at is not None
+        and datetime(2026, 2, 28, 15, 0, tzinfo=UTC) <= n.published_at.replace(tzinfo=UTC) <= datetime.now(UTC)
+    )
+    assert result.notices == expected
 
     # 상세 파일도 함께 사라진다. 목록에만 없고 주소로는 열리는 상태를 만들지 않는다.
-    for hidden in (old_one.id, future_one.id):
+    for hidden in (old_one.id, future_one.id, undated_one.id):
         with pytest.raises(FileNotFoundError):
             _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden}.json")
 
