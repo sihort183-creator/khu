@@ -31,6 +31,10 @@ def build_engine(cfg: Settings | None = None, *, url: str | None = None) -> Engi
     engine = create_engine(
         dsn,
         # 출처를 동시에 처리하면 그만큼 연결도 함께 쓴다. 여유를 두 개 더 둔다.
+        # 연결 상한은 Postgres 의 max_connections(60)가 아니라 Supabase 풀러가 세션 모드에서
+        # 사용자마다 거는 pool_size(15)다. 이 값을 넘기면 수집이 통째로 죽는다.
+        # 2026-09-07 KHU_SOURCE_CONCURRENCY 를 24 로 올렸다가 6분 만에 실패했다.
+        # 아래 계산상 KHU_SOURCE_CONCURRENCY 는 11 을 넘지 않아야 한다.
         pool_size=max(3, cfg.source_concurrency + 2),
         max_overflow=2,
         pool_pre_ping=True,
