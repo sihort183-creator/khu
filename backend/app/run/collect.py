@@ -116,6 +116,13 @@ async def collect_source(
                 break
 
             for listed in page.items:
+                # 글 하나를 받는 데도 서버 예의상 간격을 지킨다. 첫 수집처럼 새 글이
+                # 수십 건인 게시판에서는 이 안쪽 루프만으로 예산을 넘길 수 있다.
+                # 넘기면 남은 글은 다음 실행으로 넘긴다.
+                if budget.exhausted:
+                    detail_complete = False
+                    break
+
                 seen_ids.add(listed.external_id)
                 try:
                     changed = await _process_item(
@@ -148,6 +155,10 @@ async def collect_source(
                     outcome.updated_items += 1
                 else:
                     known_streak += 1
+
+            if budget.exhausted:
+                detail_complete = False
+                break
 
             # 이미 아는 항목만 나오는 구간에 닿으면 멈춘다.
             # 고정 공지만 만났다고 끝내지 않는다(7.2절 2항).

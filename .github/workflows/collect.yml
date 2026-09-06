@@ -43,7 +43,8 @@ jobs:
       KHU_R2_BUCKET_BACKUP: ${{ vars.KHU_R2_BUCKET_BACKUP || 'khu-notice-backup' }}
       KHU_HEARTBEAT_URL: ${{ secrets.KHU_HEARTBEAT_URL }}
       # 실행 상한 30분. 워크플로 상한 40분보다 짧게 두어 정리 단계를 남긴다.
-      KHU_RUN_BUDGET_SECONDS: "1800"
+      # 워크플로 타임아웃은 40분이다. 수집을 25분에 끊어 내보내기·정리 시간을 남긴다.
+      KHU_RUN_BUDGET_SECONDS: "1500"
 
     steps:
       - uses: actions/checkout@v4
