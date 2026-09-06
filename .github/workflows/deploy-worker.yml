@@ -1,0 +1,60 @@
+name: 조회 서버 배포
+
+# 손으로 눌러야만 배포한다. 밀어넣기만으로 자동 배포하지 않는다.
+# 조회 서버는 사용자가 실제로 보는 통로라 의도한 때에만 바뀌어야 한다.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: khu-worker-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 비밀값 확인
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN 비밀값이 없습니다. docs/프런트엔드_배포_준비.md 를 보세요."
+            exit 1
+          fi
+
+      # 배포 전에 검사를 다시 돌린다. 통과한 것만 나간다.
+      - name: 검사
+        run: |
+          npm install --no-package-lock
+          node --check src/index.js
+          node --test tests/*.test.mjs
+
+      - name: 배포
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.KHU_R2_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy
+
+      - name: 중계 경로 확인
+        env:
+          BASE: ${{ vars.KHU_PUBLIC_API_BASE }}
+        run: |
+          [ -n "$BASE" ] || { echo "KHU_PUBLIC_API_BASE 변수가 없어 확인을 건너뜁니다"; exit 0; }
+          # 학교 밖 주소는 중계하지 않아야 한다. 404 가 정상이다.
+          outside=$(printf '%s' 'https://evil.example.com/a.png' | base64 -w0 | tr '+/' '-_' | tr -d '=')
+          code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/v1/img/$outside")
+          echo "학교 밖 주소 응답: $code"
+          [ "$code" = "404" ] || { echo "::error::중계가 학교 밖 주소를 막지 않습니다"; exit 1; }
