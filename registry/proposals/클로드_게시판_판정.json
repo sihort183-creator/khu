@@ -1,0 +1,823 @@
+{
+  "meta": {
+    "작성": "클로드 세션",
+    "작성_시각": "2026-09-07T00:40:42+09:00",
+    "대상": "board_profiles.json 의 kind=unclear 97개 중 사용자가 등록 대상으로 지정한 12행(고유 게시판 16개)",
+    "확인_방법": "각 게시판 1페이지를 실제 요청하여 기존 어댑터로 파싱. 표본 데이터만으로 판정하지 않았다.",
+    "수집_범위": "2026-03-01 이후만 공개 대상(2026-09-07 사용자 결정)",
+    "제안_항목": 16,
+    "즉시_수집_가능": 12,
+    "범위_내_글_없음": 4,
+    "주의": [
+      "이 파일은 제안이다. registry/bootstrap/sources.json 은 수정하지 않았다.",
+      "반영은 Codex 가 검토 후 sources.json 병합 → sources sync 로 한다.",
+      "16개 전부 기존 출처와 key 중복이 없음을 확인했다.",
+      "범위 내 글이 없는 4개도 등록한다. 학사일정 계열이라 학기마다 새 글이 올라온다."
+    ]
+  },
+  "items": [
+    {
+      "key": "goodjob-s3_4_2",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_4_2&page=1",
+        "HTTP": 200,
+        "파서_인식": 15,
+        "고정공지": 0,
+        "최신글": "2026-09-04",
+        "2026-03-01_이후": 15,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[LINE] 영상 컨텐츠 제작 및 편집 아르바이트",
+          "[미래에셋증권] 리서치센터 RA 아르바이트 채용 (2차전지.ESS) 총 ",
+          "[KDI국제정책대학원] 연구기획팀 단기 아르바이트 채용"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 8,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "goodjob-s3_4_2",
+        "name": "미래인재센터 교외",
+        "organization": "org-goodjob",
+        "adapter": "gnuboard",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://goodjob.khu.ac.kr",
+          "bo_table": "s3_4_2"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-goodjob"
+          }
+        ],
+        "official_evidence_url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_4_2",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 15건."
+      }
+    },
+    {
+      "key": "goodjob-s3_5",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_5&page=1",
+        "HTTP": 200,
+        "파서_인식": 15,
+        "고정공지": 0,
+        "최신글": "2026-09-04",
+        "2026-03-01_이후": 15,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[TheinEdu] 서초구 교육비 전액지원] AI를 활…",
+          "[(주)컨벤션숲] 「2026 블록체인 밋업데이(BCMD…",
+          "[서울지방고용노동청 서울강남지청] 미취업 청년을 위한 …"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 8,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "goodjob-s3_5",
+        "name": "미래인재센터 각종활동",
+        "organization": "org-goodjob",
+        "adapter": "gnuboard",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://goodjob.khu.ac.kr",
+          "bo_table": "s3_5"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-goodjob"
+          }
+        ],
+        "official_evidence_url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_5",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 15건."
+      }
+    },
+    {
+      "key": "goodjob-s3_4_1",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_4_1&page=1",
+        "HTTP": 200,
+        "파서_인식": 15,
+        "고정공지": 0,
+        "최신글": "2026-03-30",
+        "2026-03-01_이후": 1,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[일산순복음영산교회] 성악과남자솔리스트 구인",
+          "[(주)에듀엔텍] 학과소개 멘토모집(부천/광명)",
+          "[하나은행 경희대출장소]"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 8,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "goodjob-s3_4_1",
+        "name": "미래인재센터 아르바이트",
+        "organization": "org-goodjob",
+        "adapter": "gnuboard",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://goodjob.khu.ac.kr",
+          "bo_table": "s3_4_1"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-goodjob"
+          }
+        ],
+        "official_evidence_url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_4_1",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 0건), 최신 2026-03-30, 2026-03-01 이후 1건."
+      }
+    },
+    {
+      "key": "kor-BMSR00040-200320",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200320&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 10,
+        "고정공지": 1,
+        "최신글": "2026-08-07",
+        "2026-03-01_이후": 10,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[필독] 학부 국내 학점교류 안내사항",
+          "2026학년도 2학기 타 대학 소속 학점교류생 학번 안내(실감미디어)",
+          "2026학년도 2학기 타 대학 소속 학점교류생 학번 안내"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 10,
+        "미러_호스트": "www.khu.ac.kr",
+        "미러_비고": "www.khu.ac.kr 에서도 같은 board_code/menu_no 로 동일 내용이 나온다. 기존 본부 출처 10개가 news.khu.ac.kr 로 등록되어 있어 관례를 따랐다."
+      },
+      "source_spec": {
+        "key": "kor-BMSR00040-200320",
+        "name": "[확인 필요] news.khu.ac.kr 교내학점교류",
+        "organization": "org-news",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://news.khu.ac.kr",
+          "prefix": "kor",
+          "board_code": "BMSR00040",
+          "menu_no": "200320"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-news"
+          }
+        ],
+        "official_evidence_url": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200320",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 1건), 최신 2026-08-07, 2026-03-01 이후 10건."
+      }
+    },
+    {
+      "key": "kor-BMSR00040-200375",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200375&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 10,
+        "고정공지": 0,
+        "최신글": "2026-08-21",
+        "2026-03-01_이후": 10,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "습득물 안내(8월3주차)",
+          "습득물 안내(8월 2주차)",
+          "7월 전체 미수령 습득물 목록"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 10,
+        "미러_호스트": "www.khu.ac.kr",
+        "미러_비고": "www.khu.ac.kr 에서도 같은 board_code/menu_no 로 동일 내용이 나온다. 기존 본부 출처 10개가 news.khu.ac.kr 로 등록되어 있어 관례를 따랐다."
+      },
+      "source_spec": {
+        "key": "kor-BMSR00040-200375",
+        "name": "[확인 필요] news.khu.ac.kr 분실물 안내",
+        "organization": "org-news",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://news.khu.ac.kr",
+          "prefix": "kor",
+          "board_code": "BMSR00040",
+          "menu_no": "200375"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-news"
+          }
+        ],
+        "official_evidence_url": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200375",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-08-21, 2026-03-01 이후 10건."
+      }
+    },
+    {
+      "key": "kor-BMSR00040-200283",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200283&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 10,
+        "고정공지": 0,
+        "최신글": "2026-09-04",
+        "2026-03-01_이후": 10,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[청운관] 주간식단메뉴표 26.09.07~26.09.11",
+          "[푸른솔] 주간식단메뉴표 26.09.07~26.09.11",
+          "[푸른솔] 주간식단메뉴표 26.08.31~26.09.04"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 10,
+        "미러_호스트": "www.khu.ac.kr",
+        "미러_비고": "www.khu.ac.kr 에서도 같은 board_code/menu_no 로 동일 내용이 나온다. 기존 본부 출처 10개가 news.khu.ac.kr 로 등록되어 있어 관례를 따랐다."
+      },
+      "source_spec": {
+        "key": "kor-BMSR00040-200283",
+        "name": "[확인 필요] news.khu.ac.kr 식단안내",
+        "organization": "org-news",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://news.khu.ac.kr",
+          "prefix": "kor",
+          "board_code": "BMSR00040",
+          "menu_no": "200283"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-news"
+          }
+        ],
+        "official_evidence_url": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200283",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 10건."
+      }
+    },
+    {
+      "key": "law-08_06_01",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_06_01&page=1",
+        "HTTP": 200,
+        "파서_인식": 15,
+        "고정공지": 7,
+        "최신글": "2026-09-04",
+        "2026-03-01_이후": 10,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "2026학년도 2학기 세진원 배정 결과 안내(09.04. 15:33 업데",
+          "2026학년도 서울캠퍼스 교내 방제 작업 안내",
+          "기숙사 카드키 재발급 비용 인상 관련 중요 공지"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 12,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "law-08_06_01",
+        "name": "법학전문대학원 세진원 기숙사",
+        "organization": "org-law",
+        "adapter": "gnuboard",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://law.khu.ac.kr",
+          "bo_table": "08_06_01"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-law"
+          }
+        ],
+        "official_evidence_url": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_06_01",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 7건), 최신 2026-09-04, 2026-03-01 이후 10건."
+      }
+    },
+    {
+      "key": "pnc-BMSR00045-800211",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://pnc.khu.ac.kr/pnc/user/bbs/BMSR00045/list.do?menuNo=800211&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 9,
+        "고정공지": 0,
+        "최신글": "2026-08-11",
+        "2026-03-01_이후": 3,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "2026학년도 2학기 계약학과 시간표",
+          "2026학년도 2학기 일반학과 수요일 시간표",
+          "2026학년도 2학기 일반학과 화요일 시간표"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 2,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "pnc-BMSR00045-800211",
+        "name": "공공대학원 시간표",
+        "organization": "org-pnc",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://pnc.khu.ac.kr",
+          "prefix": "pnc",
+          "board_code": "BMSR00045",
+          "menu_no": "800211"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-pnc"
+          }
+        ],
+        "official_evidence_url": "https://pnc.khu.ac.kr/pnc/user/bbs/BMSR00045/list.do?menuNo=800211",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 9건 인식(고정 0건), 최신 2026-08-11, 2026-03-01 이후 3건."
+      }
+    },
+    {
+      "key": "maths-BMSR00048-600011",
+      "판정": "등록",
+      "수집_시작_가능": false,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00048/list.do?menuNo=600011&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 5,
+        "고정공지": 0,
+        "최신글": "2026-01-12",
+        "2026-03-01_이후": 0,
+        "날짜_미확정": 0,
+        "다음쪽_있음": false,
+        "표본_제목": [
+          "2026학년도 학사일정",
+          "2025학년도 학사일정",
+          "2024학년도 학사일정 (9.12 변경)"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 5,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "maths-BMSR00048-600011",
+        "name": "수학과 학부",
+        "organization": "org-maths",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://maths.khu.ac.kr",
+          "prefix": "maths",
+          "board_code": "BMSR00048",
+          "menu_no": "600011"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-maths"
+          }
+        ],
+        "official_evidence_url": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00048/list.do?menuNo=600011",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 5건 인식(고정 0건), 최신 2026-01-12, 2026-03-01 이후 0건."
+      }
+    },
+    {
+      "key": "maths-BMSR00048-600014",
+      "판정": "등록",
+      "수집_시작_가능": false,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00048/list.do?menuNo=600014&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 5,
+        "고정공지": 0,
+        "최신글": "2026-01-23",
+        "2026-03-01_이후": 0,
+        "날짜_미확정": 0,
+        "다음쪽_있음": false,
+        "표본_제목": [
+          "[일반대학원]2026학년도 일반대학원 학사 일정",
+          "[일반대학원]2025학년도 학사일정",
+          "[일반대학원] 2024학년도 학사일정"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 5,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "maths-BMSR00048-600014",
+        "name": "수학과 학사일정",
+        "organization": "org-maths",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://maths.khu.ac.kr",
+          "prefix": "maths",
+          "board_code": "BMSR00048",
+          "menu_no": "600014"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-maths"
+          }
+        ],
+        "official_evidence_url": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00048/list.do?menuNo=600014",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 5건 인식(고정 0건), 최신 2026-01-23, 2026-03-01 이후 0건."
+      }
+    },
+    {
+      "key": "fst-BMSR00040-11800058",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://fst.khu.ac.kr/fst/user/bbs/BMSR00040/list.do?menuNo=11800058&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 10,
+        "고정공지": 0,
+        "최신글": "2026-09-05",
+        "2026-03-01_이후": 8,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[2026 U.S. News & World Report] 경희대학교 식품",
+          "[2025 THE 세계랭킹] ‘국내 종합대 톱5’ 경희대.. 첨단 분야 ",
+          "[2024 GRAS] 경희대 식품생명공학과, 세계대학평가서 국내 가장 높"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 1,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "fst-BMSR00040-11800058",
+        "name": "식품생명공학과 열린광장",
+        "organization": "org-fst",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://fst.khu.ac.kr",
+          "prefix": "fst",
+          "board_code": "BMSR00040",
+          "menu_no": "11800058"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-fst"
+          }
+        ],
+        "official_evidence_url": "https://fst.khu.ac.kr/fst/user/bbs/BMSR00040/list.do?menuNo=11800058",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-09-05, 2026-03-01 이후 8건."
+      }
+    },
+    {
+      "key": "sls_kor-BMSR00040-20200036",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200036&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 2,
+        "고정공지": 1,
+        "최신글": "2026-09-01",
+        "2026-03-01_이후": 1,
+        "날짜_미확정": 0,
+        "다음쪽_있음": false,
+        "표본_제목": [
+          "2026년 경희대학교 자유전공학부 제 2대 학생회 정·부학생회장 보궐선거",
+          "2025 제1대 경희대학교 자유전공학부 학생회 Do.Re"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 5,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "sls_kor-BMSR00040-20200036",
+        "name": "자유전공학부 대학생활",
+        "organization": "org-sls_kor",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://sls.khu.ac.kr",
+          "prefix": "sls_kor",
+          "board_code": "BMSR00040",
+          "menu_no": "20200036"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-sls_kor"
+          }
+        ],
+        "official_evidence_url": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200036",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 2건 인식(고정 1건), 최신 2026-09-01, 2026-03-01 이후 1건."
+      }
+    },
+    {
+      "key": "sls_kor-BMSR00040-20200035",
+      "판정": "등록",
+      "수집_시작_가능": false,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200035&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 1,
+        "고정공지": 0,
+        "최신글": "2026-02-09",
+        "2026-03-01_이후": 0,
+        "날짜_미확정": 0,
+        "다음쪽_있음": false,
+        "표본_제목": [
+          "CollabAI – AI·SW & 수학 융합 프로젝트 동아리"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 5,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "sls_kor-BMSR00040-20200035",
+        "name": "자유전공학부 동아리",
+        "organization": "org-sls_kor",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://sls.khu.ac.kr",
+          "prefix": "sls_kor",
+          "board_code": "BMSR00040",
+          "menu_no": "20200035"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-sls_kor"
+          }
+        ],
+        "official_evidence_url": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200035",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 1건 인식(고정 0건), 최신 2026-02-09, 2026-03-01 이후 0건."
+      }
+    },
+    {
+      "key": "sls_kor-BMSR00040-20200043",
+      "판정": "등록",
+      "수집_시작_가능": false,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200043&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 1,
+        "고정공지": 0,
+        "최신글": "2026-02-10",
+        "2026-03-01_이후": 0,
+        "날짜_미확정": 0,
+        "다음쪽_있음": false,
+        "표본_제목": [
+          "대한전자공학회 추계학술대회 학생부 논문 발표회"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 5,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "sls_kor-BMSR00040-20200043",
+        "name": "자유전공학부 학술활동",
+        "organization": "org-sls_kor",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://sls.khu.ac.kr",
+          "prefix": "sls_kor",
+          "board_code": "BMSR00040",
+          "menu_no": "20200043"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-sls_kor"
+          }
+        ],
+        "official_evidence_url": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200043",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 1건 인식(고정 0건), 최신 2026-02-10, 2026-03-01 이후 0건."
+      }
+    },
+    {
+      "key": "kmc_kor-BMSR00040-4200014",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200014&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 10,
+        "고정공지": 0,
+        "최신글": "2026-09-02",
+        "2026-03-01_이후": 10,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "“임상실습 통해 환자를 헤아리는 마음 배우겠습니다∼” -경희대학교 한의과",
+          "통증 잡던 약침, 염증까지 다스렸다 - 박연철 한의학과 교수",
+          "“‘장내 미생물’ 좋은 아토피 환자, 침 치료 효과도 더 좋아” -김규석"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 4,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "kmc_kor-BMSR00040-4200014",
+        "name": "한의과대학 이슈",
+        "organization": "org-kmc_kor",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://kmc.khu.ac.kr",
+          "prefix": "kmc_kor",
+          "board_code": "BMSR00040",
+          "menu_no": "4200014"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-kmc_kor"
+          }
+        ],
+        "official_evidence_url": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200014",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-09-02, 2026-03-01 이후 10건."
+      }
+    },
+    {
+      "key": "kmc_kor-BMSR00040-4200214",
+      "판정": "등록",
+      "수집_시작_가능": true,
+      "근거": {
+        "관찰_시각": "2026-09-07T00:40:42+09:00",
+        "요청_주소": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200214&pageIndex=1",
+        "HTTP": 200,
+        "파서_인식": 10,
+        "고정공지": 0,
+        "최신글": "2026-08-25",
+        "2026-03-01_이후": 10,
+        "날짜_미확정": 0,
+        "다음쪽_있음": true,
+        "표본_제목": [
+          "[한의신문] 2026년 08월 26일자 발행본",
+          "[한의신문] 2026년 08월 19일자 발행본",
+          "[한의신문] 2026년 08월 12일자 발행본"
+        ]
+      },
+      "기존_출처_연결": {
+        "중복_없음_확인": true,
+        "같은_호스트_기존_출처수": 4,
+        "미러_호스트": null,
+        "미러_비고": null
+      },
+      "source_spec": {
+        "key": "kmc_kor-BMSR00040-4200214",
+        "name": "한의과대학 한의소식",
+        "organization": "org-kmc_kor",
+        "adapter": "khu_board",
+        "medium": "web",
+        "content_kind": "notice",
+        "interval_minutes": 60,
+        "status": "active",
+        "config": {
+          "base_url": "https://kmc.khu.ac.kr",
+          "prefix": "kmc_kor",
+          "board_code": "BMSR00040",
+          "menu_no": "4200214"
+        },
+        "audiences": [
+          {
+            "type": "organization",
+            "organization": "org-kmc_kor"
+          }
+        ],
+        "official_evidence_url": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200214",
+        "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-08-25, 2026-03-01 이후 10건."
+      }
+    }
+  ]
+}
