@@ -81,7 +81,7 @@ export default {
 
     // 같은 개정 파일은 가장자리 캐시에서 바로 돌려준다.
     const cache = caches.default;
-    const cacheKey = new Request(new URL(`/${key}`, url).toString(), { method: "GET" });
+    const cacheKey = new Request(new URL(`/${key}?encoding=v2`, url).toString(), { method: "GET" });
     const cached = await cache.match(cacheKey);
     if (cached && request.method === "GET") {
       const hit = new Response(cached.body, cached);
@@ -107,12 +107,12 @@ export default {
     headers.set("cache-control", cacheControlFor(key));
     headers.set("etag", object.httpEtag);
     headers.set("x-cache", "MISS");
-    // 생성기가 gzip 으로 올린 파일은 그대로 전달한다.
-    if (object.httpMetadata?.contentEncoding) {
-      headers.set("content-encoding", object.httpMetadata.contentEncoding);
-    }
-
-    const response = new Response(object.body, { headers });
+    // 캐시에는 해제한 JSON을 넘긴다. 전송 압축은 런타임이 한 번만 수행한다.
+    // 사전 압축 본문을 그대로 cache.put() 하면 캐시 경로에서 중복 압축될 수 있다.
+    const body = object.httpMetadata?.contentEncoding === "gzip"
+      ? object.body.pipeThrough(new DecompressionStream("gzip"))
+      : object.body;
+    const response = new Response(body, { headers });
     if (request.method === "GET") {
       ctx.waitUntil(cache.put(cacheKey, response.clone()));
     }

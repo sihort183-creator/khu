@@ -76,3 +76,7 @@ jobs:
           node-version: "20"
       - name: Worker 문법 확인
         run: node --check src/index.js
+      - name: 조회 서버 압축·캐시 검사
+        run: |
+          npm install --no-package-lock
+          node --test tests/compression.test.mjs
