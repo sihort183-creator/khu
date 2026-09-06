@@ -57,6 +57,51 @@ function jsonError(status, code, message, origin) {
   });
 }
 
+async function objectJson(object) {
+  const body = object.httpMetadata?.contentEncoding === "gzip"
+    ? object.body.pipeThrough(new DecompressionStream("gzip")) : object.body;
+  return new Response(body).json();
+}
+
+async function revisionObject(key, bucket) {
+  const match = /^v1\/r\/([^/]+)\/(.+)$/.exec(key);
+  if (!match || match[2] === "manifest.json") return null;
+  const manifestObject = await bucket.get(`v1/r/${match[1]}/manifest.json`);
+  if (!manifestObject) return null;
+  const manifest = await objectJson(manifestObject);
+  if (manifest.version !== 1 || manifest.revision !== match[1]) throw new Error("Invalid manifest");
+  const target = manifest.entries[match[2]];
+  if (!target) return null;
+  if (!/^v1\/objects\/[a-f0-9]{64}\.json$/.test(target)) throw new Error("Invalid object key");
+  const object = await bucket.get(target);
+  if (!object) throw new Error("Missing revision object");
+  const payload = await objectJson(object);
+  if (Object.hasOwn(payload, "meta")) payload.meta = {
+    request_id: `static-${manifest.revision}`, generated_at: manifest.generated_at,
+  };
+  if (payload.page) {
+    payload.page.snapshot_at = manifest.generated_at;
+    payload.page.dataset_revision = manifest.revision;
+  }
+  if (Object.hasOwn(payload, "revision")) payload.revision = manifest.revision;
+  if (Object.hasOwn(payload, "generated_at")) payload.generated_at = manifest.generated_at;
+  function restore(value) {
+    if (!value || typeof value !== "object") return;
+    if (Object.hasOwn(value, "freshness") && value.primary_source) {
+      const freshness = manifest.freshness[value.primary_source.id];
+      if (!freshness) throw new Error("Missing freshness");
+      value.freshness = freshness;
+    }
+    for (const child of Object.values(value)) restore(child);
+  }
+  restore(payload);
+  return {
+    body: JSON.stringify(payload),
+    httpEtag: `"${manifest.revision}-${target.split("/").pop()}"`,
+    httpMetadata: {},
+  };
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -75,7 +120,7 @@ export default {
     }
 
     const key = resolveKey(url.pathname);
-    if (!key) {
+    if (!key || key.startsWith("v1/objects/") || key.endsWith("/manifest.json")) {
       return jsonError(404, "NOT_FOUND", "요청한 자료가 없습니다.", origin);
     }
 
@@ -95,6 +140,7 @@ export default {
     let object;
     try {
       object = await env.PUBLIC.get(key);
+      if (object === null) object = await revisionObject(key, env.PUBLIC);
     } catch (err) {
       return jsonError(503, "TEMPORARILY_UNAVAILABLE", "조회 저장소를 읽지 못했습니다.", origin);
     }
@@ -112,7 +158,7 @@ export default {
     const body = object.httpMetadata?.contentEncoding === "gzip"
       ? object.body.pipeThrough(new DecompressionStream("gzip"))
       : object.body;
-    const response = new Response(body, { headers });
+    const response = new Response(request.method === "HEAD" ? null : body, { headers });
     if (request.method === "GET") {
       ctx.waitUntil(cache.put(cacheKey, response.clone()));
     }

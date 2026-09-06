@@ -91,7 +91,11 @@ class KhuBoardAdapter:
         return {h for h in hosts if h}
 
     def list_url(self, config: dict[str, Any], page_index: int = 1) -> str:
-        return f"{self._dir(config)}/list.do?menuNo={self._require(config, 'menu_no')}&pageIndex={page_index}"
+        url = f"{self._dir(config)}/list.do?menuNo={self._require(config, 'menu_no')}&pageIndex={page_index}"
+        count = config.get("user_display_count")
+        if count in (10, 20, 30, 40, 50):
+            url += f"&userDisplayCount={count}"
+        return url
 
     def detail_url(self, config: dict[str, Any], external_id: str) -> str:
         """사용자에게 보여줄 안정 주소. 실제 요청은 POST 지만 주소 형식은 고정한다."""
@@ -238,7 +242,7 @@ class KhuBoardAdapter:
             return True
         if cells:
             first = _text(cells[0])
-            if first and not first.isdigit():
+            if first and not first.replace(",", "").isdigit():
                 return True
         return False
 
@@ -250,6 +254,11 @@ class KhuBoardAdapter:
             value = _text(anchor)
             if value.isdigit():
                 numbers.append(int(value))
+            # 숫자 묶음 마지막(예: 10쪽)에서도 다음 묶음·끝 링크의 실제
+            # 목적 페이지를 읽는다. 숫자 라벨만 보면 11쪽 이후를 누락한다.
+            target = " ".join((anchor.get("href") or "", anchor.get("onclick") or ""))
+            for match in re.finditer(r"(?:fnSubmitForm|linkPage|searchNc)\(\s*['\"]?(\d+)", target):
+                numbers.append(int(match.group(1)))
         if numbers:
             return max(numbers) > page_index
         return bool(

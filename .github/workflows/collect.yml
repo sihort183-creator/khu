@@ -20,6 +20,14 @@ on:
         description: "초기 수집 단일 회차 검사: 공개·중복 비교 생략"
         type: boolean
         default: false
+      export_probe:
+        description: "수집 없이 공개를 연속 2회 실행하여 변경 없는 파일 재사용 실측"
+        type: boolean
+        default: false
+      verify_date_order:
+        description: "원문 목록 정렬을 검증하고 통과 출처의 날짜 경계 설정을 적용"
+        type: boolean
+        default: false
 
 # 이전 실행이 끝나기 전에는 새 실행이 기다린다(7.4절). 취소하지 않는다.
 concurrency:
@@ -86,14 +94,32 @@ jobs:
             exit 1
           fi
 
+      - name: 날짜 경계 원문 검증 및 설정 적용
+        if: inputs.verify_date_order
+        run: |
+          python -m app.ops.date_order audit --concurrency 12
+          python -m app.ops.date_order apply
+
+      - name: 날짜 경계 검증 결과 보관
+        if: always() && inputs.verify_date_order
+        uses: actions/upload-artifact@v4
+        with:
+          name: date-order-audit
+          path: backend/.localstore/date-order-audit.json
+          retention-days: 7
+
       - name: 수집 실행
         env:
           SOURCES: ${{ inputs.sources }}
           VERBOSE: ${{ inputs.verbose }}
           INITIAL_ONCE: ${{ inputs.initial_once }}
+          EXPORT_PROBE: ${{ inputs.export_probe }}
         run: |
           set -euo pipefail
-          if [ -n "$SOURCES" ] || [ "$INITIAL_ONCE" = "true" ]; then
+          if [ "$EXPORT_PROBE" = "true" ]; then
+            [ -z "$SOURCES" ] && [ "$INITIAL_ONCE" != "true" ] || { echo '공개 실측과 수집 입력을 함께 사용할 수 없습니다'; exit 1; }
+            python -m app.run.export --repeat 2
+          elif [ -n "$SOURCES" ] || [ "$INITIAL_ONCE" = "true" ]; then
             args=()
             if [ -n "$SOURCES" ]; then
               read -r -a ids <<< "$SOURCES"

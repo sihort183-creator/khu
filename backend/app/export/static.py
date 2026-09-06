@@ -1,7 +1,8 @@
 """정적 조회 파일 생성(12·15.1절).
 
-매 실행이 새 개정을 /v1/r/<revision>/ 아래에 먼저 올리고, 마지막에 /v1/latest.json 의
-포인터만 바꾼다. 개정 경로의 파일은 불변이므로 Worker 와 브라우저가 길게 캐시한다.
+내용이 같은 JSON은 /v1/objects/<hash>.json 에 한 번만 올린다. 개정별 manifest가
+공개 경로와 내용 객체, 생성시각·신선도를 묶고 Worker가 기존 응답을 합성한다.
+명세 업로드 후 /v1/latest.json을 전환하고 공개 상태를 갱신한다.
 
 만드는 파일:
   v1/latest.json                       개정 포인터 (짧은 캐시)
@@ -18,6 +19,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import threading
@@ -62,6 +64,7 @@ BASE = "v1"
 class ExportResult:
     revision: str
     files_written: int = 0
+    files_reused: int = 0
     bytes_written: int = 0
     notices: int = 0
     contacts: int = 0
@@ -92,10 +95,56 @@ class Writer:
         self.result = result
         self.record_keys = record_keys
         self._lock = threading.Lock()
+        self.entries: dict[str, str] = {}
+        self.freshness: dict[str, Any] = {}
+        self._existing: set[str] | None = None
+
+    def _prepare(self, key: str, model: Any) -> tuple[str, bytes] | None:
+        data = json.loads(_dump(model))
+        if not key.startswith(f"{BASE}/r/"):
+            return key, _dump(data)
+        if self._existing is None:
+            self._existing = set(self.store.list_keys(self.bucket, f"{BASE}/objects/"))
+        if "meta" in data:
+            data["meta"] = None
+        if "page" in data:
+            data["page"]["snapshot_at"] = None
+            data["page"]["dataset_revision"] = None
+        for name in ("revision", "generated_at"):
+            if name in data:
+                data[name] = None
+
+        def strip_freshness(value):
+            if isinstance(value, dict):
+                if "freshness" in value and "primary_source" in value:
+                    self.freshness[value["primary_source"]["id"]] = value["freshness"]
+                    value["freshness"] = None
+                for child in value.values():
+                    strip_freshness(child)
+            elif isinstance(value, list):
+                for child in value:
+                    strip_freshness(child)
+
+        strip_freshness(data)
+        payload = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        object_key = f"{BASE}/objects/{hashlib.sha256(payload).hexdigest()}.json"
+        self.entries[key.split("/", 3)[3]] = object_key
+        if object_key in self._existing:
+            self.result.files_reused += 1
+            return None
+        self._existing.add(object_key)
+        return object_key, payload
+
+    def publish_manifest(self, prefix: str, now: datetime) -> None:
+        self._upload(f"{prefix}/manifest.json", _dump({
+            "version": 1, "revision": self.result.revision, "generated_at": now,
+            "entries": self.entries, "freshness": self.freshness,
+        }))
 
     def put(self, key: str, model: Any) -> None:
-        data = _dump(model)
-        self._upload(key, data)
+        prepared = self._prepare(key, model)
+        if prepared is not None:
+            self._upload(*prepared)
 
     def _upload(self, key: str, data: bytes) -> None:
         self.store.put_bytes(self.bucket, key, data, content_type="application/json; charset=utf-8", compress=True)
@@ -112,7 +161,7 @@ class Writer:
         십수 분이 걸려 실행이 시간 제한에 걸린다. 서로 의존하지 않는 파일들이라
         동시에 올려도 된다. 개정 포인터(latest.json)는 이 뒤에 따로 올린다.
         """
-        pairs = [(key, _dump(model)) for key, model in items]
+        pairs = [prepared for key, model in items if (prepared := self._prepare(key, model)) is not None]
         if not pairs:
             return
         if len(pairs) < workers:
@@ -800,8 +849,8 @@ def export_static(
             sources_backfill_incomplete=sum(1 for s in source_lines if not s.backfill_complete),
             sources=source_lines,
         )
-        writer.put(f"{BASE}/status.json", status)
 
+    writer.publish_manifest(prefix, now)
     # 마지막에 포인터를 바꾼다. 이 순서 때문에 두 개정이 섞이지 않는다.
     writer.put(
         f"{BASE}/latest.json",
@@ -816,6 +865,7 @@ def export_static(
             initial_window_start=cfg.initial_window_start,
         ),
     )
+    writer.put(f"{BASE}/status.json", status)
     log.info(
         "정적 파일 %d개 생성(%.1fKB), 개정 %s", result.files_written, result.bytes_written / 1024, rev
     )
@@ -901,13 +951,19 @@ def refresh_public_status(
 def prune_old_revisions(cfg: Settings | None = None, *, keep: int = 3, store: ObjectStore | None = None) -> int:
     """오래된 개정을 정리한다. 최신 몇 개는 이어보기 때문에 남긴다(12절)."""
     cfg = cfg or default_settings
+    if keep < 1:
+        raise ValueError("최소 한 개정은 보존해야 합니다")
     store = store or build_store(cfg)
     keys = store.list_keys(cfg.r2.bucket_public, f"{BASE}/r/")
     revisions = sorted({k.split("/")[2] for k in keys if k.count("/") >= 3})
     doomed = revisions[:-keep] if len(revisions) > keep else []
+    latest = json.loads(store.get_bytes(cfg.r2.bucket_public, f"{BASE}/latest.json"))
+    doomed = [revision for revision in doomed if revision != latest["revision"]]
     removed = 0
     for revision in doomed:
         for key in [k for k in keys if k.startswith(f"{BASE}/r/{revision}/")]:
             store.delete(cfg.r2.bucket_public, key)
             removed += 1
+    # 내용 객체는 다른 실행이 새 개정에서 재사용 중일 수 있다. 전역 쓰기 잠금 없는
+    # 정리에서는 삭제하지 않는다. 개정 명세가 사라지면 공개 조회 경로도 사라진다.
     return removed

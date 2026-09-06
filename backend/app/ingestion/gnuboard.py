@@ -134,10 +134,13 @@ class GnuboardAdapter:
         return {h for h in hosts if h}
 
     def list_url(self, config: dict[str, Any], page_index: int = 1) -> str:
-        return (
+        url = (
             f"{self._base(config)}/bbs/board.php"
             f"?bo_table={self._require(config, 'bo_table')}&page={page_index}"
         )
+        if config.get("date_sort") == "wr_datetime_desc":
+            url += "&sst=wr_datetime&sod=desc"
+        return url
 
     def detail_url(self, config: dict[str, Any], external_id: str) -> str:
         return (
@@ -226,7 +229,7 @@ class GnuboardAdapter:
         # 번호 칸에 숫자 대신 '공지' 가 들어간 행이 상단 고정이다.
         number = _cell(row, "num")
         value = _text(number)
-        return bool(value and not value.isdigit())
+        return bool(value and not value.replace(",", "").isdigit())
 
     @staticmethod
     def _has_next(doc, page_index: int) -> bool:

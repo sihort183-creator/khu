@@ -79,4 +79,4 @@ jobs:
       - name: 조회 서버 압축·캐시 검사
         run: |
           npm install --no-package-lock
-          node --test tests/compression.test.mjs
+          node --test tests/*.test.mjs

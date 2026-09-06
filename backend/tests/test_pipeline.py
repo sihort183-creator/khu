@@ -29,6 +29,37 @@ CONFIG = {
 }
 
 
+def _read_export(store, bucket, key):
+    """Worker의 개정별 합성 계약을 Python 계약 검사에서도 확인한다."""
+    if not key.startswith("v1/r/"):
+        return store.get_bytes(bucket, key)
+    prefix, path = key.split("/", 3)[:3], key.split("/", 3)[3]
+    manifest = json.loads(store.get_bytes(bucket, "/".join(prefix) + "/manifest.json"))
+    if path not in manifest["entries"]:
+        raise FileNotFoundError(key)
+    payload = json.loads(store.get_bytes(bucket, manifest["entries"][path]))
+    if "meta" in payload:
+        payload["meta"] = {"request_id": "static-" + manifest["revision"], "generated_at": manifest["generated_at"]}
+    if "page" in payload:
+        payload["page"].update(snapshot_at=manifest["generated_at"], dataset_revision=manifest["revision"])
+    for field in ("revision", "generated_at"):
+        if field in payload:
+            payload[field] = manifest[field]
+
+    def restore(value):
+        if isinstance(value, dict):
+            if "freshness" in value and "primary_source" in value:
+                value["freshness"] = manifest["freshness"][value["primary_source"]["id"]]
+            for child in value.values():
+                restore(child)
+        elif isinstance(value, list):
+            for child in value:
+                restore(child)
+
+    restore(payload)
+    return json.dumps(payload).encode()
+
+
 def _seed(session) -> m.Source:
     session.add(m.University(id="univ-khu", code="khu", name="경희대학교"))
     session.flush()
@@ -201,7 +232,7 @@ def test_export_produces_contract_valid_files(seeded, settings, store, board_fix
     assert result.files_written >= 10
 
     def read(key: str) -> dict:
-        return json.loads(store.get_bytes(settings.r2.bucket_public, key).decode("utf-8"))
+        return json.loads(_read_export(store, settings.r2.bucket_public, key).decode("utf-8"))
 
     pointer = api.LatestPointer.model_validate(read("v1/latest.json"))
     assert pointer.revision == result.revision
@@ -250,16 +281,16 @@ def test_hidden_notice_disappears_from_static_files(seeded, settings, store, boa
     session.commit()
 
     result = export_static(settings, run_id="run-test5678", store=store)
-    pointer = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/latest.json"))
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
     base = pointer["base_path"]
-    page = json.loads(store.get_bytes(settings.r2.bucket_public, f"{base}/notices/page/1.json"))
-    index = json.loads(store.get_bytes(settings.r2.bucket_public, f"{base}/notices/index.json"))
+    page = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/page/1.json"))
+    index = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/index.json"))
 
     assert result.notices == 5
     assert hidden_id not in [n["id"] for n in page["data"]]
     assert hidden_id not in [e["id"] for e in index["entries"]]
     with pytest.raises(FileNotFoundError):
-        store.get_bytes(settings.r2.bucket_public, f"{base}/notices/{hidden_id}.json")
+        _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden_id}.json")
 
 
 def test_revision_pointer_switches_only_after_files_exist(seeded, settings, store, board_fixture):
@@ -269,7 +300,7 @@ def test_revision_pointer_switches_only_after_files_exist(seeded, settings, stor
     session.commit()
 
     result = export_static(settings, run_id="run-order", store=store)
-    pointer = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/latest.json"))
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
 
     # 포인터가 가리키는 개정의 파일이 실제로 존재해야 한다.
     keys = store.list_keys(settings.r2.bucket_public, pointer["base_path"])
@@ -336,7 +367,7 @@ def test_generated_at_is_timezone_aware(seeded, settings, store, board_fixture):
     session.commit()
     export_static(settings, run_id="run-tz", store=store)
 
-    payload = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/status.json"))
+    payload = json.loads(_read_export(store, settings.r2.bucket_public, "v1/status.json"))
     parsed = datetime.fromisoformat(payload["generated_at"].replace("Z", "+00:00"))
     assert parsed.tzinfo is not None
     assert parsed.astimezone(UTC) <= datetime.now(UTC)
@@ -351,12 +382,12 @@ def test_search_shards_preserve_every_public_notice(seeded, settings, store, boa
     monkeypatch.setattr(static, "INDEX_SHARD_SIZE", 2)
     result = export_static(settings, run_id="run-shards", store=store)
     prefix = f"v1/r/{result.revision}"
-    manifest = json.loads(store.get_bytes(settings.r2.bucket_public, f"{prefix}/notices/index.json"))
+    manifest = json.loads(_read_export(store, settings.r2.bucket_public, f"{prefix}/notices/index.json"))
     assert manifest["count"] == 6
     assert manifest["entries"] == []
     ids = []
     for shard in manifest["shards"]:
-        payload = json.loads(store.get_bytes(settings.r2.bucket_public, f"{prefix}/{shard['path']}"))
+        payload = json.loads(_read_export(store, settings.r2.bucket_public, f"{prefix}/{shard['path']}"))
         assert payload["revision"] == result.revision
         assert payload["count"] == shard["count"]
         ids.extend(entry["id"] for entry in payload["entries"])
@@ -391,3 +422,85 @@ def test_budget_cut_run_does_not_mark_items_missing(seeded, settings, store, boa
             "목록을 못 본 회차가 멀쩡한 항목을 없어진 것으로 세면 안 된다"
         )
         assert item.original_status == "available"
+
+
+def test_unchanged_export_reuses_all_objects_and_refreshes_metadata(seeded, settings, store, board_fixture):
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+    first = export_static(settings, store=store, revision="r100")
+    old = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/r/r100/manifest.json"))
+    health = session.get(m.SourceHealth, source.id)
+    health.last_list_success_at = datetime.now(UTC)
+    session.commit()
+    second = export_static(settings, store=store, revision="r101")
+    new = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/r/r101/manifest.json"))
+    # 출처 상태 파일만 실제 데이터 변경. 상세/페이지의 신선도는 개정 명세에서 합성한다.
+    for path, target in old["entries"].items():
+        if path != "sources.json":
+            assert new["entries"][path] == target
+    assert second.files_reused >= first.notices
+    assert second.files_written == 4  # 출처 객체, 명세, 상태, 최신 포인터
+    third = export_static(settings, store=store, revision="r102")
+    assert third.files_written == 3
+    assert third.files_reused == len(new["entries"])
+    page = json.loads(_read_export(store, settings.r2.bucket_public, "v1/r/r102/notices/page/1.json"))
+    assert page["page"]["dataset_revision"] == "r102"
+    assert page["data"][0]["freshness"]["last_checked_at"] != old["freshness"][source.id]["last_checked_at"]
+
+
+def test_hidden_reference_removed_and_pruning_preserves_shared_objects(seeded, settings, store, board_fixture):
+    from app.export.static import prune_old_revisions
+
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+    export_static(settings, store=store, revision="r100")
+    notice = session.scalars(select(m.Notice)).first()
+    hidden_path = f"notices/{notice.id}.json"
+    old = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/r/r100/manifest.json"))
+    notice.status = "hidden"
+    session.commit()
+    export_static(settings, store=store, revision="r101")
+    new = json.loads(store.get_bytes(settings.r2.bucket_public, "v1/r/r101/manifest.json"))
+    assert hidden_path not in new["entries"]
+    with pytest.raises(FileNotFoundError):
+        _read_export(store, settings.r2.bucket_public, "v1/r/r101/" + hidden_path)
+    prune_old_revisions(settings, keep=1, store=store)
+    for target in new["entries"].values():
+        assert store.get_bytes(settings.r2.bucket_public, target)
+    # 비공개 객체는 동시 내보내기의 재사용 보호를 위해 보존하고 공개 명세만 제거한다.
+    assert store.get_bytes(settings.r2.bucket_public, old["entries"][hidden_path])
+    with pytest.raises(FileNotFoundError):
+        store.get_bytes(settings.r2.bucket_public, "v1/r/r100/manifest.json")
+
+
+@pytest.mark.parametrize("fail_manifest", [False, True])
+def test_failed_object_upload_does_not_switch_latest(seeded, settings, store, board_fixture, monkeypatch, fail_manifest):
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+    export_static(settings, store=store, revision="r100")
+    session.scalars(select(m.Notice)).first().title = "변경된 공지 제목"
+    session.commit()
+    original_put = store.put_bytes
+
+    def failing_put(bucket, key, data, **kwargs):
+        if key.endswith("/manifest.json") if fail_manifest else key.startswith("v1/objects/"):
+            raise OSError("업로드 실패 재현")
+        return original_put(bucket, key, data, **kwargs)
+
+    monkeypatch.setattr(store, "put_bytes", failing_put)
+    with pytest.raises(OSError):
+        export_static(settings, store=store, revision="r101")
+    assert json.loads(store.get_bytes(settings.r2.bucket_public, "v1/latest.json"))["revision"] == "r100"
+    assert json.loads(store.get_bytes(settings.r2.bucket_public, "v1/status.json"))["revision"] == "r100"
+
+
+def test_pruning_pins_latest_despite_newer_unpublished_revision(seeded, settings, store):
+    from app.export.static import prune_old_revisions
+
+    export_static(settings, store=store, revision="r100")
+    store.put_bytes(settings.r2.bucket_public, "v1/r/r999/manifest.json", b'{"entries":{}}', content_type="application/json")
+    prune_old_revisions(settings, keep=1, store=store)
+    assert store.get_bytes(settings.r2.bucket_public, "v1/r/r100/manifest.json")

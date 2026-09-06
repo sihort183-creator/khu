@@ -39,7 +39,12 @@ class Board:
 
 def run(db, source, settings, store, board, monkeypatch, *, ordered=False, budget=None):
     monkeypatch.setattr(collect, "get_adapter", lambda name: board)
-    due = repo.DueSource(source, {**CONFIG, "date_ordered": ordered}, 60, db.get(m.SourceHealth, source.id), ())
+    config = {**CONFIG, "date_ordered": ordered}
+    if ordered:
+        config["date_order_evidence"] = {
+            "method": "full_listing_monotonic", "valid_until": (utcnow() + timedelta(hours=1)).isoformat(),
+        }
+    due = repo.DueSource(source, config, 60, db.get(m.SourceHealth, source.id), ())
     outcome = asyncio.run(collect.collect_source(
         db, None, store, due, cfg=settings,
         budget=budget or collect.TimeBudget(60), campus_map={},
@@ -57,6 +62,41 @@ def test_unverified_order_does_not_stop_at_old_item(session_factory, settings, s
         assert board.read_pages == [1, 2]
         assert board.read_details == ["2"]
         assert result.backfill_complete
+
+
+def test_broken_order_falls_back_and_reads_later_in_scope_item(session_factory, settings, store, monkeypatch):
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=10)
+    with session_factory() as db:
+        source = _seed(db)
+        config = db.scalar(select(m.SourceConfigVersion))
+        config.config = {**config.config, "date_ordered": True}
+        board = Board({
+            1: [item(1, None)],
+            2: [item(2, "2025-01-01")],
+            3: [item(3, "2026-03-01")],
+        })
+        result = run(db, source, settings, store, board, monkeypatch, ordered=True)
+        assert result.backfill_complete
+        assert board.read_pages == [1, 2, 3]
+        assert repo.item_for_listing(db, source.id, "3") is not None
+        active = db.scalar(select(m.SourceConfigVersion).where(m.SourceConfigVersion.is_active.is_(True)))
+        assert active.version == 2
+        assert active.config["date_ordered"] is False
+
+
+def test_order_flag_without_evidence_cannot_skip_later_date(session_factory, settings, store, monkeypatch):
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
+    board = Board({1: [item(1, "2025-01-01")], 2: [item(2, "2026-03-01")]})
+    monkeypatch.setattr(collect, "get_adapter", lambda name: board)
+    with session_factory() as db:
+        source = _seed(db)
+        due = repo.DueSource(source, {**CONFIG, "date_ordered": True}, 60, db.get(m.SourceHealth, source.id), ())
+        result = asyncio.run(collect.collect_source(
+            db, None, store, due, cfg=settings, budget=collect.TimeBudget(60), campus_map={},
+        ))
+        assert result.backfill_complete
+        assert board.read_pages == [1, 2]
+        assert repo.item_for_listing(db, source.id, "2") is not None
 
 
 def test_pinned_outside_window_and_date_boundary(session_factory, settings, store, monkeypatch):

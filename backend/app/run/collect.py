@@ -21,7 +21,8 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import UTC, date, datetime
+from uuid import uuid4
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -129,7 +130,35 @@ async def collect_source(
     limit = max(1, cfg.list_page_limit)
     # 날짜순을 검증한 출처만 조기 종료할 수 있다. 기본값은 보수적으로 끝까지 탐색.
     ordered = due.config.get("date_ordered") is True
+    order_evidence = due.config.get("date_order_evidence") or {}
+    try:
+        ordered &= (
+            order_evidence.get("method") == "full_listing_monotonic"
+            and datetime.fromisoformat(order_evidence["valid_until"]) > datetime.now(UTC)
+        )
+    except (KeyError, ValueError, TypeError):
+        ordered = False
     full_scan = False
+
+    def invalidate_order(reason: str) -> None:
+        """원문이 검증 결과와 다르면 새 설정 버전으로 종료 가정을 폐기한다."""
+        nonlocal ordered, reached
+        ordered = reached = False
+        health.backfill_boundary_reached = False
+        health.backfill_complete = False
+        current = session.scalar(select(m.SourceConfigVersion).where(
+            m.SourceConfigVersion.source_id == source.id, m.SourceConfigVersion.is_active.is_(True),
+        ))
+        if current and current.config.get("date_ordered") is True:
+            replacement = dict(current.config)
+            replacement["date_ordered"] = False
+            replacement["date_order_invalidated"] = {"reason": reason, "at": datetime.now(UTC).isoformat()}
+            current.is_active = False
+            session.flush()
+            session.add(m.SourceConfigVersion(
+                id=f"cfg-{uuid4().hex}", source_id=source.id, version=current.version + 1,
+                config=replacement, interval_minutes=current.interval_minutes, is_active=True,
+            ))
 
     async def process(listed: ListedItem) -> bool:
         """일반 글의 기존 여부를 반환한다. 실패·고정 글로 종료를 유발하지 않는다."""
@@ -171,6 +200,7 @@ async def collect_source(
     async def scan(start: int, *, history: bool, expected_anchor: str | None = None) -> str:
         nonlocal cursor, anchor, oldest, reached, full_scan
         anchor_found = expected_anchor is None
+        previous_normal_date = None
         # 겹침 확인에 사용한 두 쪽은 신규 구간 예산을 잠식하지 않는다.
         for page_no in range(start, start + limit + (2 if expected_anchor else 0)):
             if budget.exhausted:
@@ -203,6 +233,15 @@ async def collect_source(
                     oldest = min(oldest, published) if oldest else published
                 known_normal += int(await process(listed))
             del page_records
+            dates = [date_rules.parse_published(i.published_raw).date for i in normal]
+            if ordered and dates:
+                if any(d is None for d in dates):
+                    invalidate_order("unknown_date")
+                elif any(left < right for left, right in zip(dates, dates[1:], strict=False)) or (
+                    previous_normal_date is not None and previous_normal_date < dates[0]
+                ):
+                    invalidate_order("date_inversion")
+                previous_normal_date = dates[-1]
             if history and anchor_found:
                 cursor = page_no
                 anchor = normal[-1].external_id if normal else page.items[-1].external_id
@@ -212,7 +251,6 @@ async def collect_source(
                 )
                 if persist_progress:
                     session.commit()
-            dates = [date_rules.parse_published(i.published_raw).date for i in normal]
             boundary = bool(window and ordered and dates and all(d is not None and d < window for d in dates))
             if not page.has_next or boundary:
                 if history and not anchor_found:
