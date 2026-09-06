@@ -65,6 +65,8 @@ class SourceSpec:
         menu = self.config.get("menu_no", "")
         if self.adapter == "khu_board":
             return f"{base}/{prefix}/user/bbs/{board}/list.do?menuNo={menu}"
+        if self.adapter == "gnuboard":
+            return f"{base}/bbs/board.php?bo_table={self.config.get('bo_table', '')}"
         return str(self.config.get("list_url") or base)
 
 

@@ -42,6 +42,14 @@ def board_fixture():
 
 
 @pytest.fixture
+def gnuboard_fixture():
+    def _load(name: str) -> str:
+        return (FIXTURES / "gnuboard" / name).read_text(encoding="utf-8")
+
+    return _load
+
+
+@pytest.fixture
 def settings(tmp_path: Path) -> Settings:
     return Settings(
         env="test",
