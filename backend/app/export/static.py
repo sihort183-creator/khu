@@ -49,6 +49,7 @@ from app.contracts.vocab import (
     coded,
 )
 from app.domain.dates import KST, as_utc, freshness_code, utcnow
+from app.domain.images import extract_images, poster_image
 from app.storage import models as m
 from app.storage.db import session_scope
 from app.storage.objects import ObjectStore, build_store
@@ -287,6 +288,10 @@ def _build_notice(
             last_checked_at=last_checked,
         ),
         is_pinned=bool(item.is_pinned),
+        # 포스터 한 장뿐인 공지는 그림을 못 보여주면 제목만 남는다. 목록에도 대표 그림을 준다.
+        poster_image=poster_image(revision.body_text, extract_images(
+            revision.body_html, base_url=item.canonical_url,
+        )),
     )
 
 
@@ -476,6 +481,7 @@ def _notice_detail(
         **base.model_dump(),
         body_text=revision.body_text,
         body_html=revision.body_html,
+        images=extract_images(revision.body_html, base_url=base.original_url),
         sources=sources or None or [],
         attachments=attachments,
         contact_mentions=mentions,

@@ -155,6 +155,8 @@ class Notice(Strict):
     original_status: Coded
     freshness: Freshness
     is_pinned: bool = False
+    # 본문 글자가 사실상 없는 포스터형 공지의 대표 그림. 조회 서버 기준 상대 경로다.
+    poster_image: str | None = None
 
 
 class NoticeSourceRef(Strict):
@@ -202,6 +204,8 @@ class RelatedNotice(Strict):
 class NoticeDetail(Notice):
     body_text: str | None = None
     body_html: str | None = None
+    # 본문에 박힌 그림. 원문 주소가 http 라 화면에서 바로 못 쓰므로 중계 경로로 준다.
+    images: list[str] = Field(default_factory=list)
     sources: list[NoticeSourceRef] = Field(default_factory=list)
     attachments: list[Attachment] = Field(default_factory=list)
     contact_mentions: list[ContactMention] = Field(default_factory=list)

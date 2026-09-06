@@ -13,6 +13,11 @@
  */
 
 const SHORT_CACHE = "public, max-age=60, s-maxage=60";
+const IMAGE_CACHE = "public, max-age=604800, s-maxage=604800";
+// 중계는 학교 주소로만 한다. 아무 주소나 받으면 남의 서버를 대신 때리는 통로가 된다.
+const IMAGE_HOST = "khu.ac.kr";
+const IMAGE_HOST_SUFFIX = ".khu.ac.kr";
+const IMAGE_MAX_BYTES = 20 * 1024 * 1024;
 const IMMUTABLE_CACHE = "public, max-age=31536000, immutable";
 const ALLOWED_METHODS = "GET, HEAD, OPTIONS";
 
@@ -26,6 +31,76 @@ function resolveKey(pathname) {
   // 확장자를 생략해도 되게 한다. /v1/notices/page/1 -> /v1/notices/page/1.json
   if (!path.endsWith(".json")) return `${path}.json`;
   return path;
+}
+
+/** 중계해도 되는 그림 주소인지 본다. 내보내는 쪽(app/domain/images.py)과 같은 규칙이다. */
+function allowedImageUrl(raw) {
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (url.hostname !== IMAGE_HOST && !url.hostname.endsWith(IMAGE_HOST_SUFFIX)) return null;
+  return url;
+}
+
+/**
+ * 본문에 박힌 그림을 중계한다.
+ *
+ * 원문 그림 주소는 대부분 http 다. https 인 화면에서 그대로 쓰면 브라우저가 막으므로
+ * 여기서 받아 https 로 내보낸다. 그림 파일은 저장하지 않는다. 원문이 살아 있는 동안만
+ * 보이며, 그래서 저장 용량이 들지 않는다.
+ *
+ * 주소는 학교 것만 받는다. 돌림(redirect)도 따라가지 않는다. 따라가면 학교 주소로 시작해
+ * 밖으로 나가는 요청을 만들 수 있다.
+ */
+async function proxyImage(token, request, origin, ctx) {
+  let target;
+  try {
+    const padded = token + "=".repeat((4 - (token.length % 4)) % 4);
+    target = allowedImageUrl(atob(padded.replace(/-/g, "+").replace(/_/g, "/")));
+  } catch {
+    target = null;
+  }
+  if (!target) return jsonError(404, "NOT_FOUND", "요청한 자료가 없습니다.", origin);
+
+  const cache = caches.default;
+  const cacheKey = new Request(new URL(`/v1/img/${token}`, request.url).toString(), { method: "GET" });
+  const cached = await cache.match(cacheKey);
+  if (cached && request.method === "GET") return cached;
+
+  let upstream;
+  try {
+    upstream = await fetch(target.toString(), {
+      method: "GET",
+      redirect: "manual",
+      headers: { accept: "image/*" },
+      cf: { cacheTtl: 604800, cacheEverything: true },
+    });
+  } catch {
+    return jsonError(503, "TEMPORARILY_UNAVAILABLE", "원문 그림을 읽지 못했습니다.", origin);
+  }
+  if (!upstream.ok) {
+    return jsonError(404, "NOT_FOUND", "요청한 자료가 없습니다.", origin);
+  }
+  const type = upstream.headers.get("content-type") || "";
+  if (!type.startsWith("image/")) {
+    return jsonError(404, "NOT_FOUND", "요청한 자료가 없습니다.", origin);
+  }
+  const length = Number(upstream.headers.get("content-length") || 0);
+  if (length > IMAGE_MAX_BYTES) {
+    return jsonError(404, "NOT_FOUND", "요청한 자료가 없습니다.", origin);
+  }
+
+  const headers = new Headers(baseHeaders(origin));
+  headers.set("content-type", type);
+  headers.set("cache-control", IMAGE_CACHE);
+  headers.set("content-security-policy", "default-src 'none'; sandbox");
+  const response = new Response(request.method === "HEAD" ? null : upstream.body, { headers });
+  if (request.method === "GET") ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
 }
 
 function cacheControlFor(key) {
@@ -118,6 +193,10 @@ export default {
     if (url.pathname === "/" || url.pathname === "/v1" || url.pathname === "/v1/") {
       return Response.redirect(new URL("/v1/latest.json", url).toString(), 302);
     }
+
+    // 본문 그림 중계. JSON 경로 검사보다 먼저 본다. 여기만 R2 를 쓰지 않는다.
+    const image = /^\/v1\/img\/([A-Za-z0-9_-]{1,700})$/.exec(url.pathname);
+    if (image) return proxyImage(image[1], request, origin, ctx);
 
     const key = resolveKey(url.pathname);
     if (!key || key.startsWith("v1/objects/") || key.endsWith("/manifest.json")) {
