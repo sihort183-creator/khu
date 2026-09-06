@@ -50,7 +50,9 @@ def _clean_link(href: str, base_url: str | None) -> str | None:
     return absolute
 
 
-def sanitize_body_html(body_html: str | None, *, base_url: str | None = None) -> str | None:
+def sanitize_body_html(
+    body_html: str | None, *, base_url: str | None = None, proxy_base: str = "",
+) -> str | None:
     """허용한 태그와 속성만 남기고, 그림은 중계 경로로 바꾼다.
 
     남길 것이 없으면 None 을 준다. 화면은 그때 본문 글자나 안내를 대신 보여준다.
@@ -102,7 +104,7 @@ def sanitize_body_html(body_html: str | None, *, base_url: str | None = None) ->
                 if keep.get("alt"):
                     element.text = keep["alt"]
                 continue
-            element.set("src", proxy_path(absolute))
+            element.set("src", proxy_path(absolute, base=proxy_base))
             element.set("loading", "lazy")
             for name, value in keep.items():
                 if name != "alt" or value:

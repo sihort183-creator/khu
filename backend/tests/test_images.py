@@ -75,3 +75,12 @@ def test_broken_or_empty_html_is_not_an_error():
     assert extract_images(None, base_url=BASE) == []
     assert extract_images("", base_url=BASE) == []
     assert extract_images("<img src=", base_url=BASE) == []
+
+
+def test_relay_base_makes_the_address_absolute():
+    """본문 HTML 안의 그림은 화면이 그대로 문서에 넣는다. 상대 경로면 화면 쪽 주소로 붙어 깨진다."""
+    images = extract_images(
+        '<img src="http://a.khu.ac.kr/1.jpg">', base_url=BASE,
+        proxy_base="https://api.example.com/",
+    )
+    assert images[0].startswith("https://api.example.com/v1/img/")

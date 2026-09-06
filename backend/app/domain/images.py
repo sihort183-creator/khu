@@ -35,13 +35,19 @@ def is_allowed_image_host(url: str) -> bool:
     return host == ALLOWED_HOST or host.endswith(ALLOWED_SUFFIX)
 
 
-def proxy_path(url: str) -> str:
-    """원문 그림 주소를 조회 서버 중계 경로로 바꾼다."""
+def proxy_path(url: str, *, base: str = "") -> str:
+    """원문 그림 주소를 조회 서버 중계 주소로 바꾼다.
+
+    base 를 주면 절대 주소가 된다. 본문 HTML 안의 그림은 화면이 그대로 문서에 넣으므로
+    상대 경로면 화면 쪽 주소로 붙어 깨진다. 그래서 내보낼 때 조회 서버 주소를 붙인다.
+    """
     token = base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip("=")
-    return f"{PROXY_PREFIX}{token}"
+    return f"{base.rstrip('/')}{PROXY_PREFIX}{token}"
 
 
-def extract_images(body_html: str | None, *, base_url: str | None = None) -> list[str]:
+def extract_images(
+    body_html: str | None, *, base_url: str | None = None, proxy_base: str = "",
+) -> list[str]:
     """본문에서 그림 주소를 찾아 중계 경로로 돌려준다.
 
     상대 주소는 원문 주소를 기준으로 절대 주소로 만든 뒤 검사한다. 학교 밖 주소와
@@ -66,7 +72,7 @@ def extract_images(body_html: str | None, *, base_url: str | None = None) -> lis
         if not is_allowed_image_host(absolute) or absolute in seen:
             continue
         seen.add(absolute)
-        found.append(proxy_path(absolute))
+        found.append(proxy_path(absolute, base=proxy_base))
         if len(found) >= MAX_IMAGES:
             break
     return found

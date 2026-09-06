@@ -99,6 +99,8 @@ class Settings:
     # 감사(app.ops.date_order)가 게시판을 끝까지 읽어야 해서 아끼려는 비용을
     # 그대로 내므로, 초기 백필에서는 가정을 쓰고 역전 감지로 되돌린다.
     optimistic_date_boundary: bool = False
+    # 조회 서버 주소. 본문 그림 중계 주소를 절대 주소로 만드는 데 쓴다.
+    public_api_base: str = ""
     http_concurrency: int = 5
     http_delay_seconds: float = 2.0
     # 원문 서버를 묶는 단위: registrable(하위 도메인을 하나로) 또는 host(따로).
@@ -164,6 +166,7 @@ def load_settings() -> Settings:
         source_budget_seconds=_int("KHU_SOURCE_BUDGET_SECONDS", 120),
         source_min_budget_seconds=_int("KHU_SOURCE_MIN_BUDGET_SECONDS", 30),
         optimistic_date_boundary=_bool("KHU_OPTIMISTIC_DATE_BOUNDARY", False),
+        public_api_base=os.environ.get("KHU_PUBLIC_API_BASE", "").strip(),
         http_concurrency=_int("KHU_HTTP_CONCURRENCY", 5),
         http_delay_seconds=_float("KHU_HTTP_DELAY_SECONDS", 2.0),
         host_group_mode=os.getenv("KHU_HOST_GROUP_MODE", "registrable"),

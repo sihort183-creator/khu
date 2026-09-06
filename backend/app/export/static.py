@@ -238,6 +238,7 @@ def _build_notice(
     source_count: int,
     last_checked: datetime | None,
     now: datetime,
+    proxy_base: str = "",
 ) -> api.Notice:
     primary = next((c for c in categories if c.is_primary), None)
     secondary = [c for c in categories if not c.is_primary]
@@ -291,7 +292,7 @@ def _build_notice(
         is_pinned=bool(item.is_pinned),
         # 포스터 한 장뿐인 공지는 그림을 못 보여주면 제목만 남는다. 목록에도 대표 그림을 준다.
         poster_image=poster_image(revision.body_text, extract_images(
-            revision.body_html, base_url=item.canonical_url,
+            revision.body_html, base_url=item.canonical_url, proxy_base=proxy_base,
         )),
     )
 
@@ -309,7 +310,7 @@ def window_floor(window_start: date | None) -> datetime | None:
 
 
 def _load_notices(
-    session: Session, now: datetime, *, window_start: date | None = None
+    session: Session, now: datetime, *, window_start: date | None = None, proxy_base: str = "",
 ) -> list[tuple[api.Notice, m.SourceItemRevision, m.SourceItem, list]]:
     """공개 대상 공지를 읽는다.
 
@@ -391,6 +392,7 @@ def _load_notices(
                     source_count=counts.get(notice.id, 1),
                     last_checked=health.get(source.id),
                     now=now,
+                    proxy_base=proxy_base,
                 ),
                 revision,
                 item,
@@ -406,6 +408,7 @@ def _notice_detail(
     revision: m.SourceItemRevision,
     source_refs: dict[str, api.SourceRef],
     *,
+    proxy_base: str = "",
     attachments_by_revision: dict[str, list[m.Attachment]] | None = None,
     links_by_notice: dict[str, list[tuple[m.NoticeSource, m.SourceItem, m.SourceItemRevision | None]]] | None = None,
     mentions_by_revision: dict[str, list[m.NoticeContactMention]] | None = None,
@@ -483,8 +486,8 @@ def _notice_detail(
         body_text=revision.body_text,
         # 화면이 이 HTML 을 문서에 그대로 넣는다. 남의 글이므로 허용 목록으로 다시 짓고,
         # 그림 주소는 중계 경로로 바꾼다.
-        body_html=sanitize_body_html(revision.body_html, base_url=base.original_url),
-        images=extract_images(revision.body_html, base_url=base.original_url),
+        body_html=sanitize_body_html(revision.body_html, base_url=base.original_url, proxy_base=proxy_base),
+        images=extract_images(revision.body_html, base_url=base.original_url, proxy_base=proxy_base),
         sources=sources or None or [],
         attachments=attachments,
         contact_mentions=mentions,
@@ -764,7 +767,9 @@ def export_static(
         )
 
         # 공지 목록·상세·색인
-        notices = _load_notices(session, now, window_start=cfg.initial_window_start)
+        notices = _load_notices(
+            session, now, window_start=cfg.initial_window_start, proxy_base=cfg.public_api_base,
+        )
         result.notices = len(notices)
         pages = max(1, (len(notices) + PAGE_SIZE - 1) // PAGE_SIZE)
         result.pages = pages
@@ -798,6 +803,7 @@ def export_static(
                         notice,
                         revision_row,
                         source_refs,
+                        proxy_base=cfg.public_api_base,
                         attachments_by_revision=detail_attachments,
                         links_by_notice=detail_links,
                         mentions_by_revision=detail_mentions,

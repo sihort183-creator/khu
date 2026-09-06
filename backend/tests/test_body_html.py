@@ -74,3 +74,11 @@ def test_empty_input_gives_nothing_to_render():
     assert sanitize_body_html(None, base_url=BASE) is None
     assert sanitize_body_html("   ", base_url=BASE) is None
     assert sanitize_body_html("<script>x</script>", base_url=BASE) is None
+
+
+def test_relay_base_is_used_inside_the_body():
+    result = sanitize_body_html(
+        '<img src="http://com.khu.ac.kr/a.png">', base_url=BASE,
+        proxy_base="https://api.example.com",
+    )
+    assert 'src="https://api.example.com/v1/img/' in result
