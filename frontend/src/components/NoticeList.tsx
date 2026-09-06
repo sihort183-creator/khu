@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Notice } from "@/lib/types";
 import { isNew, publishedLabel } from "@/lib/format";
+import { imageUrl } from "@/lib/api";
 import { CategoryBadge } from "./CategoryBadge";
 import { MediumIcon } from "./icons";
 import { Ad } from "./Ad";
@@ -79,14 +80,29 @@ export function NoticeList({ notices, label, loading, error, hasNext, onMore, on
 
 export function NoticeRow({ notice: n }: { notice: Notice }) {
   const ig = n.primary_source.medium.code === "instagram";
+  // 포스터 한 장뿐인 공지는 글자가 없다. 그림이라도 보여야 무슨 공지인지 알 수 있다.
+  const poster = imageUrl(n.poster_image);
   return (
     <Link href={`/notices/${n.id}`} className="block border-b border-line-2 px-4 py-3.5 transition-colors last:border-b-0 hover:bg-cream">
       <div className="flex items-start gap-2.5">
-        {ig && (
+        {poster ? (
+          // 원문 그림이 사라졌을 수 있다. 못 불러오면 자리를 비운다.
+          // next/image 는 쓰지 않는다. 최적화가 배포처 과금으로 이어지고, 그림은 이미
+          // 조회 서버가 오래 캐시한다. 0원 구성을 지킨다.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={poster}
+            alt=""
+            loading="lazy"
+            className="h-[52px] w-[52px] flex-none rounded-lg border border-line-2 object-cover"
+            style={{ background: "linear-gradient(135deg,#F3EFE8,#E9E4DA)" }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        ) : ig ? (
           <div className="grid h-[52px] w-[52px] flex-none place-items-center rounded-lg text-gray" style={{ background: "linear-gradient(135deg,#F3EFE8,#E9E4DA)" }}>
             <MediumIcon code="instagram" width={18} height={18} />
           </div>
-        )}
+        ) : null}
         <div className="min-w-0 flex-1">
           <div className="line-clamp-2 text-[14.5px] font-medium leading-[1.45]">
             <CategoryBadge category={n.primary_category} className="mr-1.5" />

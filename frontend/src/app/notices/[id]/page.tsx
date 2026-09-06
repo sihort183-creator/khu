@@ -7,11 +7,14 @@ import { fileSize, fullDate, publishedLabel, relativeTime } from "@/lib/format";
 import { Shell, Box } from "@/components/Shell";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { IconBack, IconExternal, IconFile, MediumIcon } from "@/components/icons";
+import { imageUrl } from "@/lib/api";
 
 export default function NoticePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { notice: n, error, retry } = useNotice(id);
+  // 본문 글자도 정리된 HTML 도 없을 때 대신 보여줄 그림이다.
+  const posters = (n?.images ?? []).map(imageUrl).filter((src): src is string => src !== null);
 
   return (
     <Shell>
@@ -90,10 +93,28 @@ export default function NoticePage() {
             )}
 
             <div className="my-4 border-y border-line-2 py-3.5 text-sm leading-[1.7] text-ink-2">
+              {/* body_html 은 서버에서 허용 목록으로 다시 지은 것이다. 그림 주소도 중계 주소로
+                  바뀌어 있다. 원문 HTML 을 그대로 넣지 않는다. */}
               {n.body_html ? (
                 <div className="notice-body" dangerouslySetInnerHTML={{ __html: n.body_html }} />
               ) : n.body_text ? (
                 <div className="whitespace-pre-line">{n.body_text}</div>
+              ) : posters.length > 0 ? (
+                // 글자 없이 포스터만 올라온 공지다. 그림이 곧 내용이다.
+                <div className="flex flex-col gap-2">
+                  {posters.map((src) => (
+                    // next/image 는 쓰지 않는다. 위 목록과 같은 이유다.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      className="w-full rounded-lg border border-line-2"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
+                  ))}
+                </div>
               ) : (
                 <div className="text-gray">본문 텍스트가 없습니다. {n.attachments.length ? "첨부파일을 확인하세요." : "원문에서 확인하세요."}</div>
               )}

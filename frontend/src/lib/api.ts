@@ -20,6 +20,18 @@ const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 const useMock = BASE === "";
 const STATIC_BASE = BASE.replace(/\/+$/, "").replace(/\/v1$/, "");
 
+/**
+ * 공지 본문 그림의 실제 주소를 만든다.
+ *
+ * 원문 그림 주소는 대부분 http 라 https 화면에서 브라우저가 막는다. 그래서 조회 서버가
+ * 중계하고, 공개 파일에는 그 서버 기준 상대 경로만 들어 있다. 여기서 앞을 붙인다.
+ * 가상 데이터로 도는 동안에는 중계할 서버가 없으므로 아무것도 주지 않는다.
+ */
+export function imageUrl(path: string | null | undefined): string | null {
+  if (!path || useMock) return null;
+  return `${STATIC_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 type StaticLatest = {
   revision: string;
   generated_at: string;

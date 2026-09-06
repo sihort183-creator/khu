@@ -98,6 +98,8 @@ export interface Notice {
   original_url: string;
   original_status: Coded;
   freshness: Coded & { last_checked_at: string | null };
+  /** 포스터 한 장뿐인 공지의 대표 그림. 조회 서버 기준 상대 경로다. imageUrl()로 붙인다. */
+  poster_image?: string | null;
 }
 
 export interface NoticeSource {
@@ -129,6 +131,8 @@ export interface ContactMention {
 export interface NoticeDetail extends Notice {
   body_text: string | null;
   body_html: string | null;
+  /** 본문에 박힌 그림. 원문 주소가 http 라 조회 서버가 중계한다. imageUrl()로 붙인다. */
+  images?: string[];
   sources: NoticeSource[];
   attachments: Attachment[];
   contact_mentions: ContactMention[];
