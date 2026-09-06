@@ -67,7 +67,13 @@ jobs:
       KHU_HTTP_CONCURRENCY: "16"
       # 출처를 동시에 처리한다. 이 값이 1 이면 위 설정을 아무리 풀어도
       # 요청이 한 개씩만 날아간다. 데이터베이스 연결도 이만큼 함께 쓴다.
-      KHU_SOURCE_CONCURRENCY: "12"
+      # 변수로 두어 push 없이 조절한다. 백필이 끝나면 되돌리는 것도 변수로 한다.
+      KHU_SOURCE_CONCURRENCY: ${{ vars.KHU_SOURCE_CONCURRENCY || '12' }}
+      # 남은 예산이 이보다 적으면 새 출처를 시작하지 않는다. 조각으로 착수하면
+      # 저장은 0건인데 대기열 순번만 잃어 그 출처가 계속 꼬리에 갇힌다.
+      KHU_SOURCE_MIN_BUDGET_SECONDS: ${{ vars.KHU_SOURCE_MIN_BUDGET_SECONDS || '30' }}
+      # 최신순을 가정한 조기 종료. 역전을 만나면 그 출처만 자동으로 해제된다.
+      KHU_OPTIMISTIC_DATE_BOUNDARY: ${{ vars.KHU_OPTIMISTIC_DATE_BOUNDARY || 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -149,6 +155,50 @@ jobs:
               gh workflow run collect.yml --ref main
             fi
           fi
+
+      # 순환 대상과 범위 미달 추세를 알려면 지난 회차 결과가 필요하다.
+      # 없으면 첫 회차로 취급하고 그냥 진행한다. 복원 실패가 수집을 막지 않는다.
+      - name: 이전 점검 결과 복원
+        if: always()
+        continue-on-error: true
+        uses: actions/cache@v4
+        with:
+          path: backend/.localstore/selfcheck.json
+          key: selfcheck-${{ github.run_id }}
+          restore-keys: selfcheck-
+
+      # 규칙 기반 점검이다. 실패해도 수집을 실패시키지 않는다(4절).
+      - name: 자체 점검
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p .localstore
+          set +e
+          python -m app.ops.selfcheck --probe-limit 30 --concurrency 4 \
+            > .localstore/selfcheck-summary.md 2> .localstore/selfcheck-error.log
+          code=$?
+          {
+            cat .localstore/selfcheck-summary.md
+            if [ "$code" -ne 0 ]; then
+              printf '\n자체 점검이 실패했습니다(종료 코드 %s). 수집 결과는 영향받지 않습니다.\n\n```\n' "$code"
+              tail -n 20 .localstore/selfcheck-error.log
+              printf '```\n'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat .localstore/selfcheck-error.log >&2
+          exit "$code"
+
+      - name: 자체 점검 결과 보관
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfcheck
+          path: |
+            backend/.localstore/selfcheck.json
+            backend/.localstore/selfcheck-summary.md
+          include-hidden-files: true
+          retention-days: 14
 
       - name: 실행 요약
         if: always()
