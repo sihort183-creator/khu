@@ -2,7 +2,7 @@
 // 연락처: GET /v1/contacts. 공지와 별개의 정보 분류.
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { Contact } from "@/lib/types";
+import type { Channel, Contact } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useContacts } from "@/lib/queries";
 import { relativeTime } from "@/lib/format";
@@ -32,7 +32,7 @@ function Contacts() {
     const filtered = contacts.filter(
       (ct) =>
         !qq ||
-        `${ct.organization.name} ${ct.organization.path.join(" ")} ${ct.service_name} ${ct.location ?? ""} ${ct.channels.map((c) => c.display_value).join(" ")}`.toLowerCase().includes(qq),
+        `${ct.organization.name} ${ct.organization.path.join(" ")} ${ct.service_name} ${ct.location ?? ""} ${ct.channels.map((c) => `${c.display_value} ${c.value ?? ""}`).join(" ")}`.toLowerCase().includes(qq),
     );
     // 내 학과·단과대를 먼저
     const mine = new Set([settings.department_id, settings.college_id].filter(Boolean));
@@ -57,6 +57,22 @@ function Contacts() {
   );
 }
 
+/**
+ * 전화는 걸 수 있는 번호를 보여준다.
+ *
+ * 원문 전화번호부는 내선만 적는다("0920"). 그대로 보여주면 걸 수 없는 숫자가 뜬다.
+ * 수집할 때 캠퍼스 대표번호를 붙여 온전한 번호를 만들어 두었으므로 그것을 쓴다.
+ * 원문이 "3921~9" 처럼 범위로 적은 경우 그 꼬리를 살려 붙인다. 안내판에 적힌 대로 읽힌다.
+ * 팩스도 같은 방식으로 적혀 있으므로 같이 쓴다.
+ */
+function dialLabel(c: Channel): string {
+  if (!c.value) return c.display_value;
+  if (c.extension && c.display_value.startsWith(c.extension) && c.display_value !== c.extension) {
+    return c.value + c.display_value.slice(c.extension.length);
+  }
+  return c.value;
+}
+
 function ContactCard({ contact: ct, highlight }: { contact: Contact; highlight: boolean }) {
   const phones = ct.channels.filter((c) => c.kind.code === "phone");
   const others = ct.channels.filter((c) => c.kind.code !== "phone");
@@ -71,14 +87,15 @@ function ContactCard({ contact: ct, highlight }: { contact: Contact; highlight: 
       <div className="mb-0.5 mt-px text-[15px] font-bold">{ct.organization.name}</div>
       <div className="mb-2 text-[13px] text-ink-2">{ct.service_name}</div>
       <dl className="grid grid-cols-[52px_1fr] gap-y-[3px] text-[13px]">
-        {phones.map((p) => (
-          <Row key={p.id} label="전화">
+        {/* 번호가 여러 개인 곳이 68 곳 있다. 줄마다 "전화"를 되풀이하면 읽기 어려우므로 첫 줄에만 붙인다. */}
+        {phones.map((p, index) => (
+          <Row key={p.id} label={index === 0 ? "전화" : ""}>
             {p.action_url ? (
               <a href={p.action_url} className="text-navy">
-                {p.display_value}
+                {dialLabel(p)}
               </a>
             ) : (
-              <span>{p.display_value}</span>
+              <span>{dialLabel(p)}</span>
             )}
           </Row>
         ))}
@@ -86,10 +103,10 @@ function ContactCard({ contact: ct, highlight }: { contact: Contact; highlight: 
           <Row key={c.id} label={c.kind.label}>
             {c.action_url ? (
               <a href={c.action_url} target={c.kind.code === "website" ? "_blank" : undefined} rel="noreferrer" className="text-navy">
-                {c.display_value}
+                {c.kind.code === "fax" ? dialLabel(c) : c.display_value}
               </a>
             ) : (
-              <span>{c.display_value}</span>
+              <span>{c.kind.code === "fax" ? dialLabel(c) : c.display_value}</span>
             )}
           </Row>
         ))}
