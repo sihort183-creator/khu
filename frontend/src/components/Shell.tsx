@@ -1,45 +1,40 @@
 "use client";
-// 3열 레이아웃. 좌: 조직 트리·주제, 중: 페이지, 우: 내 설정·광고. 1024px 미만은 중앙만.
+// 3열 레이아웃. 좌: 조직 선택·주제, 중: 페이지, 우: 내 설정·광고. 1024px 미만은 중앙만.
+// 좁은 화면에서는 좌측 열이 통째로 사라져 조직을 고를 방법이 없었다. 그래서 같은
+// 선택기를 본문 맨 위에 접힌 상자로 한 번 더 둔다(둘은 같은 저장값을 본다).
+import { useState } from "react";
 import type { Coded } from "@/lib/types";
-import { useSettings } from "@/lib/settings";
+import { useOrganizationSelection, useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
 import { categoryStyle } from "@/lib/category";
 import { Ad } from "./Ad";
+import { IconChevron } from "./icons";
+import { OrganizationPicker, organizationScopeLabel } from "./OrganizationPicker";
 
 interface Props {
   children: React.ReactNode;
   /** 주제 선택을 사이드바와 공유할 때 */
   categories?: { selected: Set<string>; toggle: (code: string) => void };
+  /** 공지 목록 화면에서만 본문 위 조직 상자를 띄운다(출처·연락처에는 필요 없다) */
+  orgPicker?: boolean;
 }
 
-export function Shell({ children, categories }: Props) {
+export function Shell({ children, categories, orgPicker }: Props) {
   const { settings, update } = useSettings();
   const catalog = useCatalog();
   const orgs = useOrganizations();
+  const org = useOrganizationSelection();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const byId = (id: string | null) => orgs.find((o) => o.id === id);
   const campus = catalog?.campuses.find((c) => c.id === settings.campus_id);
-  const college = byId(settings.college_id);
-  const dept = byId(settings.department_id);
-  const campusOrg = orgs.find((o) => o.type.code === "campus" && o.campus_id === settings.campus_id);
+  const scope = organizationScopeLabel(orgs, org.selected);
   const subCount = settings.subscribed_source_ids.length;
 
   return (
     <div className="mx-auto grid max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 px-4 pb-10 pt-4 lg:grid-cols-[220px_minmax(0,1fr)_240px] lg:gap-5 lg:pt-5">
-      <aside className="hidden lg:block lg:sticky lg:top-[112px] lg:self-start">
+      <aside className="hidden lg:sticky lg:top-[112px] lg:block lg:self-start">
         <Box title="조직">
-          <div className="py-1.5 text-[13px]">
-            <TreeRow label="경희대학교" count="전체" />
-            <TreeRow label={campus?.name ?? "캠퍼스"} depth={1} />
-            {college && <TreeRow label={college.name} depth={2} />}
-            {dept && <TreeRow label={dept.name} depth={3} mine />}
-            {!dept && (
-              <button onClick={() => update({ onboarded: false })} className="mx-1.5 mt-1 w-[calc(100%-12px)] rounded-md border border-dashed border-line px-2 py-1.5 text-left text-xs text-gray hover:border-gray">
-                단과대·학과 설정하기
-              </button>
-            )}
-            {campusOrg && orgs.filter((o) => o.parent_id === campusOrg.id && o.type.code === "office").slice(0, 3).map((o) => <TreeRow key={o.id} label={o.name} depth={2} />)}
-          </div>
+          <OrganizationPicker selected={org.selected} onToggle={org.toggle} onClear={org.clear} dense />
         </Box>
         {categories && catalog && (
           <Box title="주제" className="mt-3">
@@ -57,23 +52,43 @@ export function Shell({ children, categories }: Props) {
         )}
       </aside>
 
-      <main className="min-w-0">{children}</main>
+      <main className="min-w-0">
+        {orgPicker && (
+          <Box className="mb-2.5 lg:hidden">
+            <button
+              type="button"
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((v) => !v)}
+              className="flex min-h-11 w-full items-center gap-2 px-3.5 py-2.5 text-left"
+            >
+              <span className="shrink-0 text-[13px] font-bold">조직</span>
+              <span className="min-w-0 flex-1 truncate text-[13px] text-ink-2">{scope}</span>
+              <span className="shrink-0 text-xs text-gray">{mobileOpen ? "닫기" : "고르기"}</span>
+              <IconChevron className={`shrink-0 text-gray transition-transform ${mobileOpen ? "rotate-180" : ""}`} width={12} height={12} strokeWidth={3} />
+            </button>
+            {mobileOpen && (
+              <div className="border-t border-line-2">
+                <OrganizationPicker selected={org.selected} onToggle={org.toggle} onClear={org.clear} />
+              </div>
+            )}
+          </Box>
+        )}
+        {children}
+      </main>
 
-      <aside className="hidden lg:block lg:sticky lg:top-[112px] lg:self-start">
+      <aside className="hidden lg:sticky lg:top-[112px] lg:block lg:self-start">
         <Box title="내 설정">
           <div className="px-3.5 py-3 text-[13px]">
             <dl className="grid grid-cols-[56px_1fr] gap-y-1">
               <dt className="text-gray">캠퍼스</dt>
               <dd className="font-medium">{campus?.name.replace("캠퍼스", "") ?? "-"}</dd>
-              <dt className="text-gray">단과대</dt>
-              <dd className="font-medium">{college?.name ?? <span className="font-normal text-gray-2">미설정</span>}</dd>
-              <dt className="text-gray">학과</dt>
-              <dd className="font-medium">{dept?.name ?? <span className="font-normal text-gray-2">미설정</span>}</dd>
+              <dt className="text-gray">조직</dt>
+              <dd className="break-keep font-medium">{scope}</dd>
               <dt className="text-gray">구독</dt>
               <dd className="font-medium">{subCount ? `출처 ${subCount}개` : <span className="font-normal text-gray-2">없음</span>}</dd>
             </dl>
             <button onClick={() => update({ onboarded: false })} className="mt-2.5 w-full rounded-lg border border-line bg-white py-1.5 text-[13px] text-ink-2 hover:border-gray">
-              변경
+              소속 다시 고르기
             </button>
           </div>
         </Box>
@@ -90,15 +105,6 @@ export function Box({ title, children, className = "" }: { title?: string; child
     <div className={`overflow-hidden rounded-box border border-line bg-white shadow-box ${className}`}>
       {title && <div className="flex items-center border-b border-line-2 px-3.5 py-[11px] text-[13px] font-bold">{title}</div>}
       {children}
-    </div>
-  );
-}
-
-function TreeRow({ label, depth = 0, count, mine }: { label: string; depth?: number; count?: string; mine?: boolean }) {
-  return (
-    <div className={`mx-1.5 flex items-center rounded-md py-1.5 pr-2 ${mine ? "bg-[#FBF0F0] font-bold text-red" : "text-ink-2 hover:bg-bg"}`} style={{ paddingLeft: 8 + depth * 12 }}>
-      {label}
-      {count && <span className="ml-auto text-xs text-gray-2">{count}</span>}
     </div>
   );
 }

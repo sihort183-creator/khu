@@ -66,6 +66,8 @@ export interface Organization {
   campuses?: Campus[];
   campus_id?: string | null;
   has_children: boolean;
+  /** 이 조직에 붙은 수집 게시판 수. 0이면 아직 볼 공지가 없다. */
+  source_count?: number;
 }
 
 /* ---------- notice ---------- */
