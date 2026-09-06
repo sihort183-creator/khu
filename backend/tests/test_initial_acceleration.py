@@ -154,3 +154,67 @@ def test_source_pool_cannot_starve_http_default_executor(session_factory, settin
         return await asyncio.wait_for(collect.run_collection(settings, publish=False, dedupe=False), timeout=5)
 
     assert asyncio.run(run()).succeeded == 1
+
+
+def _seed_extra(session, index: int) -> str:
+    """_seed 가 만든 조직에 출처를 하나 더 붙인다."""
+    source_id = f"src-extra-{index:02d}"
+    session.add(m.Source(
+        id=source_id, organization_id="org-hq", name=f"추가 출처 {index}", adapter="khu_board",
+        list_url=f"https://www.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo={index}",
+        status="active",
+    ))
+    session.flush()
+    session.add(m.SourceConfigVersion(
+        id=f"cfg-extra-{index:02d}", source_id=source_id, version=1,
+        config={"base_url": "https://www.khu.ac.kr", "prefix": "kor", "board_code": "BMSR00040",
+                "menu_no": str(index)},
+        interval_minutes=60, is_active=True,
+    ))
+    session.add(m.SourceHealth(source_id=source_id))
+    session.flush()
+    return source_id
+
+
+def test_tail_sources_are_not_started_with_an_unusable_time_slice(
+    session_factory, settings, store, monkeypatch,
+):
+    """남은 예산이 한 조각도 안 될 때 새 출처를 착수하면 기아가 굳는다.
+
+    조각으로 착수하면 저장은 0건인데 last_attempt_at 만 갱신되고, 대기열이
+    last_attempt_at 오름차순이라 그 출처는 다음 회차에서도 같은 꼬리 자리에 놓인다.
+    착수하지 않아야 위치를 지켜 다음 회차가 먼저 본다.
+    """
+    settings = replace(settings, run_budget_seconds=4, source_budget_seconds=2,
+                       source_min_budget_seconds=1, source_concurrency=1)
+    with session_factory() as session:
+        _seed(session)
+        for i in range(8):
+            _seed_extra(session, i)
+        session.commit()
+
+    slices: list[tuple[str, float]] = []
+
+    async def fake_collect(session, fetcher, store, due, *, budget, **kwargs):
+        slices.append((due.source.id, budget.seconds))
+        await asyncio.sleep(0.9)
+        return collect.SourceOutcome(source_id=due.source.id, name=due.source.name, ok=True)
+
+    monkeypatch.setattr(collect, "collect_source", fake_collect)
+    monkeypatch.setattr(collect, "build_store", lambda cfg: store)
+    monkeypatch.setattr(collect, "Fetcher", lambda cfg: Fetcher(cfg, transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, text="ok"))))
+    monkeypatch.setattr("app.ingestion.http.check_url", lambda url, **kwargs: url)
+    result = asyncio.run(collect.run_collection(settings, publish=False, dedupe=False))
+
+    assert result.skipped > 0, "예산이 모자라 남은 출처가 있어야 이 검사가 의미가 있다"
+    # 착수한 출처는 모두 쓸 수 있는 크기의 예산을 받았다.
+    min_slice = max(1.0, min(float(settings.source_min_budget_seconds), settings.run_budget_seconds / 4))
+    assert slices and all(sec >= min_slice for _, sec in slices), slices
+    started = {sid for sid, _ in slices}
+    with session_factory() as session:
+        for health in session.scalars(select(m.SourceHealth)):
+            if health.source_id in started:
+                continue
+            # 착수하지 않은 출처는 시도 기록이 남지 않아 다음 회차 대기열 맨 앞을 지킨다.
+            assert health.last_attempt_at is None, health.source_id

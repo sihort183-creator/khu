@@ -91,6 +91,14 @@ class Settings:
 
     run_budget_seconds: int = 1800
     source_budget_seconds: int = 120
+    # 남은 실행 예산이 이 값보다 적으면 새 출처를 시작하지 않는다.
+    # 몇 초짜리 조각으로 착수하면 아무것도 저장하지 못한 채 last_attempt_at 만
+    # 갱신되어 그 출처가 다음 회차에서도 같은 꼬리 자리로 밀린다(기아 상태).
+    source_min_budget_seconds: int = 30
+    # 사전 감사 없이 최신순을 가정해 수집 범위 이전에서 조기 종료한다.
+    # 감사(app.ops.date_order)가 게시판을 끝까지 읽어야 해서 아끼려는 비용을
+    # 그대로 내므로, 초기 백필에서는 가정을 쓰고 역전 감지로 되돌린다.
+    optimistic_date_boundary: bool = False
     http_concurrency: int = 5
     http_delay_seconds: float = 2.0
     # 원문 서버를 묶는 단위: registrable(하위 도메인을 하나로) 또는 host(따로).
@@ -154,6 +162,8 @@ def load_settings() -> Settings:
         heartbeat_url=os.environ.get("KHU_HEARTBEAT_URL", "").strip(),
         run_budget_seconds=_int("KHU_RUN_BUDGET_SECONDS", 1800),
         source_budget_seconds=_int("KHU_SOURCE_BUDGET_SECONDS", 120),
+        source_min_budget_seconds=_int("KHU_SOURCE_MIN_BUDGET_SECONDS", 30),
+        optimistic_date_boundary=_bool("KHU_OPTIMISTIC_DATE_BOUNDARY", False),
         http_concurrency=_int("KHU_HTTP_CONCURRENCY", 5),
         http_delay_seconds=_float("KHU_HTTP_DELAY_SECONDS", 2.0),
         host_group_mode=os.getenv("KHU_HOST_GROUP_MODE", "registrable"),

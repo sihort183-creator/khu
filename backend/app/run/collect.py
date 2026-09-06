@@ -128,16 +128,24 @@ async def collect_source(
     stop = "not_started"
     oldest = health.backfill_oldest_date
     limit = max(1, cfg.list_page_limit)
-    # 날짜순을 검증한 출처만 조기 종료할 수 있다. 기본값은 보수적으로 끝까지 탐색.
-    ordered = due.config.get("date_ordered") is True
+    # 날짜순을 검증한 출처는 한 쪽만 보고 조기 종료할 수 있다.
+    verified_order = due.config.get("date_ordered") is True
     order_evidence = due.config.get("date_order_evidence") or {}
     try:
-        ordered &= (
+        verified_order &= (
             order_evidence.get("method") == "full_listing_monotonic"
             and datetime.fromisoformat(order_evidence["valid_until"]) > datetime.now(UTC)
         )
     except (KeyError, ValueError, TypeError):
-        ordered = False
+        verified_order = False
+    # 낙관 모드는 사전 감사 없이 최신순을 가정한다. 감사가 게시판을 끝까지 읽어야 하므로
+    # 아끼려는 비용을 그대로 내기 때문이다. 잘못 멈춰 놓치는 글은 수집 범위보다 오래된
+    # 글이라 어차피 공개하지 않고, 정렬이 실제로 깨진 게시판은 아래 invalidate_order 가
+    # 회차 안에서 잡아 되돌린다. 한 번 역전이 확인된 출처는 다시 가정하지 않는다.
+    assumed_order = bool(cfg.optimistic_date_boundary and not due.config.get("date_order_invalidated"))
+    ordered = verified_order or assumed_order
+    # 가정에 기댄 출처는 글 하나가 잘못 꽂힌 것에 속지 않도록 연속 두 쪽을 요구한다.
+    boundary_pages = 1 if verified_order else 2
     full_scan = False
 
     def invalidate_order(reason: str) -> None:
@@ -149,7 +157,7 @@ async def collect_source(
         current = session.scalar(select(m.SourceConfigVersion).where(
             m.SourceConfigVersion.source_id == source.id, m.SourceConfigVersion.is_active.is_(True),
         ))
-        if current and current.config.get("date_ordered") is True:
+        if current and (current.config.get("date_ordered") is True or assumed_order):
             replacement = dict(current.config)
             replacement["date_ordered"] = False
             replacement["date_order_invalidated"] = {"reason": reason, "at": datetime.now(UTC).isoformat()}
@@ -201,6 +209,7 @@ async def collect_source(
         nonlocal cursor, anchor, oldest, reached, full_scan
         anchor_found = expected_anchor is None
         previous_normal_date = None
+        below_window = 0
         # 겹침 확인에 사용한 두 쪽은 신규 구간 예산을 잠식하지 않는다.
         for page_no in range(start, start + limit + (2 if expected_anchor else 0)):
             if budget.exhausted:
@@ -251,7 +260,9 @@ async def collect_source(
                 )
                 if persist_progress:
                     session.commit()
-            boundary = bool(window and ordered and dates and all(d is not None and d < window for d in dates))
+            page_below = bool(window and ordered and dates and all(d is not None and d < window for d in dates))
+            below_window = below_window + 1 if page_below else 0
+            boundary = below_window >= boundary_pages
             if not page.has_next or boundary:
                 if history and not anchor_found:
                     cursor, anchor = 1, None
@@ -581,12 +592,18 @@ async def run_collection(
 
         return source_outcome
 
+    # 남은 예산이 이 값보다 적으면 새 출처를 시작하지 않는다. 몇 초짜리 조각으로
+    # 착수하면 목록 한 번 받고 끝나 저장은 0건인데 last_attempt_at 만 갱신되고,
+    # 대기열이 last_attempt_at 오름차순이므로 그 출처는 다음 회차에서도 같은 꼬리
+    # 자리에 다시 놓인다. 착수하지 않으면 위치를 지켜 다음 회차가 먼저 본다.
+    min_slice = max(1.0, min(float(cfg.source_min_budget_seconds), cfg.run_budget_seconds / 4))
+
     async def worker(fetcher) -> None:
         while True:
             async with tally:
                 if not pending:
                     return
-                if budget.exhausted:
+                if budget.remaining() < min_slice:
                     outcome.skipped += len(pending)
                     pending.clear()
                     return

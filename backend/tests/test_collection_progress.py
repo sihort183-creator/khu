@@ -281,3 +281,81 @@ def test_unexpected_failure_preserves_committed_resume_position(session_factory,
         result = run(db, db.get(m.Source, source_id), settings, store, complete_board, monkeypatch)
         assert result.backfill_complete
         assert len(db.scalars(select(m.Notice)).all()) == 2
+
+
+def test_optimistic_boundary_needs_two_consecutive_old_pages(session_factory, settings, store, monkeypatch):
+    """가정에 기댄 조기 종료는 한 쪽만 보고 멈추지 않는다.
+
+    범위 밖 글만 있는 쪽이 한 번 나와도 다음 쪽에 범위 안 글이 있을 수 있다.
+    연속 두 쪽을 요구하므로 그 글을 놓치지 않는다.
+    """
+    settings = replace(
+        settings, initial_window_start=date(2026, 3, 1), list_page_limit=10,
+        optimistic_date_boundary=True,
+    )
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({
+            1: [item(1, "2026-03-20")],
+            2: [item(2, "2026-02-25")],
+            3: [item(3, "2026-03-10")],
+        })
+        run(db, source, settings, store, board, monkeypatch)
+        assert board.read_pages == [1, 2, 3]
+        assert repo.item_for_listing(db, source.id, "3") is not None
+
+
+def test_optimistic_boundary_stops_after_two_old_pages(session_factory, settings, store, monkeypatch):
+    """연속 두 쪽이 모두 범위 밖이면 뒤쪽을 더 읽지 않고 멈춘다."""
+    settings = replace(
+        settings, initial_window_start=date(2026, 3, 1), list_page_limit=10,
+        optimistic_date_boundary=True,
+    )
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({
+            1: [item(1, "2026-03-20")],
+            2: [item(2, "2026-02-25")],
+            3: [item(3, "2026-02-10")],
+            4: [item(4, "2026-02-01")],
+        })
+        result = run(db, source, settings, store, board, monkeypatch)
+        assert board.read_pages == [1, 2, 3]
+        assert db.get(m.SourceHealth, source.id).last_scan_stop_reason == "date_boundary"
+        assert result.backfill_complete
+
+
+def test_optimistic_boundary_is_not_assumed_again_after_inversion(session_factory, settings, store, monkeypatch):
+    """정렬이 깨진 게시판은 설정에 기록해 다음 회차부터 가정을 쓰지 않는다."""
+    settings = replace(
+        settings, initial_window_start=date(2026, 3, 1), list_page_limit=10,
+        optimistic_date_boundary=True,
+    )
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({
+            1: [item(1, "2026-03-20")],
+            2: [item(2, "2026-02-25")],
+            3: [item(3, "2026-03-10")],
+        })
+        run(db, source, settings, store, board, monkeypatch)
+        active = db.scalar(select(m.SourceConfigVersion).where(m.SourceConfigVersion.is_active.is_(True)))
+        assert active.config["date_ordered"] is False
+        assert active.config["date_order_invalidated"]["reason"] == "date_inversion"
+
+
+def test_verified_order_still_stops_at_the_first_old_page(session_factory, settings, store, monkeypatch):
+    """검증을 통과한 출처는 예전대로 한 쪽만 보고 멈춘다. 낙관 모드가 이를 늦추지 않는다."""
+    settings = replace(
+        settings, initial_window_start=date(2026, 3, 1), list_page_limit=10,
+        optimistic_date_boundary=True,
+    )
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({
+            1: [item(1, "2026-03-20")],
+            2: [item(2, "2026-02-25")],
+            3: [item(3, "2026-02-10")],
+        })
+        run(db, source, settings, store, board, monkeypatch, ordered=True)
+        assert board.read_pages == [1, 2]
