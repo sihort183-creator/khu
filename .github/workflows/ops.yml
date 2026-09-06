@@ -75,8 +75,8 @@ jobs:
           set -euo pipefail
           case "$COMMAND" in
             "sources sync")     python -m app.ops.cli sources sync ;;
-  "sources sync --retire-missing")
-                      python -m app.ops.cli sources sync --retire-missing ;;
+            "sources sync --retire-missing")
+              python -m app.ops.cli sources sync --retire-missing ;;
             "sources list")     python -m app.ops.cli sources list ;;
             "sources promote")  python -m app.ops.cli sources promote "$TARGET" --reason "$REASON" ;;
             "sources pause")    python -m app.ops.cli sources pause "$TARGET" --reason "$REASON" ;;
