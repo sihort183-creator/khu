@@ -46,7 +46,16 @@ def _actor() -> str:
         return "ops:unknown"
 
 
-def _audit(session, *, action: str, target_kind: str, target_id: str | None, reason: str, after=None) -> None:
+def _audit(
+    session,
+    *,
+    action: str,
+    target_kind: str,
+    target_id: str | None,
+    reason: str,
+    before=None,
+    after=None,
+) -> None:
     session.add(
         m.AuditLog(
             id=ids._digest(action, target_id or "", datetime.now(UTC).isoformat()),
@@ -54,6 +63,7 @@ def _audit(session, *, action: str, target_kind: str, target_id: str | None, rea
             action=action,
             target_kind=target_kind,
             target_id=target_id,
+            before=before,
             after=after,
             reason=reason,
         )
