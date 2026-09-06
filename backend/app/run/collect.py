@@ -106,6 +106,9 @@ async def collect_source(
     seen_ids: set[str] = set()
     known_streak = 0
     detail_complete = True
+    # 목록을 끝까지 훑었는지. 시간이 모자라 중간에 끊기면 거짓이 된다.
+    # 개별 글의 분석 실패와 구분해야 한다. 없어진 글 판정에 이 값을 쓴다.
+    list_complete = True
 
     try:
         for page_index in range(1, cfg.list_page_limit + 1):
@@ -121,6 +124,7 @@ async def collect_source(
                 # 넘기면 남은 글은 다음 실행으로 넘긴다.
                 if budget.exhausted:
                     detail_complete = False
+                    list_complete = False
                     break
 
                 seen_ids.add(listed.external_id)
@@ -158,6 +162,7 @@ async def collect_source(
 
             if budget.exhausted:
                 detail_complete = False
+                list_complete = False
                 break
 
             # 이미 아는 항목만 나오는 구간에 닿으면 멈춘다.
@@ -169,11 +174,18 @@ async def collect_source(
                 break
             if budget.exhausted:
                 detail_complete = False
+                list_complete = False
                 break
 
-        removed = repo.mark_items_missing(session, source.id, seen_ids)
-        if removed:
-            log.info("%s: 연속 미발견으로 삭제 표시 %d건", source.id, removed)
+        # 목록을 끝까지 훑었을 때만 없어진 글을 센다. 시간이 모자라 중간에 끊긴
+        # 회차에서는 "아직 안 본 글"과 "사라진 글"을 구분할 수 없다. 그대로 세면
+        # 멀쩡한 공지가 연속 미발견으로 쌓여 삭제 표시된다(4절 9항).
+        if list_complete:
+            removed = repo.mark_items_missing(session, source.id, seen_ids)
+            if removed:
+                log.info("%s: 연속 미발견으로 삭제 표시 %d건", source.id, removed)
+        else:
+            log.info("%s: 목록을 끝까지 보지 못해 누락 판정을 건너뛴다", source.id)
 
         repo.mark_source_success(session, due.health, detail_complete=detail_complete)
         if source.status == "delayed":

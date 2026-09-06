@@ -340,3 +340,31 @@ def test_generated_at_is_timezone_aware(seeded, settings, store, board_fixture):
     parsed = datetime.fromisoformat(payload["generated_at"].replace("Z", "+00:00"))
     assert parsed.tzinfo is not None
     assert parsed.astimezone(UTC) <= datetime.now(UTC)
+
+
+def test_budget_cut_run_does_not_mark_items_missing(seeded, settings, store, board_fixture):
+    """시간이 모자라 목록을 끝까지 못 본 회차는 없어진 글을 세지 않는다.
+
+    안 본 글과 사라진 글을 구분할 수 없기 때문이다. 그대로 세면 멀쩡한 공지가
+    연속 미발견으로 쌓여 삭제 표시된다(4절 9항).
+    """
+    db, source = seeded
+    transport = _transport(board_fixture)
+
+    # 먼저 정상으로 한 번 모아 둔다.
+    asyncio.run(_collect(settings, db, source, store, transport))
+    db.flush()
+    stored = db.execute(select(m.SourceItem).where(m.SourceItem.source_id == source.id)).scalars().all()
+    assert stored, "선행 수집이 항목을 남겨야 한다"
+    before = {item.id: item.missing_streak for item in stored}
+
+    # 예산이 0인 회차는 글을 하나도 보지 못한다.
+    asyncio.run(_collect(settings, db, source, store, transport, budget=TimeBudget(0)))
+    db.flush()
+
+    after = db.execute(select(m.SourceItem).where(m.SourceItem.source_id == source.id)).scalars().all()
+    for item in after:
+        assert item.missing_streak == before[item.id], (
+            "목록을 못 본 회차가 멀쩡한 항목을 없어진 것으로 세면 안 된다"
+        )
+        assert item.original_status == "available"
