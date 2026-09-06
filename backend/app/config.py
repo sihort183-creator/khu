@@ -83,6 +83,8 @@ class Settings:
     http_delay_seconds: float = 2.0
     # 원문 서버를 묶는 단위: registrable(하위 도메인을 하나로) 또는 host(따로).
     host_group_mode: str = "registrable"
+    # 동시에 처리할 출처 수. 데이터베이스 연결도 이만큼 함께 쓴다.
+    source_concurrency: int = 1
     http_timeout_seconds: float = 25.0
     max_response_bytes: int = 8_000_000
     user_agent: str = "khu-notice-bot/0.1 (+https://github.com/sihort183-creator/khu)"
@@ -138,6 +140,7 @@ def load_settings() -> Settings:
         http_concurrency=_int("KHU_HTTP_CONCURRENCY", 5),
         http_delay_seconds=_float("KHU_HTTP_DELAY_SECONDS", 2.0),
         host_group_mode=os.getenv("KHU_HOST_GROUP_MODE", "registrable"),
+        source_concurrency=_int("KHU_SOURCE_CONCURRENCY", 1),
         http_timeout_seconds=_float("KHU_HTTP_TIMEOUT_SECONDS", 25.0),
         max_response_bytes=_int("KHU_MAX_RESPONSE_BYTES", 8_000_000),
         user_agent=os.environ.get("KHU_USER_AGENT", "").strip()

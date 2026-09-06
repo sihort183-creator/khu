@@ -355,11 +355,22 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
     outcome = RunOutcome(run_id=run_id, result="success")
     outcomes: list[SourceOutcome] = []
 
-    async with Fetcher(cfg) as fetcher:
-        for due_ref in due_list:
-            if budget.exhausted:
-                outcome.skipped += 1
-                continue
+    # 출처를 여러 개 동시에 처리한다. 예전에는 하나를 끝내야 다음으로 넘어가서
+    # 속도 제한을 아무리 풀어도 요청이 항상 한 개씩만 날아갔다.
+    # 원문 서버에 대한 예의는 HostLimiter 가 그대로 지킨다(7.3절).
+    pending = list(due_list)
+    tally = asyncio.Lock()
+
+    async def worker(fetcher: Fetcher) -> None:
+        while True:
+            async with tally:
+                if not pending:
+                    return
+                if budget.exhausted:
+                    outcome.skipped += len(pending)
+                    pending.clear()
+                    return
+                due_ref = pending.pop(0)
 
             # 출처마다 짧은 트랜잭션을 쓴다. 원문 요청 중 데이터베이스를 잡고 있지 않는다.
             with session_scope(cfg) as session:
@@ -389,11 +400,16 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
                     error_message=source_outcome.error_message,
                 )
 
-            outcomes.append(source_outcome)
-            outcome.attempted += 1
-            outcome.succeeded += int(source_outcome.ok)
-            outcome.new_items += source_outcome.new_items
-            outcome.updated_items += source_outcome.updated_items
+            async with tally:
+                outcomes.append(source_outcome)
+                outcome.attempted += 1
+                outcome.succeeded += int(source_outcome.ok)
+                outcome.new_items += source_outcome.new_items
+                outcome.updated_items += source_outcome.updated_items
+
+    async with Fetcher(cfg) as fetcher:
+        workers = max(1, min(cfg.source_concurrency, len(pending) or 1))
+        await asyncio.gather(*(worker(fetcher) for _ in range(workers)))
 
     with session_scope(cfg) as session:
         merged = run_dedupe_pass(session)

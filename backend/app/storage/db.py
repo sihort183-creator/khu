@@ -30,7 +30,8 @@ def build_engine(cfg: Settings | None = None, *, url: str | None = None) -> Engi
     dsn = url or cfg.require_database()
     engine = create_engine(
         dsn,
-        pool_size=3,
+        # 출처를 동시에 처리하면 그만큼 연결도 함께 쓴다. 여유를 두 개 더 둔다.
+        pool_size=max(3, cfg.source_concurrency + 2),
         max_overflow=2,
         pool_pre_ping=True,
         pool_recycle=280,
