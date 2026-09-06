@@ -26,7 +26,7 @@ import threading
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import func, select
@@ -48,7 +48,7 @@ from app.contracts.vocab import (
     code_list,
     coded,
 )
-from app.domain.dates import as_utc, freshness_code, utcnow
+from app.domain.dates import KST, as_utc, freshness_code, utcnow
 from app.storage import models as m
 from app.storage.db import session_scope
 from app.storage.objects import ObjectStore, build_store
@@ -290,7 +290,26 @@ def _build_notice(
     )
 
 
-def _load_notices(session: Session, now: datetime) -> list[tuple[api.Notice, m.SourceItemRevision, m.SourceItem, list]]:
+def window_floor(window_start: date | None) -> datetime | None:
+    """공개 하한을 UTC 시각으로 바꾼다.
+
+    경계는 표시 기준인 Asia/Seoul 날짜다. 3월 1일 오전 한국시간 글이 UTC 로는
+    2월 28일이므로 UTC 자정으로 자르면 하루치를 잃는다. 목록과 총계가 같은
+    기준을 쓰도록 이 함수 하나만 본다.
+    """
+    if window_start is None:
+        return None
+    return datetime(window_start.year, window_start.month, window_start.day, tzinfo=KST).astimezone(UTC)
+
+
+def _load_notices(
+    session: Session, now: datetime, *, window_start: date | None = None
+) -> list[tuple[api.Notice, m.SourceItemRevision, m.SourceItem, list]]:
+    """공개 대상 공지를 읽는다.
+
+    수집 범위 시작일보다 오래된 글과 발행일이 미래인 글은 공개하지 않는다.
+    저장은 그대로 두고 공개만 막는다. 경계는 표시 기준인 Asia/Seoul 날짜로 판정한다.
+    """
     source_refs = _source_refs(session)
     health = {
         row.source_id: row.last_list_success_at
@@ -325,6 +344,21 @@ def _load_notices(session: Session, now: datetime) -> list[tuple[api.Notice, m.S
         .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
         .order_by(m.Notice.first_visible_at.desc(), m.Notice.id.desc())
     ).all()
+
+    floor = window_floor(window_start)
+
+    def within_window(notice: m.Notice) -> bool:
+        """발행일을 아는 글만 판정한다. 날짜가 없으면 지어내지 않고 공개한다."""
+        # sqlite 는 시간대 없이 돌려주므로 먼저 UTC 로 정규화한다.
+        published = as_utc(notice.published_at)
+        if published is None:
+            return True
+        if published > now:
+            # 원문에 2099년 같은 값이 있다. 아직 오지 않은 날짜는 공개하지 않는다.
+            return False
+        return floor is None or published >= floor
+
+    rows = [row for row in rows if within_window(row[0])]
 
     built = []
     for notice, item, revision, source in rows:
@@ -710,7 +744,7 @@ def export_static(
         )
 
         # 공지 목록·상세·색인
-        notices = _load_notices(session, now)
+        notices = _load_notices(session, now, window_start=cfg.initial_window_start)
         result.notices = len(notices)
         pages = max(1, (len(notices) + PAGE_SIZE - 1) // PAGE_SIZE)
         result.pages = pages
@@ -910,15 +944,20 @@ def refresh_public_status(
             )
             for source in sources
         ]
-        notices_total = int(
-            session.execute(
-                select(func.count(m.Notice.id))
-                .join(m.SourceItem, m.SourceItem.id == m.Notice.primary_source_item_id)
-                .join(m.Source, m.Source.id == m.SourceItem.source_id)
-                .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
-            ).scalar()
-            or 0
+        # 공개 총계는 실제로 내보낸 공지와 같은 기준이어야 한다(_load_notices 와 동일).
+        floor = window_floor(cfg.initial_window_start)
+        notices_query = (
+            select(func.count(m.Notice.id))
+            .join(m.SourceItem, m.SourceItem.id == m.Notice.primary_source_item_id)
+            .join(m.Source, m.Source.id == m.SourceItem.source_id)
+            .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
+            .where(m.Notice.published_at.is_(None) | (m.Notice.published_at <= now))
         )
+        if floor is not None:
+            notices_query = notices_query.where(
+                m.Notice.published_at.is_(None) | (m.Notice.published_at >= floor)
+            )
+        notices_total = int(session.execute(notices_query).scalar() or 0)
         contacts_total = int(
             session.execute(
                 select(func.count(m.ContactEntry.id)).where(

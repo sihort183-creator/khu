@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import UTC, datetime
+from dataclasses import replace
+from datetime import UTC, date, datetime
 
 import httpx
 import pytest
@@ -291,6 +292,48 @@ def test_hidden_notice_disappears_from_static_files(seeded, settings, store, boa
     assert hidden_id not in [e["id"] for e in index["entries"]]
     with pytest.raises(FileNotFoundError):
         _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden_id}.json")
+
+
+def test_publish_window_hides_old_and_future_notices(seeded, settings, store, board_fixture):
+    """수집 범위 시작일보다 오래된 글과 발행일이 미래인 글은 공개하지 않는다.
+
+    저장은 그대로 두고 공개만 막는다. 경계는 표시 기준인 Asia/Seoul 날짜로 판정하므로
+    3월 1일 오전 한국시간(= 2월 28일 UTC) 글은 남아야 한다.
+    """
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+
+    notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+    assert len(notices) >= 3
+    old_one, future_one, edge_one = notices[0], notices[1], notices[2]
+    old_one.published_at = datetime(2025, 12, 31, 3, 0, tzinfo=UTC)
+    future_one.published_at = datetime(2099, 12, 31, 0, 30, tzinfo=UTC)
+    # 2026-02-28T15:00Z 는 한국시간으로 2026-03-01 00:00 이다. 경계 안쪽이다.
+    edge_one.published_at = datetime(2026, 2, 28, 15, 0, tzinfo=UTC)
+    session.commit()
+
+    windowed = replace(settings, initial_window_start=date(2026, 3, 1))
+    result = export_static(windowed, run_id="run-window01", store=store)
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
+    base = pointer["base_path"]
+    page = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/page/1.json"))
+    index = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/index.json"))
+
+    listed = {n["id"] for n in page["data"]}
+    indexed = {e["id"] for e in index["entries"]}
+    assert old_one.id not in listed and old_one.id not in indexed
+    assert future_one.id not in listed and future_one.id not in indexed
+    assert edge_one.id in listed and edge_one.id in indexed
+    assert result.notices == len(notices) - 2
+
+    # 상세 파일도 함께 사라진다. 목록에만 없고 주소로는 열리는 상태를 만들지 않는다.
+    for hidden in (old_one.id, future_one.id):
+        with pytest.raises(FileNotFoundError):
+            _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden}.json")
+
+    # 원문은 지우지 않는다. 범위가 바뀌면 다시 공개할 수 있어야 한다.
+    assert session.get(m.Notice, old_one.id) is not None
 
 
 def test_revision_pointer_switches_only_after_files_exist(seeded, settings, store, board_fixture):
