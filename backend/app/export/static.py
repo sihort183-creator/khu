@@ -48,6 +48,7 @@ from app.contracts.vocab import (
     code_list,
     coded,
 )
+from app.domain.body_html import sanitize_body_html
 from app.domain.dates import KST, as_utc, freshness_code, utcnow
 from app.domain.images import extract_images, poster_image
 from app.storage import models as m
@@ -480,7 +481,9 @@ def _notice_detail(
     return api.NoticeDetail(
         **base.model_dump(),
         body_text=revision.body_text,
-        body_html=revision.body_html,
+        # 화면이 이 HTML 을 문서에 그대로 넣는다. 남의 글이므로 허용 목록으로 다시 짓고,
+        # 그림 주소는 중계 경로로 바꾼다.
+        body_html=sanitize_body_html(revision.body_html, base_url=base.original_url),
         images=extract_images(revision.body_html, base_url=base.original_url),
         sources=sources or None or [],
         attachments=attachments,
