@@ -39,7 +39,8 @@ permissions:
 jobs:
   ops:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # export 는 공지 한 건마다 데이터베이스를 왕복해서 공지가 많으면 오래 걸린다.
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: backend

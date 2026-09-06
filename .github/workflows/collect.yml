@@ -29,7 +29,9 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    # 내보내기는 공지 한 건마다 데이터베이스를 왕복해서, 공지가 천 건을 넘으면
+    # 십분 단위로 걸린다. 수집을 40분에 끊고도 잘리지 않도록 넉넉히 둔다.
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: backend
