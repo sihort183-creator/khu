@@ -70,7 +70,7 @@ def sources_sync(args: argparse.Namespace) -> int:
     설정을 바꾸려면 --update-config 를 명시해야 하며 그때 새 설정 버전을 만든다.
     """
     registry = load_registry()
-    added_org = added_src = updated_cfg = 0
+    added_org = added_src = updated_cfg = retired = 0
 
     with session_scope() as session:
         university_id = ids.university_id(UNIVERSITY_CODE)
@@ -191,9 +191,38 @@ def sources_sync(args: argparse.Namespace) -> int:
                         after=spec.config,
                     )
 
-    print(f"조직 추가 {added_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}")
+        # 등록부에서 빠진 출처는 남겨 두면 계속 수집된다. 조사에서 공지가 아니라고
+        # 판정했거나 사라진 게시판이므로 폐쇄로 돌린다. 지우지는 않는다.
+        # 이미 모은 공지와 그 근거를 잃지 않아야 한다(3절).
+        if args.retire_missing:
+            known = {ids.source_id(spec.adapter, spec.list_url) for spec in registry.sources}
+            stale = session.execute(
+                select(m.Source).where(
+                    m.Source.id.not_in(known), m.Source.status.not_in(("retired",))
+                )
+            ).scalars().all()
+            for row in stale:
+                before = row.status
+                row.status = "retired"
+                retired += 1
+                _audit(
+                    session,
+                    action="source.retire",
+                    target_kind="source",
+                    target_id=row.id,
+                    reason="등록부에서 빠진 출처(--retire-missing)",
+                    before={"status": before},
+                    after={"status": "retired"},
+                )
+
+    print(
+        f"조직 추가 {added_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}"
+        f" / 폐쇄 {retired}"
+    )
     if not args.update_config:
         print("기존 출처 설정은 그대로 두었습니다. 바꾸려면 --update-config 를 쓰세요.")
+    if not args.retire_missing:
+        print("등록부에서 빠진 출처는 그대로 두었습니다. 정리하려면 --retire-missing 을 쓰세요.")
     return 0
 
 
@@ -542,6 +571,11 @@ def build_parser() -> argparse.ArgumentParser:
     sources = sub.add_parser("sources", help="출처 관리").add_subparsers(dest="sub", required=True)
     sync = sources.add_parser("sync", help="등록부를 데이터베이스에 반영")
     sync.add_argument("--update-config", action="store_true", help="기존 출처 설정도 새 버전으로 갱신")
+    sync.add_argument(
+        "--retire-missing",
+        action="store_true",
+        help="등록부에 없는 출처를 폐쇄로 돌린다(지우지 않는다)",
+    )
     sync.set_defaults(func=sources_sync)
 
     listing = sources.add_parser("list", help="출처 목록")
