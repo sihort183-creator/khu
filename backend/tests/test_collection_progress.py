@@ -159,6 +159,48 @@ def test_one_page_budget_eventually_reaches_end(session_factory, settings, store
         assert {i.external_id for i in db.scalars(select(m.SourceItem))} == {str(i) for i in range(1, 6)}
 
 
+def test_old_unordered_pages_do_not_reset_history_forever(session_factory, settings, store, monkeypatch):
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=2)
+    with session_factory() as db:
+        source = _seed(db)
+        # 최신 앞쪽이 모두 기간 밖이어도 날짜순 미검증 게시판 뒤쪽에 새 글이 있다.
+        board = Board({i: [item(i, "2026-02-01")] for i in range(1, 9)})
+        board.pages[8] = [item(8, "2026-03-02")]
+        cursors = []
+        for _ in range(8):
+            result = run(db, source, settings, store, board, monkeypatch)
+            cursors.append(db.get(m.SourceHealth, source.id).backfill_cursor_page)
+            if result.backfill_complete:
+                break
+        assert result.backfill_complete
+        assert max(cursors) == 8
+        assert board.read_details == ["8"]
+        assert repo.item_for_listing(db, source.id, "8") is not None
+
+
+def test_large_new_burst_revalidates_anchor_and_fills_shifted_gap(session_factory, settings, store, monkeypatch):
+    settings = replace(settings, list_page_limit=2)
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({i: [item(i)] for i in range(1, 8)})
+        run(db, source, settings, store, board, monkeypatch)
+        # 진행 기준점이 겹침 탐색 한도를 넘도록 신규 페이지가 대량 삽입된다.
+        board.pages = {
+            **{i: [item(100 + i)] for i in range(1, 7)},
+            **{i + 6: [item(i)] for i in range(1, 8)},
+        }
+        first = run(db, source, settings, store, board, monkeypatch)
+        assert not first.backfill_complete
+        assert first.scan_stop_reason == "anchor_missing"
+        for _ in range(15):
+            result = run(db, source, settings, store, board, monkeypatch)
+            if result.backfill_complete:
+                break
+        expected = {str(i) for i in range(1, 8)} | {str(100 + i) for i in range(1, 7)}
+        assert result.backfill_complete
+        assert {i.external_id for i in db.scalars(select(m.SourceItem))} == expected
+
+
 def test_changed_window_reopens_completed_history(session_factory, settings, store, monkeypatch):
     settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
     with session_factory() as db:

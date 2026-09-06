@@ -236,8 +236,11 @@ async def collect_source(
         else:
             latest_stop = await scan(1, history=False)
             stop = latest_stop
-            if latest_stop == "page_limit":
-                # 최신 구간에 저장된 글과의 겹침이 없다. 간격을 메우기 전 완료 금지.
+            if latest_stop == "page_limit" and reached:
+                # 완료한 출처에서 새 구간이 한도를 넘으면 초기 범위를 다시 연다.
+                # 진행 중인 출처는 아래 과거 재개의 원문 기준점을 검증한다.
+                # 기간 밖 글은 저장하지 않으므로 최신 구간의 known 부재만으로
+                # 진행 위치를 지우면 오래된 게시판이 같은 첫 페이지들에 갇힌다.
                 reached = False
                 cursor, anchor = 1, None
             if latest_stop != "time_budget" and not reached:
