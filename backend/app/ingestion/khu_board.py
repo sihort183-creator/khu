@@ -6,7 +6,9 @@
 목록: GET  {base}/{prefix}/user/bbs/{board}/list.do?menuNo={menuNo}&pageIndex={n}
       형식 A(본부): table.board01 tbody tr, a[href="javascript:view('<id>','<cat>')"]
       형식 B(학과): div.bbs_tbl-st1 table tbody tr, a[href="javascript:view('<id>')"]
-      두 형식 모두 tbody#noticeTbody 안의 행은 상단 고정 공지다.
+      형식 C(갤러리): ul.bbs-thumb 또는 div.bbs-gallery 안의 li.item
+                      — strong.t(제목)·span.date(등록일), 표가 아니라 카드다.
+      표 형식 둘은 tbody#noticeTbody 안의 행이 상단 고정 공지다. 갤러리에는 고정이 없다.
 
 상세: POST {base}/{prefix}/user/bbs/{board}/view.do  (menuNo, boardId, catId, pageIndex)
       형식 A: div.board02 — p.txt06(제목)·span.txtBox01(분류)·span.date·.txtWriter
@@ -34,7 +36,7 @@ from app.ingestion.base import (
 from app.ingestion.http import Fetcher
 from app.ingestion.sanitize import clean_body_html, html_to_text
 
-EXTRACTOR_VERSION = "khu_board/2"
+EXTRACTOR_VERSION = "khu_board/3"
 
 _VIEW_CALL = re.compile(r"view\(\s*'([^']*)'(?:\s*,\s*'([^']*)')?\s*\)")
 _DATE_TEXT = re.compile(r"\d{4}[-./]\d{1,2}[-./]\d{1,2}")
@@ -44,8 +46,12 @@ _COUNT_ONLY = re.compile(r"^[\d,]+$")
 _DENIED_HINT = re.compile(r"권한이\s*없|로그인이\s*필요|비공개\s*게시물")
 
 
+# BOM·제로폭 문자. 일부 게시글 제목 앞에 섞여 들어온다.
+_INVISIBLE = re.compile("[\ufeff\u200b-\u200d\u2060]")
+
+
 def _clean(value: str | None) -> str:
-    return re.sub(r"\s+", " ", value or "").strip()
+    return re.sub(r"\s+", " ", _INVISIBLE.sub("", value or "")).strip()
 
 
 def _text(node) -> str:
@@ -100,7 +106,13 @@ class KhuBoardAdapter:
         doc = lxml_html.fromstring(text)
 
         rows = doc.xpath("//tr[.//a[contains(@href,'view(')]]")
-        if not rows:
+        # 표가 없으면 갤러리 형식을 본다. 도메인이 아니라 문서 구조로 고른다.
+        cards = (
+            doc.xpath("//li[contains(@class,'item')][.//a[contains(@href,'view(')]]")
+            if not rows
+            else []
+        )
+        if not rows and not cards:
             # 진짜 빈 목록과 구조 변경을 구분한다(4절 8항).
             container = doc.xpath(
                 "//*[contains(@class,'bbs-list') or contains(@class,'bbs_tbl')"
@@ -116,13 +128,15 @@ class KhuBoardAdapter:
             raise ParseError("게시판 목록 구조를 찾지 못했습니다. 원문 구조 변경 가능성.")
 
         items: list[ListedItem] = []
-        for row in rows:
-            item = self._parse_row(row, config)
+        for node in rows or cards:
+            item = self._parse_row(node, config) if rows else self._parse_card(node, config)
             if item is not None:
                 items.append(item)
 
         if not items:
-            raise ParseError(f"목록 행 {len(rows)}개를 읽었으나 항목을 하나도 추출하지 못했습니다.")
+            raise ParseError(
+                f"목록 행 {len(rows) or len(cards)}개를 읽었으나 항목을 하나도 추출하지 못했습니다."
+            )
 
         return ListPage(
             items=tuple(items),
@@ -177,6 +191,41 @@ class KhuBoardAdapter:
             board_category=board_category,
             author=author,
             is_pinned=self._is_pinned(row, cells),
+            detail_hint={"catId": cat_id},
+        )
+
+    def _parse_card(self, card, config: dict[str, Any]) -> ListedItem | None:
+        """갤러리 형식의 카드 하나를 읽는다. 표 형식과 달리 칸이 없어 클래스로 찾는다."""
+        link = _first(card, ".//a[contains(@href,'view(')]")
+        if link is None:
+            return None
+        match = _VIEW_CALL.search(link.get("href") or "")
+        if not match:
+            return None
+        external_id = (match.group(1) or "").strip()
+        cat_id = (match.group(2) or "").strip()
+        if not external_id:
+            return None
+
+        title = _text(_first(card, ".//*[contains(@class,'t')][self::strong or self::span]"))
+        if not title:
+            return None
+
+        published_raw = None
+        for node in card.xpath(".//*[contains(@class,'date')]"):
+            found = _DATE_TEXT.search(_text(node))
+            if found:
+                published_raw = found.group(0)
+                break
+
+        return ListedItem(
+            external_id=external_id,
+            url=self.detail_url(config, external_id),
+            title=title,
+            published_raw=published_raw,
+            board_category=None,
+            author=None,
+            is_pinned=False,
             detail_hint={"catId": cat_id},
         )
 

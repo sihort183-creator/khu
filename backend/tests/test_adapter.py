@@ -130,3 +130,45 @@ def test_allowed_hosts_limits_requests(adapter):
     assert adapter.allowed_hosts(HQ) == {"www.khu.ac.kr"}
     with_extra = dict(HQ, allowed_hosts=["cdn.khu.ac.kr"])
     assert adapter.allowed_hosts(with_extra) == {"www.khu.ac.kr", "cdn.khu.ac.kr"}
+
+
+THUMB = {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00044",
+    "menu_no": "21700021",
+}
+GALLERY = {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00045",
+    "menu_no": "14500124",
+}
+
+
+def test_parses_thumbnail_gallery_list(adapter, board_fixture):
+    """형식 C: ul.bbs-thumb. 표가 아니라 카드라 칸 위치로 날짜를 찾을 수 없다."""
+    page = adapter.parse_list(board_fixture("list_thumb_notice.html"), THUMB, 1)
+
+    assert len(page.items) == 8
+    first = page.items[0]
+    assert first.external_id == "531880"
+    assert first.title == "시뮬레이션으로 뉴로모픽 디바이스 신뢰성 개선"
+    assert first.published_raw == "2026-03-25"
+    # 갤러리에는 상단 고정이 없다.
+    assert not any(item.is_pinned for item in page.items)
+    assert first.url.endswith("view.do?menuNo=21700021&boardId=531880")
+    assert page.has_next is True
+
+
+def test_parses_card_gallery_list(adapter, board_fixture):
+    """형식 C의 다른 표기: div.bbs-gallery. 제목 앞에 BOM 이 섞여 온다."""
+    page = adapter.parse_list(board_fixture("list_gallery_notice.html"), GALLERY, 1)
+
+    assert len(page.items) == 9
+    first = page.items[0]
+    assert first.external_id == "552070"
+    assert first.published_raw == "2026-09-03"
+    # 보이지 않는 문자가 제목 앞에 남으면 화면에서 깨져 보인다.
+    assert first.title.startswith("[인터뷰]")
+    assert "\ufeff" not in first.title
