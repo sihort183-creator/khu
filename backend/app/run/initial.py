@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import time
+from contextlib import suppress
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -78,7 +79,10 @@ async def supervise(
         return {"mode": "maintenance", "continue_initial": False, "result": outcome.result}
 
     work_end = min(deadline - timedelta(seconds=reserve_seconds), now + timedelta(seconds=max_seconds))
-    last_publish = time.monotonic()
+    # 한 주기가 지나야 처음 공개하면, 잡이 그 전에 끝나는 동안 화면은 몇 시간 낡은 것만
+    # 보여준다. 2026-09-07 실제로 3시간 51분 동안 공개가 한 번도 나가지 않았다.
+    # 이미 한 주기가 지난 것처럼 두어 첫 회차 직후에 내보낸다.
+    last_publish = time.monotonic() - publish_seconds
     last_run_id = None
     rounds = 0
     new_items = 0
@@ -89,27 +93,40 @@ async def supervise(
     if inventory["remaining"] == 0:
         outcome = await run_collection(cfg)
         return {"mode": "maintenance", "continue_initial": False, "result": outcome.result}
-    while datetime.now(UTC) < work_end and inventory["remaining"]:
-        remaining = (work_end - datetime.now(UTC)).total_seconds()
-        if remaining <= 0:
-            break
-        round_cfg = replace(cfg, run_budget_seconds=max(1, int(min(round_seconds, remaining))))
-        outcome = await run_collection(round_cfg, initial_mode=True, publish=False, dedupe=False)
-        last_run_id = outcome.run_id
-        rounds += 1
-        new_items += outcome.new_items
-        failures = failures + 1 if outcome.result == "failed" else 0
-        inventory = initial_inventory(cfg)
-        log.info("초기 진행 %s", json.dumps({**inventory, "rounds": rounds, "new_items": new_items}, ensure_ascii=False))
-        if failures >= 3:
-            raise RuntimeError("초기 수집이 연속 3회 전체 실패했습니다")
-        if time.monotonic() - last_publish >= publish_seconds:
-            revision = await asyncio.to_thread(publish, cfg, last_run_id)
-            log.info("중간 공개 완료 %s", revision)
-            last_publish = time.monotonic()
-        if outcome.attempted == 0 and inventory["remaining"]:
-            wait = min(30, max(0, (work_end - datetime.now(UTC)).total_seconds()))
-            await asyncio.sleep(wait)
+    # 마지막 공개 뒤로 새로 모은 회차 수. 취소될 때 내보낼 것이 있는지 이것으로 안다.
+    unpublished_rounds = 0
+    try:
+        while datetime.now(UTC) < work_end and inventory["remaining"]:
+            remaining = (work_end - datetime.now(UTC)).total_seconds()
+            if remaining <= 0:
+                break
+            round_cfg = replace(cfg, run_budget_seconds=max(1, int(min(round_seconds, remaining))))
+            outcome = await run_collection(round_cfg, initial_mode=True, publish=False, dedupe=False)
+            last_run_id = outcome.run_id
+            rounds += 1
+            unpublished_rounds += 1
+            new_items += outcome.new_items
+            failures = failures + 1 if outcome.result == "failed" else 0
+            inventory = initial_inventory(cfg)
+            log.info("초기 진행 %s", json.dumps({**inventory, "rounds": rounds, "new_items": new_items}, ensure_ascii=False))
+            if failures >= 3:
+                raise RuntimeError("초기 수집이 연속 3회 전체 실패했습니다")
+            if time.monotonic() - last_publish >= publish_seconds:
+                revision = await asyncio.to_thread(publish, cfg, last_run_id)
+                log.info("중간 공개 완료 %s", revision)
+                last_publish = time.monotonic()
+                unpublished_rounds = 0
+            if outcome.attempted == 0 and inventory["remaining"]:
+                wait = min(30, max(0, (work_end - datetime.now(UTC)).total_seconds()))
+                await asyncio.sleep(wait)
+    except BaseException:
+        # 잡이 취소되거나 터져도 그때까지 모은 것은 내보낸다. 그러지 않으면 회차를
+        # 스무 번 돌고도 화면에 아무것도 반영되지 않은 채 끝난다.
+        # 파일을 다 올린 뒤에야 포인터가 바뀌므로 도중에 죽어도 개정이 섞이지 않는다.
+        if unpublished_rounds:
+            with suppress(Exception):
+                await asyncio.to_thread(publish, cfg, last_run_id)
+        raise
 
     revision = await asyncio.to_thread(publish, cfg, last_run_id)
     inventory = initial_inventory(cfg)

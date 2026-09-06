@@ -127,15 +127,22 @@ def sources_sync(args: argparse.Namespace) -> int:
                     )
                 )
                 added_org += 1
-            elif org.parent_key:
-                parent = org_ids.get(org.parent_key)
-                if parent and row.parent_id != parent:
-                    row.parent_id = parent
-                    linked_org += 1
             for code in org.campus_codes:
                 link = session.get(m.OrganizationCampus, {"organization_id": oid, "campus_id": campus_ids[code]})
                 if link is None:
                     session.add(m.OrganizationCampus(organization_id=oid, campus_id=campus_ids[code]))
+        session.flush()
+
+        # 상위 연결은 모든 조직의 식별자를 안 뒤에 한다. 한 번에 하면 등록부에서 자식이
+        # 부모보다 먼저 나온 경우 부모를 못 찾아 연결이 조용히 빠진다.
+        for org in registry.organizations:
+            if not org.parent_key:
+                continue
+            row = session.get(m.Organization, org_ids[org.key])
+            parent = org_ids.get(org.parent_key)
+            if row is not None and parent and row.parent_id != parent:
+                row.parent_id = parent
+                linked_org += 1
         session.flush()
 
         _rebuild_closure(session)
