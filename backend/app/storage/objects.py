@@ -113,6 +113,8 @@ class R2ObjectStore:
             region_name="auto",
             config=Config(
                 retries={"max_attempts": 3, "mode": "standard"},
+                # 내보내기에서 상세 파일을 동시에 올린다. 기본값(10)이면 연결을 기다린다.
+                max_pool_connections=16,
                 connect_timeout=15,
                 read_timeout=60,
                 signature_version="s3v4",

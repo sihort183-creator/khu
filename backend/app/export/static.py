@@ -20,6 +20,9 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
+from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any
@@ -88,14 +91,37 @@ class Writer:
         self.bucket = bucket
         self.result = result
         self.record_keys = record_keys
+        self._lock = threading.Lock()
 
     def put(self, key: str, model: Any) -> None:
         data = _dump(model)
+        self._upload(key, data)
+
+    def _upload(self, key: str, data: bytes) -> None:
         self.store.put_bytes(self.bucket, key, data, content_type="application/json; charset=utf-8", compress=True)
-        self.result.files_written += 1
-        self.result.bytes_written += len(data)
-        if self.record_keys:
-            self.result.keys.append(key)
+        with self._lock:
+            self.result.files_written += 1
+            self.result.bytes_written += len(data)
+            if self.record_keys:
+                self.result.keys.append(key)
+
+    def put_many(self, items: Iterable[tuple[str, Any]], *, workers: int = 8) -> None:
+        """여러 파일을 한꺼번에 올린다.
+
+        공지가 천 건을 넘으면 상세 파일도 그만큼이라, 하나씩 올리면 내보내기만으로
+        십수 분이 걸려 실행이 시간 제한에 걸린다. 서로 의존하지 않는 파일들이라
+        동시에 올려도 된다. 개정 포인터(latest.json)는 이 뒤에 따로 올린다.
+        """
+        pairs = [(key, _dump(model)) for key, model in items]
+        if not pairs:
+            return
+        if len(pairs) < workers:
+            for key, data in pairs:
+                self._upload(key, data)
+            return
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for _ in pool.map(lambda pair: self._upload(*pair), pairs):
+                pass
 
 
 def _meta(revision: str, now: datetime) -> api.Meta:
@@ -591,14 +617,17 @@ def export_static(
                 ),
             )
 
-        for notice, revision_row, _item, _aud in notices:
-            writer.put(
+        # 공지 상세는 서로 의존하지 않는다. 한꺼번에 올린다.
+        writer.put_many(
+            (
                 f"{prefix}/notices/{notice.id}.json",
                 api.ItemResponse[api.NoticeDetail](
                     data=_notice_detail(session, notice, revision_row, source_refs),
                     meta=_meta(rev, now),
                 ),
             )
+            for notice, revision_row, _item, _aud in notices
+        )
 
         entries = [
             api.IndexEntry(
@@ -640,11 +669,14 @@ def export_static(
                     meta=_meta(rev, now),
                 ),
             )
-        for contact in contacts:
-            writer.put(
+        # 연락처 상세도 서로 의존하지 않는다.
+        writer.put_many(
+            (
                 f"{prefix}/contacts/{contact.id}.json",
                 api.ItemResponse[api.Contact](data=contact, meta=_meta(rev, now)),
             )
+            for contact in contacts
+        )
 
         # 공개 상태
         last_run = session.execute(
