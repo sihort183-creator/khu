@@ -193,6 +193,16 @@
    "evidence_url": "https://bme.khu.ac.kr"
   },
   {
+   "key": "org-ce25",
+   "name": "컴퓨터공학부",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [],
+   "homepage_url": "https://ce.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://"
+  },
+  {
    "key": "org-che",
    "name": "경희대학교 생활과학대학",
    "type": "college",
@@ -283,6 +293,16 @@
    "homepage_url": "https://dance.khu.ac.kr/",
    "needs_review": false,
    "evidence_url": "https://dance.khu.ac.kr"
+  },
+  {
+   "key": "org-dc",
+   "name": "디지털콘텐츠학과",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [],
+   "homepage_url": "https://dc.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://"
   },
   {
    "key": "org-dental_kor",
@@ -385,6 +405,16 @@
    "homepage_url": "https://education.khu.ac.kr/",
    "needs_review": false,
    "evidence_url": "https://education.khu.ac.kr"
+  },
+  {
+   "key": "org-ee25",
+   "name": "전자공학부",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [],
+   "homepage_url": "https://ee.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://"
   },
   {
    "key": "org-eng_kor",
@@ -620,7 +650,7 @@
   },
   {
    "key": "org-healthsc",
-   "name": "건강센터(서울) (경영대학 오비스홀 152호)",
+   "name": "건강센터(서울)",
    "type": "institute",
    "parent": null,
    "campus_codes": [
@@ -768,7 +798,7 @@
    "type": "institute",
    "parent": null,
    "campus_codes": [],
-   "homepage_url": "https://kcsc.khu.ac.kr/",
+   "homepage_url": "https://dc.khu.ac.kr/",
    "needs_review": false,
    "evidence_url": "https://kcsc.khu.ac.kr"
   },
@@ -881,6 +911,16 @@
    "homepage_url": "https://korean.khu.ac.kr/",
    "needs_review": false,
    "evidence_url": "https://korean.khu.ac.kr/"
+  },
+  {
+   "key": "org-labanimal",
+   "name": "중앙실험동물센터",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [],
+   "homepage_url": "https://labanimal.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://"
   },
   {
    "key": "org-law",
@@ -1185,6 +1225,16 @@
    "homepage_url": "https://impact.khu.ac.kr/",
    "needs_review": false,
    "evidence_url": "https://support.khu.ac.kr"
+  },
+  {
+   "key": "org-swcon",
+   "name": "소프트웨어융합학과",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [],
+   "homepage_url": "https://swcon.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://"
   },
   {
    "key": "org-tma",

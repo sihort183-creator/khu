@@ -253,7 +253,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=6, help="동시에 조사할 호스트 수")
     args = parser.parse_args(argv)
 
-    pairs = [(h, "khu_board") for h in args.hosts] if args.hosts else load_hosts()
+    known = dict(load_hosts())
+    # --hosts 로 골라도 어댑터는 hosts.json 의 판정을 따른다.
+    pairs = [(h, known.get(h, "khu_board")) for h in args.hosts] if args.hosts else list(known.items())
     fetcher = Fetcher(delay=args.delay)
 
     def run(pair: tuple[str, str]) -> dict:

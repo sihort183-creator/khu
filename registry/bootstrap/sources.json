@@ -1,11 +1,11 @@
 {
  "meta": {
   "observed_at": "2026-09-06T04:12:16Z",
-  "total": 450,
-  "merged_mirrors": 354,
+  "total": 463,
+  "merged_mirrors": 394,
   "status_counts": {
-   "active": 405,
-   "pending": 45
+   "active": 416,
+   "pending": 47
   },
   "note": "공지 여부는 게시판 이름이 아니라 board_profiles.json 의 판정을 따른다. 판정 근거가 뚜렷한 것(confidence=high)만 active 로 두고 나머지는 pending 이다. 대상 범위 기본값은 출처의 소속 조직이며, 본부 게시판을 전교생 대상으로 단정하지 않는다. 게시판 성격은 학기마다 다시 조사한다."
  },
@@ -1445,6 +1445,54 @@
    "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 소식 및 행사). (메뉴 경로: 공지사항 > 소식 및 행사)"
   },
   {
+   "key": "ce25-BMSR00040-21600019",
+   "name": "컴퓨터공학부 공지사항",
+   "organization": "org-ce25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ce.khu.ac.kr",
+    "prefix": "ce25",
+    "board_code": "BMSR00040",
+    "menu_no": "21600019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ce25"
+    }
+   ],
+   "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600019",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 학사/장학). (메뉴 경로: 공지사항 > 학사/장학)"
+  },
+  {
+   "key": "ce25-BMSR00040-21600022",
+   "name": "컴퓨터공학부 기타공지",
+   "organization": "org-ce25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ce.khu.ac.kr",
+    "prefix": "ce25",
+    "board_code": "BMSR00040",
+    "menu_no": "21600022"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ce25"
+    }
+   ],
+   "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600022",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 기타공지). (메뉴 경로: 공지사항 > 기타공지)"
+  },
+  {
    "key": "che-BMSR00040-12700018",
    "name": "경희대학교 생활과학대학 공지사항",
    "organization": "org-che",
@@ -2279,6 +2327,30 @@
    "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(기타 공지). (메뉴 경로: 기타 공지)"
   },
   {
+   "key": "dc-BMSR00040-15400038",
+   "name": "디지털콘텐츠학과 학생지원",
+   "organization": "org-dc",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://dc.khu.ac.kr",
+    "prefix": "dc",
+    "board_code": "BMSR00040",
+    "menu_no": "15400038"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-dc"
+    }
+   ],
+   "official_evidence_url": "https://dc.khu.ac.kr/dc/user/bbs/BMSR00040/list.do?menuNo=15400038",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(학생지원 > 공지사항). (메뉴 경로: 학생지원 > 공지사항)"
+  },
+  {
    "key": "dental_kor-BMSR00040-16700050",
    "name": "치과대학 커뮤니티",
    "organization": "org-dental_kor",
@@ -2925,6 +2997,102 @@
    ],
    "official_evidence_url": "https://education.khu.ac.kr/education/user/bbs/BMSR00040/list.do?menuNo=7000032",
    "notes": "2026-09-06T04:12:16Z 조사: 모집·신청·마감 글이 꾸준히 올라온다. (메뉴 경로: 게시판 > 교육봉사•취업)"
+  },
+  {
+   "key": "ee25-BMSR00040-21700019",
+   "name": "전자공학부 학사/장학",
+   "organization": "org-ee25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00040",
+    "menu_no": "21700019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee25"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700019",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 학사/장학). (메뉴 경로: 공지사항 > 학사/장학)"
+  },
+  {
+   "key": "ee25-BMSR00040-21700020",
+   "name": "전자공학부 취업정보/대외활동",
+   "organization": "org-ee25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00040",
+    "menu_no": "21700020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee25"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700020",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 취업정보/대외활동). (메뉴 경로: 공지사항 > 취업정보/대외활동)"
+  },
+  {
+   "key": "ee25-BMSR00040-21700022",
+   "name": "전자공학부 기타공지",
+   "organization": "org-ee25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00040",
+    "menu_no": "21700022"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee25"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/list.do?menuNo=21700022",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 기타공지). (메뉴 경로: 공지사항 > 기타공지)"
+  },
+  {
+   "key": "ee25-BMSR00044-21700021",
+   "name": "전자공학부 공지사항",
+   "organization": "org-ee25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ee.khu.ac.kr",
+    "prefix": "ee25",
+    "board_code": "BMSR00044",
+    "menu_no": "21700021"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ee25"
+    }
+   ],
+   "official_evidence_url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00044/list.do?menuNo=21700021",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 소식). (메뉴 경로: 공지사항 > 소식)"
   },
   {
    "key": "eng_kor-BMSR00040-17100018",
@@ -4944,7 +5112,7 @@
   },
   {
    "key": "healthsc-BMSR00040-19800018",
-   "name": "건강센터(서울) (경영대학 오비스홀 152호) 커뮤니티",
+   "name": "건강센터(서울) 커뮤니티",
    "organization": "org-healthsc",
    "adapter": "khu_board",
    "medium": "web",
@@ -7447,6 +7615,30 @@
    ],
    "official_evidence_url": "https://korean.khu.ac.kr/korean/user/bbs/BMSR00040/list.do?menuNo=4500019",
    "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(대학원 > 공지사항). (메뉴 경로: 대학원 > 공지사항)"
+  },
+  {
+   "key": "labanimal-BMSR00040-13700014",
+   "name": "중앙실험동물센터 정보 광장",
+   "organization": "org-labanimal",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://labanimal.khu.ac.kr",
+    "prefix": "labanimal",
+    "board_code": "BMSR00040",
+    "menu_no": "13700014"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-labanimal"
+    }
+   ],
+   "official_evidence_url": "https://labanimal.khu.ac.kr/labanimal/user/bbs/BMSR00040/list.do?menuNo=13700014",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(정보 광장 > 공지사항). (메뉴 경로: 정보 광장 > 공지사항)"
   },
   {
    "key": "law-02_02_03",
@@ -10301,6 +10493,126 @@
    ],
    "official_evidence_url": "https://support.khu.ac.kr/support/user/bbs/BMSR00040/list.do?menuNo=7100020",
    "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(열린마당 > 공지사항). (메뉴 경로: 열린마당 > 공지사항)"
+  },
+  {
+   "key": "swcon-BMSR00040-21300017",
+   "name": "소프트웨어융합학과 공지사항",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300017"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300017",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 학사/장학). (메뉴 경로: 공지사항 > 학사/장학)"
+  },
+  {
+   "key": "swcon-BMSR00040-21300018",
+   "name": "소프트웨어융합학과 취업정보/대외활동",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300018"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300018",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 취업정보/대외활동). (메뉴 경로: 공지사항 > 취업정보/대외활동)"
+  },
+  {
+   "key": "swcon-BMSR00040-21300019",
+   "name": "소프트웨어융합학과 소식 및 행사",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300019",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 소식 및 행사). (메뉴 경로: 공지사항 > 소식 및 행사)"
+  },
+  {
+   "key": "swcon-BMSR00040-21300020",
+   "name": "소프트웨어융합학과 기타공지",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300020",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 기타공지). (메뉴 경로: 공지사항 > 기타공지)"
+  },
+  {
+   "key": "swcon-BMSR00040-21300025",
+   "name": "소프트웨어융합학과 포트폴리오",
+   "organization": "org-swcon",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://swcon.khu.ac.kr",
+    "prefix": "swcon",
+    "board_code": "BMSR00040",
+    "menu_no": "21300025"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-swcon"
+    }
+   ],
+   "official_evidence_url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/list.do?menuNo=21300025",
+   "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지사항 > 포트폴리오). (메뉴 경로: 공지사항 > 포트폴리오)"
   },
   {
    "key": "tma-BMSR00040-11400012",

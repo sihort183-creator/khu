@@ -51,6 +51,14 @@ _OFFICE_NAME = re.compile(r"(처|팀|본부|센터|지원단|사업단|위원회
 _NAME_NOISE = re.compile(r"</?br\s*/?>", re.IGNORECASE)
 _NAME_SUFFIX = re.compile(r"\s*\((국문|영문|중문|일문|한글|영어)\)\s*$")
 _TITLE_PREFIX = re.compile(r"^경희대학교\s*|^경희대\s*")
+# 사이트 이름에 붙은 개편 연도와 상태 표시. 조직 이름이 아니다.
+# 예: `컴퓨터공학부25` -> `컴퓨터공학부`, `디지털콘텐츠학과 (개발중)` -> `디지털콘텐츠학과`.
+# 숫자를 무조건 떼면 `커뮤니케이션21` 같은 진짜 이름이 망가지므로 학부·학과·대학 뒤만 뗀다.
+_SITE_VERSION = re.compile(r"(학부|학과|대학원|대학)\s*\d{2}\s*$")
+_SITE_STATE = re.compile(r"\s*\((개발중|준비중|임시|테스트)\)\s*$")
+# 이름 뒤에 건물·호실 주소를 덧붙여 둔 사이트가 있다.
+# 예: `건강센터(서울) (경영대학 오비스홀 152호)` -> `건강센터(서울)`.
+_NAME_ADDRESS = re.compile(r"\s*\([^()]*(관|홀|동|호|층|캠퍼스\s*내)\s*\)\s*$")
 
 # 주소에서 캠퍼스를 알아낸다. 확실할 때만 붙이고 아니면 비워 둔다.
 _SEOUL_ADDR = re.compile(r"서울|동대문|회기|청운")
@@ -70,6 +78,9 @@ def clean_name(raw: str | None) -> str:
     value = _NAME_NOISE.sub(" ", raw)
     value = re.sub(r"\s+", " ", value).strip()
     value = _NAME_SUFFIX.sub("", value).strip()
+    value = _SITE_STATE.sub("", value).strip()
+    value = _SITE_VERSION.sub(lambda m: m.group(1), value).strip()
+    value = _NAME_ADDRESS.sub("", value).strip()
     return value
 
 

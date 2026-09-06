@@ -85,6 +85,26 @@ def probe(host: str) -> dict:
     return record
 
 
+def host_candidates(site_id: str) -> list[str]:
+    """도메인이 비어 있는 사이트의 호스트 후보를 사이트 ID 에서 만든다.
+
+    명부의 `siteDomain` 칸이 `https://` 로만 적힌 사이트가 32개 있다. 그대로 두면
+    소프트웨어융합학과(`swcon`)·컴퓨터공학부(`ce25`)·전자공학부(`ee25`)·의과대학
+    (`khusm_kor`) 처럼 공지가 많은 곳이 통째로 빠진다. 사이트 ID 에서 뒤의 숫자와
+    언어 꼬리표를 떼면 실제 주소가 되는 경우가 많다(`ce25` -> `ce`).
+    """
+    base = site_id.strip()
+    if not base or not base.isascii():
+        return []
+    forms = {
+        base,
+        re.sub(r"\d+$", "", base),
+        re.sub(r"_(kor|eng|chi|jpn)$", "", base),
+        re.sub(r"_(kor|eng|chi|jpn)$", "", re.sub(r"\d+$", "", base)),
+    }
+    return sorted(f"{f}.khu.ac.kr" for f in forms if f)
+
+
 def harvest(seed_hosts: list[str], workers: int = 12) -> dict[str, int]:
     """알려진 사이트들이 링크한 khu.ac.kr 주소를 모은다."""
     seeds = ["https://www.khu.ac.kr/"] + [f"https://{h}/" for h in seed_hosts]
@@ -109,10 +129,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if not SITES_PATH.exists():
         raise SystemExit(f"{SITES_PATH} 가 없습니다. 먼저 scripts/discover_sites.py 를 실행하세요.")
-    guide_hosts = sorted(json.loads(SITES_PATH.read_text(encoding="utf-8"))["hosts"])
+    sites_doc = json.loads(SITES_PATH.read_text(encoding="utf-8"))
+    guide_hosts = sorted(sites_doc["hosts"])
+
+    # 명부에 도메인이 비어 있는 사이트는 사이트 ID 에서 주소를 만들어 함께 확인한다.
+    guessed: set[str] = set()
+    for site in sites_doc["sites"]:
+        if not site.get("host"):
+            guessed.update(host_candidates(site["siteId"]))
 
     referenced = harvest(guide_hosts, workers=args.workers)
-    all_hosts = sorted(set(guide_hosts) | set(referenced))
+    all_hosts = sorted(set(guide_hosts) | set(referenced) | guessed)
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         records = list(pool.map(probe, all_hosts))
@@ -120,6 +147,7 @@ def main(argv: list[str] | None = None) -> int:
     for record in records:
         host = record["host"]
         record["in_site_guide"] = host in set(guide_hosts)
+        record["from_site_id_guess"] = host in guessed and host not in set(guide_hosts)
         record["referenced_by"] = referenced.get(host, 0)
 
     collectible = [r for r in records if r["adapter"]]

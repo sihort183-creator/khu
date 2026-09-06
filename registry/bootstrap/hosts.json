@@ -1,14 +1,15 @@
 {
- "observed_at": "2026-09-06T03:55:52Z",
+ "observed_at": "2026-09-06T08:07:29Z",
  "revalidate": "학기마다 한 번. 새 사이트가 생기거나 도메인이 바뀔 때만 달라진다.",
  "note": "사이트 가이드 명부와, 사이트끼리 링크한 주소를 합쳐 실제로 열어 본 결과다. 가이드의 도메인 칸이 실제와 다른 곳이 있어(oia/oiak) 가이드만으로는 부족하다.",
- "host_count": 246,
- "collectible_count": 160,
+ "host_count": 279,
+ "collectible_count": 168,
  "hosts_by_adapter": {
   "gnuboard": [
    "afd.khu.ac.kr",
    "bk21four.khu.ac.kr",
    "communication.khu.ac.kr",
+   "designcenter.khu.ac.kr",
    "edusupport.khu.ac.kr",
    "give.khu.ac.kr",
    "goodjob.khu.ac.kr",
@@ -44,6 +45,7 @@
    "campustown.khu.ac.kr",
    "cbam.khu.ac.kr",
    "ccs.khu.ac.kr",
+   "ce.khu.ac.kr",
    "che.khu.ac.kr",
    "chem.khu.ac.kr",
    "chemeng.khu.ac.kr",
@@ -55,6 +57,7 @@
    "cs.khu.ac.kr",
    "cti.khu.ac.kr",
    "dance.khu.ac.kr",
+   "dc.khu.ac.kr",
    "dental.khu.ac.kr",
    "deptofenglish.khu.ac.kr",
    "display.khu.ac.kr",
@@ -67,9 +70,11 @@
    "eduglobal.khu.ac.kr",
    "edumusic.khu.ac.kr",
    "eduseoul.khu.ac.kr",
+   "ee.khu.ac.kr",
    "eip.khu.ac.kr",
    "emba.khu.ac.kr",
    "eng.khu.ac.kr",
+   "eni.khu.ac.kr",
    "env.khu.ac.kr",
    "foreign.khu.ac.kr",
    "france.khu.ac.kr",
@@ -126,6 +131,7 @@
    "kmc.khu.ac.kr",
    "korean.khu.ac.kr",
    "la.khu.ac.kr",
+   "labanimal.khu.ac.kr",
    "lib.khu.ac.kr",
    "math.khu.ac.kr",
    "maths.khu.ac.kr",
@@ -156,6 +162,7 @@
    "shaksa.khu.ac.kr",
    "sls.khu.ac.kr",
    "soc.khu.ac.kr",
+   "software.khu.ac.kr",
    "sophia.khu.ac.kr",
    "space.khu.ac.kr",
    "spanish.khu.ac.kr",
@@ -163,6 +170,7 @@
    "startup.khu.ac.kr",
    "summer.khu.ac.kr",
    "support.khu.ac.kr",
+   "swcon.khu.ac.kr",
    "tma.khu.ac.kr",
    "uninternship.khu.ac.kr",
    "vd.khu.ac.kr",
@@ -172,6 +180,18 @@
  },
  "hosts": [
   {
+   "host": "Intpharm.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
    "host": "abeek.khu.ac.kr",
    "status": 200,
    "adapter": "khu_board",
@@ -179,6 +199,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -189,6 +210,7 @@
    "title": "경희대학교 학문관심분야 LINC 시스템",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -199,6 +221,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -209,6 +232,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -220,6 +244,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 7
   },
   {
@@ -230,6 +255,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -240,6 +266,7 @@
    "title": "경희대학교 아트퓨전디자인대학원",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -251,6 +278,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -262,6 +290,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 11
   },
   {
@@ -272,6 +301,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -282,6 +312,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -292,6 +323,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -302,6 +334,7 @@
    "title": "경희대 통합예약",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -312,6 +345,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -323,6 +357,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -333,6 +368,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -343,6 +379,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -353,6 +390,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 3
   },
   {
@@ -363,6 +401,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -373,6 +412,7 @@
    "title": "경희대학교 BK21 four 지속가능한 스마트관광+호스피탈리티 교육플랫폼 사업단",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -383,6 +423,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -393,6 +434,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -403,6 +445,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -414,6 +457,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 110
   },
   {
@@ -424,7 +468,31 @@
    "title": "경희대비교문화연구소",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
+  },
+  {
+   "host": "ce.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 11,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "ce25.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "character.khu.ac.kr",
@@ -435,6 +503,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -446,6 +515,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -456,6 +526,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -466,6 +537,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -476,6 +548,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -486,6 +559,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -497,6 +571,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 105
   },
   {
@@ -508,6 +583,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -518,6 +594,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -528,7 +605,20 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
+  },
+  {
+   "host": "cms.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "com.khu.ac.kr",
@@ -539,6 +629,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 181
   },
   {
@@ -550,6 +641,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -561,6 +653,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 6
   },
   {
@@ -571,6 +664,7 @@
    "title": "경희대 미디어커뮤니케이션대학원",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -582,6 +676,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -592,6 +687,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -602,6 +698,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -613,6 +710,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 38
   },
   {
@@ -624,6 +722,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 112
   },
   {
@@ -635,6 +734,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -645,6 +745,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -656,6 +757,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -666,6 +768,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -676,7 +779,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
+  },
+  {
+   "host": "dc.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 5,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "dental.khu.ac.kr",
@@ -686,6 +801,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 6
   },
   {
@@ -696,6 +812,18 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "designcenter.khu.ac.kr",
+   "status": 200,
+   "adapter": "gnuboard",
+   "board_hint": 12,
+   "title": "경희대학교(디자인센터)",
+   "engine": "gnuboard",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -706,6 +834,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -717,6 +846,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 110
   },
   {
@@ -728,6 +858,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 82
   },
   {
@@ -738,6 +869,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -749,6 +881,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -759,6 +892,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -769,6 +903,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -779,7 +914,20 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
+  },
+  {
+   "host": "edu_hub.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "eduart.khu.ac.kr",
@@ -789,6 +937,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -799,6 +948,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -810,6 +960,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -820,6 +971,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -830,6 +982,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -840,6 +993,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 9
   },
   {
@@ -850,6 +1004,7 @@
    "title": "경희대학교 교육대학원",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -861,7 +1016,31 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 105
+  },
+  {
+   "host": "ee.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 10,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "ee25.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "eip.khu.ac.kr",
@@ -871,6 +1050,7 @@
    "title": "경희대학교 교육혁신사업단",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -881,6 +1061,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -891,7 +1072,31 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
+  },
+  {
+   "host": "eni.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 0,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "eni25.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "env.khu.ac.kr",
@@ -901,6 +1106,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -912,6 +1118,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -923,6 +1130,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -934,6 +1142,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -944,6 +1153,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "foreign_eng.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -955,6 +1177,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 5
   },
   {
@@ -965,6 +1188,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -975,6 +1199,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -985,6 +1210,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -995,6 +1221,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -1006,6 +1233,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1017,6 +1245,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1027,6 +1256,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1037,6 +1267,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1048,6 +1279,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 6
   },
   {
@@ -1058,6 +1290,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -1068,6 +1301,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 8
   },
   {
@@ -1078,6 +1312,7 @@
    "title": "경희대학교 대외협력처",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 303
   },
   {
@@ -1088,6 +1323,7 @@
    "title": "G-LAMP 사업단",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1098,6 +1334,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -1109,6 +1346,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 105
   },
   {
@@ -1119,6 +1357,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -1130,6 +1369,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1140,6 +1380,7 @@
    "title": "경희대학교 미래인재센터",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 158
   },
   {
@@ -1150,6 +1391,7 @@
    "title": "경희대학교 시설 대관 안내",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 12
   },
   {
@@ -1161,6 +1403,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1171,6 +1414,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1181,6 +1425,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1192,6 +1437,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1202,6 +1448,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 37
   },
   {
@@ -1213,6 +1460,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1223,6 +1471,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 9
   },
   {
@@ -1233,7 +1482,20 @@
    "title": "경희대학교 테크노경영대학원",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
+  },
+  {
+   "host": "guide.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "gukmun.khu.ac.kr",
@@ -1243,6 +1505,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1253,6 +1516,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 19
   },
   {
@@ -1264,6 +1528,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 110
   },
   {
@@ -1274,6 +1539,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1285,6 +1551,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -1295,6 +1562,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 39
   },
   {
@@ -1305,6 +1573,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1315,6 +1584,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1325,6 +1595,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1336,7 +1607,20 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 3
+  },
+  {
+   "host": "hot20_eng.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "hrc.khu.ac.kr",
@@ -1346,6 +1630,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 9
   },
   {
@@ -1356,6 +1641,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1366,6 +1652,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 24
   },
   {
@@ -1376,6 +1663,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -1386,6 +1674,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 122
   },
   {
@@ -1397,6 +1686,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 22
   },
   {
@@ -1407,6 +1697,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "id_eng.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -1417,6 +1720,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1427,6 +1731,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -1437,6 +1742,7 @@
    "title": "경희대학교 4단계 BK21 대학원혁신",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 5
   },
   {
@@ -1448,6 +1754,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 7
   },
   {
@@ -1458,6 +1765,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 117
   },
   {
@@ -1469,6 +1777,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1479,6 +1788,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -1489,6 +1799,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 6
   },
   {
@@ -1500,6 +1811,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 197
   },
   {
@@ -1511,6 +1823,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1522,6 +1835,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 106
   },
   {
@@ -1532,6 +1846,7 @@
    "title": "경희대 현장실습 지원센터",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 5
   },
   {
@@ -1543,6 +1858,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 52
   },
   {
@@ -1554,6 +1870,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 105
   },
   {
@@ -1564,6 +1881,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1574,6 +1892,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 66
   },
   {
@@ -1584,6 +1903,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1595,6 +1915,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1606,6 +1927,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1617,6 +1939,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -1628,6 +1951,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 104
   },
   {
@@ -1638,6 +1962,7 @@
    "title": "경희대학교 경영대학",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1648,6 +1973,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1658,6 +1984,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 113
   },
   {
@@ -1669,6 +1996,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 104
   },
   {
@@ -1679,6 +2007,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1689,6 +2018,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 113
   },
   {
@@ -1699,6 +2029,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1709,6 +2040,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1720,6 +2052,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1731,6 +2064,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1741,7 +2075,20 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 7
+  },
+  {
+   "host": "khmba_chi.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "khmbasa.khu.ac.kr",
@@ -1752,6 +2099,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 5
   },
   {
@@ -1762,6 +2110,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -1773,6 +2122,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -1783,6 +2133,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -1793,6 +2144,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1803,6 +2155,7 @@
    "title": "경희대 기부 시스템",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1813,7 +2166,32 @@
    "title": "경희대학교 시설 대관 안내",
    "engine": "gnuboard",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 109
+  },
+  {
+   "host": "khuhsm.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "khukist.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "khusc.khu.ac.kr",
@@ -1824,6 +2202,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 108
   },
   {
@@ -1834,7 +2213,32 @@
    "title": "경희대학교 의과대학·의학전문대학원",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 1
+  },
+  {
+   "host": "khusm_eng.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "khusm_kor.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "khwriting.khu.ac.kr",
@@ -1845,6 +2249,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1855,6 +2260,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1866,6 +2272,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1877,6 +2284,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 105
   },
   {
@@ -1887,6 +2295,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1898,6 +2307,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1909,6 +2319,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1919,6 +2330,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "kuma.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -1929,6 +2353,18 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "labanimal.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 6,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -1939,6 +2375,7 @@
    "title": "경희대학교 법학전문대학원",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -1950,6 +2387,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1960,6 +2398,7 @@
    "title": "경희대학교 중앙도서관",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 53
   },
   {
@@ -1971,6 +2410,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 123
   },
   {
@@ -1982,6 +2422,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -1993,6 +2434,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 148
   },
   {
@@ -2004,6 +2446,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2014,6 +2457,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2024,6 +2468,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 12
   },
   {
@@ -2034,16 +2479,18 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
    "host": "media.khu.ac.kr",
    "status": 200,
    "adapter": "gnuboard",
-   "board_hint": 8,
+   "board_hint": 7,
    "title": "경희대학교 미디어센터",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 120
   },
   {
@@ -2055,6 +2502,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 118
   },
   {
@@ -2066,6 +2514,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -2077,7 +2526,56 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 111
+  },
+  {
+   "host": "museumkm.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "music.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "music_eng.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "music_kor.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "ne.khu.ac.kr",
@@ -2087,6 +2585,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2097,6 +2596,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 21
   },
   {
@@ -2107,7 +2607,20 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 110
+  },
+  {
+   "host": "nhm_kor.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "nominate.khu.ac.kr",
@@ -2118,6 +2631,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2128,6 +2642,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2138,6 +2653,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2148,6 +2664,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -2158,6 +2675,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 108
   },
   {
@@ -2168,6 +2686,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -2179,6 +2698,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 111
   },
   {
@@ -2189,6 +2709,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2199,6 +2720,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2209,6 +2731,7 @@
    "title": "경희대학교 Peace BAR Festival",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2219,6 +2742,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2229,6 +2753,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 6
   },
   {
@@ -2239,6 +2764,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2249,6 +2775,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2259,6 +2786,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -2269,6 +2797,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2279,6 +2808,7 @@
    "title": "경희대 교수정보관리",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 10
   },
   {
@@ -2289,6 +2819,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 5
   },
   {
@@ -2299,6 +2830,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 11
   },
   {
@@ -2310,6 +2842,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2320,6 +2853,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2331,6 +2865,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 7
   },
   {
@@ -2342,6 +2877,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2353,6 +2889,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 14
   },
   {
@@ -2363,6 +2900,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2374,6 +2912,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 109
   },
   {
@@ -2384,6 +2923,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2394,6 +2934,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 6
   },
   {
@@ -2404,6 +2945,7 @@
    "title": "경희대학교 자기주도적 학사제도",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 9
   },
   {
@@ -2415,6 +2957,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 110
   },
   {
@@ -2426,6 +2969,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2436,6 +2980,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -2447,6 +2992,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 105
   },
   {
@@ -2458,6 +3004,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2468,6 +3015,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "smartfarm.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -2478,6 +3038,30 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "software.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 0,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
+  },
+  {
+   "host": "software25.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -2488,6 +3072,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2498,6 +3083,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2508,6 +3094,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
+   "referenced_by": 0
+  },
+  {
+   "host": "sportsfacility.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 0
   },
   {
@@ -2518,6 +3117,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": true,
    "referenced_by": 1
   },
   {
@@ -2528,6 +3128,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 9
   },
   {
@@ -2538,6 +3139,7 @@
    "title": "Smart Tourism Research Center | 스마트관광연구소",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2549,6 +3151,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -2560,6 +3163,7 @@
    "engine": "system",
    "note": "게시판이 아닌 시스템이다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 21
   },
   {
@@ -2570,6 +3174,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 4
   },
   {
@@ -2580,7 +3185,19 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 3
+  },
+  {
+   "host": "swcon.khu.ac.kr",
+   "status": 200,
+   "adapter": "khu_board",
+   "board_hint": 10,
+   "title": "경희대학교",
+   "engine": "khu_cms",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "swpf.khu.ac.kr",
@@ -2590,7 +3207,20 @@
    "title": "경희대학교 SW중심대학사업단 포트폴리오",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 1
+  },
+  {
+   "host": "tc.khu.ac.kr",
+   "status": 0,
+   "adapter": null,
+   "board_hint": 0,
+   "title": null,
+   "engine": "unreachable",
+   "note": "첫 화면을 열지 못했다.",
+   "in_site_guide": false,
+   "from_site_id_guess": true,
+   "referenced_by": 0
   },
   {
    "host": "tma.khu.ac.kr",
@@ -2600,6 +3230,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2611,6 +3242,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2621,6 +3253,7 @@
    "title": "경희대학교 관광대학원",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 3
   },
   {
@@ -2632,6 +3265,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2642,6 +3276,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 1
   },
   {
@@ -2652,6 +3287,7 @@
    "title": "경희대학교 노동조합",
    "engine": "gnuboard",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 2
   },
   {
@@ -2662,6 +3298,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   },
   {
@@ -2673,6 +3310,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 108
   },
   {
@@ -2684,6 +3322,7 @@
    "engine": "unreachable",
    "note": "첫 화면을 열지 못했다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 523
   },
   {
@@ -2695,6 +3334,7 @@
    "engine": "unknown",
    "note": "아는 게시판 엔진이 아니다. 어댑터가 필요하다.",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 110
   },
   {
@@ -2705,6 +3345,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": false,
+   "from_site_id_guess": false,
    "referenced_by": 444
   },
   {
@@ -2715,6 +3356,7 @@
    "title": "경희대학교",
    "engine": "khu_cms",
    "in_site_guide": true,
+   "from_site_id_guess": false,
    "referenced_by": 0
   }
  ]
