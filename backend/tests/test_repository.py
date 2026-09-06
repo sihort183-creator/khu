@@ -93,6 +93,20 @@ def test_same_item_collected_three_times_yields_one_item_and_one_revision(db, so
     assert db.execute(select(func.count(m.SourceItemRevision.id))).scalar() == 1
 
 
+def test_initial_defers_ordinary_recheck_but_not_changed_or_failed_item(db, source):
+    listed = _listed()
+    written = _write(db, source, listed, _detail(listed))
+    item = db.get(m.SourceItem, written.item_id)
+    item.last_detail_checked_at = datetime.now(UTC) - timedelta(days=30)
+    assert repo.detail_is_due(db, source_id=source.id, listed=listed)
+    assert not repo.detail_is_due(db, source_id=source.id, listed=listed, defer_ordinary_rechecks=True)
+    assert repo.detail_is_due(
+        db, source_id=source.id, listed=_listed(title="수정된 공지"), defer_ordinary_rechecks=True,
+    )
+    item.last_detail_error = "timeout"
+    assert repo.detail_is_due(db, source_id=source.id, listed=listed, defer_ordinary_rechecks=True)
+
+
 def test_content_change_creates_new_revision(db, source):
     listed = _listed()
     first = _write(db, source, listed, _detail(listed, body="처음 내용"))

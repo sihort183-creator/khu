@@ -54,7 +54,10 @@ class DueSource:
     audience_defaults: tuple[AudienceTarget, ...]
 
 
-def load_due_sources(session: Session, *, now: datetime | None = None, limit: int | None = None) -> list[DueSource]:
+def load_due_sources(
+    session: Session, *, now: datetime | None = None, limit: int | None = None,
+    initial_mode: bool = False, initial_window_start: date | None = None,
+) -> list[DueSource]:
     """실행 시각이 된 출처를 고른다. 대기열 대신 이 조회가 그 역할을 한다(7.4절)."""
     now = now or utcnow()
     rows = session.execute(
@@ -71,6 +74,7 @@ def load_due_sources(session: Session, *, now: datetime | None = None, limit: in
         .order_by(m.Source.id)
     ).all()
 
+    audience_map = _source_audiences_many(session, [source.id for source, _, _ in rows])
     due: list[DueSource] = []
     for source, config_row, health in rows:
         if health is None:
@@ -78,10 +82,14 @@ def load_due_sources(session: Session, *, now: datetime | None = None, limit: in
             session.add(health)
             session.flush()
 
-        if health.next_attempt_after and health.next_attempt_after > now:
+        if health.next_attempt_after and _aware(health.next_attempt_after) > now:
             continue
         interval = int(config_row.interval_minutes or 60)
-        if health.last_attempt_at is not None:
+        initial_pending = initial_mode and (
+            not health.backfill_complete
+            or (initial_window_start is not None and health.initial_window_start != initial_window_start)
+        )
+        if health.last_attempt_at is not None and not initial_pending:
             elapsed = now - _aware(health.last_attempt_at)
             if elapsed < timedelta(minutes=interval) and health.consecutive_failures == 0:
                 continue
@@ -92,11 +100,9 @@ def load_due_sources(session: Session, *, now: datetime | None = None, limit: in
                 config=dict(config_row.config or {}),
                 interval_minutes=interval,
                 health=health,
-                audience_defaults=_source_audiences(session, source.id),
+                audience_defaults=audience_map.get(source.id, ()),
             )
         )
-        if limit is not None and len(due) >= limit:
-            break
     # 초기 범위를 못 채운 출처를 먼저 재개하되, 최신 확인이 오래 밀린 출처도
     # 같은 실행에서 뒤로 밀리지 않게 한다.
     due.sort(
@@ -106,18 +112,25 @@ def load_due_sources(session: Session, *, now: datetime | None = None, limit: in
             item.source.id,
         )
     )
-    return due
+    return due[:limit] if limit is not None else due
 
 
 def _source_audiences(session: Session, source_id: str) -> tuple[AudienceTarget, ...]:
+    return _source_audiences_many(session, [source_id]).get(source_id, ())
+
+
+def _source_audiences_many(session: Session, source_ids: list[str]) -> dict[str, tuple[AudienceTarget, ...]]:
+    if not source_ids:
+        return {}
     rows = session.execute(
         select(m.SourceAudience, m.Campus.name, m.Organization.name)
         .outerjoin(m.Campus, m.Campus.id == m.SourceAudience.campus_id)
         .outerjoin(m.Organization, m.Organization.id == m.SourceAudience.organization_id)
-        .where(m.SourceAudience.source_id == source_id)
+        .where(m.SourceAudience.source_id.in_(source_ids))
     ).all()
-    out: list[AudienceTarget] = []
+    grouped: dict[str, list[AudienceTarget]] = {}
     for row, campus_name, org_name in rows:
+        out = grouped.setdefault(row.source_id, [])
         if row.audience_type == "university":
             out.append(AudienceTarget("university", None, "대학 전체"))
         elif row.audience_type == "campus" and row.campus_id:
@@ -126,7 +139,7 @@ def _source_audiences(session: Session, source_id: str) -> tuple[AudienceTarget,
             out.append(AudienceTarget("organization", row.organization_id, org_name or "조직"))
         else:
             out.append(AudienceTarget("undetermined", None, "대상 미확정"))
-    return tuple(out)
+    return {source_id: tuple(audiences) for source_id, audiences in grouped.items()}
 
 
 def campus_lookup(session: Session) -> dict[str, tuple[str, str]]:
@@ -334,6 +347,18 @@ def item_for_listing(session: Session, source_id: str, external_id: str) -> m.So
     return session.get(m.SourceItem, ids.source_item_id(source_id, external_id))
 
 
+def preload_listing_items(session: Session, source_id: str, listings: list[ListedItem]) -> tuple[list, list]:
+    """페이지 단위로 원본과 현재 이력을 읽어 세션 identity map에 유지한다."""
+    keys = [ids.source_item_id(source_id, listed.external_id) for listed in listings]
+    if not keys:
+        return [], []
+    items = list(session.scalars(select(m.SourceItem).where(m.SourceItem.id.in_(keys))))
+    revisions = list(session.scalars(select(m.SourceItemRevision).where(
+        m.SourceItemRevision.id.in_([item.current_revision_id for item in items if item.current_revision_id])
+    )))
+    return items, revisions
+
+
 def ensure_item_stub(session: Session, *, source: m.Source, listed: ListedItem) -> m.SourceItem:
     """상세를 열지 못한 목록 항목도 재시도할 수 있게 최소 원본을 만든다."""
     item = item_for_listing(session, source.id, listed.external_id)
@@ -364,6 +389,7 @@ def detail_is_due(
     listed: ListedItem,
     recheck_days: int = 14,
     now: datetime | None = None,
+    defer_ordinary_rechecks: bool = False,
 ) -> bool:
     """목록 변화·재확인 주기에 해당하는 글만 상세를 다시 요청한다."""
     now = now or utcnow()
@@ -390,6 +416,10 @@ def detail_is_due(
         .where(m.NoticeSource.source_item_id == item.id, m.NoticeSource.is_active.is_(True),
                m.Notice.deadline_date >= now.date()).limit(1)
     ).first()
+    # 초기 채우기는 빠진 상세를 우선한다. 실패·목록 변화·고정·진행 중
+    # 공지는 위 규칙대로 확인하고, 일반 재확인은 완료 후 유지 수집이 맡는다.
+    if defer_ordinary_rechecks and not listed.is_pinned and not active_notice:
+        return False
     interval_days = 1 if listed.is_pinned or active_notice or (published is not None and published >= recent_cutoff) else max(1, recheck_days)
     return now - _aware(item.last_detail_checked_at) >= timedelta(days=interval_days)
 

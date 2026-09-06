@@ -164,6 +164,7 @@ def load_settings() -> Settings:
         or "khu-notice-bot/0.1 (+https://github.com/sihort183-creator/khu)",
         dry_run=_bool("KHU_DRY_RUN", False),
         initial_window_start=_date("KHU_INITIAL_WINDOW_START", date(2026, 3, 1)),
+        list_page_limit=max(1, _int("KHU_LIST_PAGE_LIMIT", 5)),
         stale_run_after_minutes=_int("KHU_STALE_RUN_AFTER_MINUTES", 120),
     )
 

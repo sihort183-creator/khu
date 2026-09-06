@@ -19,6 +19,7 @@ import hashlib
 import logging
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -101,6 +102,7 @@ async def collect_source(
     session: Session, fetcher: Fetcher, store: ObjectStore, due: repo.DueSource,
     *, cfg: Settings, budget: TimeBudget, campus_map: dict[str, tuple[str, str]],
     persist_progress: bool = False,
+    initial_mode: bool = False,
 ) -> SourceOutcome:
     """최신 확인, 실패 상세 재시도, 기준 원문을 확인한 과거 재개를 수행한다."""
     started = time.monotonic()
@@ -142,7 +144,10 @@ async def collect_source(
         if window and published and published < window and not listed.is_pinned:
             return bool(known)
         try:
-            if repo.detail_is_due(session, source_id=source.id, listed=listed, recheck_days=cfg.recheck_days):
+            if repo.detail_is_due(
+                session, source_id=source.id, listed=listed, recheck_days=cfg.recheck_days,
+                defer_ordinary_rechecks=initial_mode and not health.backfill_complete,
+            ):
                 if persist_progress:
                     session.commit()
                 changed = await _process_item(
@@ -185,6 +190,8 @@ async def collect_source(
                 full_scan = start == 1
                 return "end_of_board"
             normal = [i for i in page.items if not i.is_pinned]
+            # 강한 참조를 페이지 처리 동안 보존하여 글마다 같은 DB 조회를 반복하지 않는다.
+            page_records = repo.preload_listing_items(session, source.id, page.items)
             known_normal = 0
             for listed in page.items:
                 if budget.exhausted:
@@ -195,6 +202,7 @@ async def collect_source(
                 if published and not listed.is_pinned:
                     oldest = min(oldest, published) if oldest else published
                 known_normal += int(await process(listed))
+            del page_records
             if history and anchor_found:
                 cursor = page_no
                 anchor = normal[-1].external_id if normal else page.items[-1].external_id
@@ -429,7 +437,38 @@ def run_dedupe_pass(session: Session, *, limit: int = 300) -> int:
     return merged
 
 
-async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] | None = None) -> RunOutcome:
+class SharedFetcherProxy:
+    """출처 스레드의 요청을 단일 통신 루프로 전달한다. 호스트 제한을 공유한다.
+
+    DB 세션과 ORM 객체는 작업 스레드 밖으로 보내지 않고, 통신 응답만 전달한다.
+    """
+
+    def __init__(self, fetcher: Fetcher, loop: asyncio.AbstractEventLoop):
+        self.fetcher, self.loop = fetcher, loop
+
+    async def get(self, *args, **kwargs):
+        future = asyncio.run_coroutine_threadsafe(self.fetcher.get(*args, **kwargs), self.loop)
+        return await asyncio.wrap_future(future)
+
+    async def post_form(self, *args, **kwargs):
+        future = asyncio.run_coroutine_threadsafe(self.fetcher.post_form(*args, **kwargs), self.loop)
+        return await asyncio.wrap_future(future)
+
+
+@dataclass(frozen=True)
+class SourceJob:
+    """세션과 ORM 객체 없이 스레드로 전달하는 출처 작업 명세."""
+
+    source_id: str
+    config: dict
+    interval_minutes: int
+    audience_defaults: tuple
+
+
+async def run_collection(
+    cfg: Settings | None = None, *, source_keys: list[str] | None = None,
+    initial_mode: bool = False, publish: bool = True, dedupe: bool = True,
+) -> RunOutcome:
     cfg = cfg or default_settings
     budget = TimeBudget(cfg.run_budget_seconds)
     store = build_store(cfg)
@@ -444,7 +483,9 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
         )
         run_id = run.id
         campus_map = repo.campus_lookup(session)
-        due_list = repo.load_due_sources(session)
+        due_list = repo.load_due_sources(
+            session, initial_mode=initial_mode, initial_window_start=cfg.initial_window_start,
+        )
         if source_keys:
             wanted = set(source_keys)
             due_list = [d for d in due_list if d.source.id in wanted or d.source.name in wanted]
@@ -455,10 +496,51 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
     # 출처를 여러 개 동시에 처리한다. 예전에는 하나를 끝내야 다음으로 넘어가서
     # 속도 제한을 아무리 풀어도 요청이 항상 한 개씩만 날아갔다.
     # 원문 서버에 대한 예의는 HostLimiter 가 그대로 지킨다(7.3절).
-    pending = list(due_list)
+    pending = [SourceJob(d.source.id, d.config, d.interval_minutes, d.audience_defaults) for d in due_list]
     tally = asyncio.Lock()
 
-    async def worker(fetcher: Fetcher) -> None:
+    def collect_job(due_ref, fetcher) -> SourceOutcome | None:
+        # 페이지 진행과 항목 변경을 나누어 확정하고, 원문 대기 전에 연결을 반환한다.
+        with session_scope(cfg) as session:
+            due = _reload_due(session, due_ref)
+            if due is None:
+                return None
+            run = session.get(_run_model(), run_id)
+            try:
+                source_outcome = asyncio.run(collect_source(
+                    session, fetcher, store, due, cfg=cfg,
+                    budget=TimeBudget(min(cfg.source_budget_seconds, budget.remaining())),
+                    campus_map=campus_map, persist_progress=True, initial_mode=initial_mode,
+                ))
+            except Exception as exc:
+                # DB 오류가 난 세션은 반드시 되돌린 뒤 새 실패 기록을 쓴다.
+                session.rollback()
+                due = _reload_due(session, due_ref)
+                repo.mark_source_failure(session, due.health, kind="unexpected", message=str(exc))
+                source_outcome = SourceOutcome(
+                    source_id=due.source.id, name=due.source.name, ok=False,
+                    error_kind="unexpected", error_message=str(exc), partial=True,
+                )
+            repo.record_source_run(
+                session,
+                run,
+                due.source.id,
+                succeeded=source_outcome.ok,
+                list_items=source_outcome.list_items,
+                new_items=source_outcome.new_items,
+                updated_items=source_outcome.updated_items,
+                duration_ms=source_outcome.duration_ms,
+                error_kind=source_outcome.error_kind,
+                error_message=source_outcome.error_message,
+                detail_failures=source_outcome.detail_failures,
+                scan_stop_reason=source_outcome.scan_stop_reason,
+                backfill_complete=source_outcome.backfill_complete,
+                missing_check_performed=source_outcome.missing_check_performed,
+            )
+
+        return source_outcome
+
+    async def worker(fetcher) -> None:
         while True:
             async with tally:
                 if not pending:
@@ -469,44 +551,11 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
                     return
                 due_ref = pending.pop(0)
 
-            # 페이지 진행과 항목 변경을 나누어 확정하고, 원문 대기 전에 연결을 반환한다.
-            with session_scope(cfg) as session:
-                due = _reload_due(session, due_ref)
-                if due is None:
-                    continue
-                run = session.get(_run_model(), run_id)
-                try:
-                    source_outcome = await collect_source(
-                        session, fetcher, store, due, cfg=cfg,
-                        budget=TimeBudget(min(cfg.source_budget_seconds, budget.remaining())),
-                        campus_map=campus_map, persist_progress=True,
-                    )
-                except Exception as exc:
-                    # DB 오류가 난 세션은 반드시 되돌린 뒤 새 실패 기록을 쓴다.
-                    session.rollback()
-                    due = _reload_due(session, due_ref)
-                    repo.mark_source_failure(session, due.health, kind="unexpected", message=str(exc))
-                    source_outcome = SourceOutcome(
-                        source_id=due.source.id, name=due.source.name, ok=False,
-                        error_kind="unexpected", error_message=str(exc), partial=True,
-                    )
-                repo.record_source_run(
-                    session,
-                    run,
-                    due.source.id,
-                    succeeded=source_outcome.ok,
-                    list_items=source_outcome.list_items,
-                    new_items=source_outcome.new_items,
-                    updated_items=source_outcome.updated_items,
-                    duration_ms=source_outcome.duration_ms,
-                    error_kind=source_outcome.error_kind,
-                    error_message=source_outcome.error_message,
-                    detail_failures=source_outcome.detail_failures,
-                    scan_stop_reason=source_outcome.scan_stop_reason,
-                    backfill_complete=source_outcome.backfill_complete,
-                    missing_check_performed=source_outcome.missing_check_performed,
-                )
-
+            source_outcome = await asyncio.get_running_loop().run_in_executor(
+                source_pool, collect_job, due_ref, fetcher,
+            )
+            if source_outcome is None:
+                continue
             async with tally:
                 outcomes.append(source_outcome)
                 outcome.attempted += 1
@@ -516,14 +565,23 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
 
     async with Fetcher(cfg) as fetcher:
         workers = max(1, min(cfg.source_concurrency, len(pending) or 1))
-        await asyncio.gather(*(worker(fetcher) for _ in range(workers)))
+        proxy = SharedFetcherProxy(fetcher, asyncio.get_running_loop())
+        # 출처 스레드는 DNS 등에 쓰는 기본 executor를 점유하면 안 된다.
+        # 출처가 HTTP 응답을 기다리고 DNS가 출처 종료를 기다리는 교착을 방지한다.
+        with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="khu-source") as source_pool:
+            results = await asyncio.gather(*(worker(proxy) for _ in range(workers)), return_exceptions=True)
+        # 다른 스레드가 공유 HTTP 클라이언트를 쓰는 동안 먼저 닫지 않는다.
+        for failure in results:
+            if isinstance(failure, BaseException):
+                raise failure
 
-    with session_scope(cfg) as session:
-        merged = run_dedupe_pass(session)
-        if merged:
-            log.info("중복 자동 병합 %d건", merged)
+    if dedupe:
+        with session_scope(cfg) as session:
+            merged = run_dedupe_pass(session)
+            if merged:
+                log.info("중복 자동 병합 %d건", merged)
 
-    export_result = export_static(cfg, run_id=run_id, store=store)
+    export_result = export_static(cfg, run_id=run_id, store=store) if publish else None
 
     with session_scope(cfg) as session:
         run = session.get(_run_model(), run_id)
@@ -543,7 +601,7 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
             session,
             run,
             result=result,
-            revision=export_result.revision,
+            revision=export_result.revision if export_result else None,
             note=(
                 f"시간 {budget.elapsed:.0f}초, 요청 {fetcher.requests_made}회"
                 if not failed
@@ -553,11 +611,12 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
 
     # 내보내기 때 만들어진 상태는 실행 종료 전 스냅샷일 수 있으므로,
     # 마지막 정상 개정은 유지한 채 공개 상태만 최종 결과로 갱신한다.
-    refresh_public_status(cfg, revision=export_result.revision, store=store)
+    if export_result:
+        refresh_public_status(cfg, revision=export_result.revision, store=store)
 
     outcome.result = result
     outcome.outcomes = outcomes
-    outcome.revision = export_result.revision
+    outcome.revision = export_result.revision if export_result else None
     outcome.export = export_result
     _send_heartbeat(cfg, outcome)
     return outcome
@@ -569,14 +628,14 @@ def _run_model():
     return Run
 
 
-def _reload_due(session: Session, due: repo.DueSource) -> repo.DueSource | None:
+def _reload_due(session: Session, due: SourceJob) -> repo.DueSource | None:
     """새 트랜잭션에서 같은 출처를 다시 읽는다."""
     from app.storage import models as m
 
-    source = session.get(m.Source, due.source.id)
+    source = session.get(m.Source, due.source_id)
     if source is None:
         return None
-    health = session.get(m.SourceHealth, due.source.id)
+    health = session.get(m.SourceHealth, due.source_id)
     if health is None:
         health = m.SourceHealth(source_id=source.id)
         session.add(health)
@@ -616,6 +675,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="경희 공지 수집 실행")
     parser.add_argument("--sources", nargs="*", default=None, help="특정 출처만 실행")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--initial", action="store_true", help="초기 미완료 출처는 정상 수집 간격 없이 재개")
+    parser.add_argument("--no-publish", action="store_true", help="수집 결과만 저장하고 공개 생성 생략")
+    parser.add_argument("--no-dedupe", action="store_true", help="전체 중복 비교를 별도 공개 작업으로 미룸")
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -623,7 +685,10 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
 
-    outcome = asyncio.run(run_collection(source_keys=args.sources))
+    outcome = asyncio.run(run_collection(
+        source_keys=args.sources, initial_mode=args.initial,
+        publish=not args.no_publish, dedupe=not args.no_dedupe,
+    ))
     print(
         f"실행 {outcome.run_id}: {outcome.result} | 출처 {outcome.succeeded}/{outcome.attempted} 성공"
         f" | 새 글 {outcome.new_items} | 갱신 {outcome.updated_items} | 건너뜀 {outcome.skipped}"

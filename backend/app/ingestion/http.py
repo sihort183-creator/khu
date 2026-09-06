@@ -204,7 +204,8 @@ class Fetcher:
         data: dict[str, str] | None = None,
         allowed_hosts: set[str] | None = None,
     ) -> Response:
-        current = check_url(url, allowed_hosts=allowed_hosts)
+        # DNS 조회는 동기 함수이므로 다른 출처의 수집을 막지 않도록 분리한다.
+        current = await asyncio.to_thread(check_url, url, allowed_hosts=allowed_hosts)
         started = time.monotonic()
 
         async with self._gate:
@@ -230,7 +231,9 @@ class Fetcher:
                     location = resp.headers.get("location")
                     if not location:
                         raise FetchError("bad_redirect", f"위치 없는 리디렉션: {current}")
-                    current = check_url(str(resp.url.join(location)), allowed_hosts=allowed_hosts)
+                    current = await asyncio.to_thread(
+                        check_url, str(resp.url.join(location)), allowed_hosts=allowed_hosts
+                    )
                     data = None
                     continue
 

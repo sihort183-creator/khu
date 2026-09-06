@@ -1,12 +1,12 @@
 name: 공지 수집
 
-# 30분마다 수집한다(7.3절). 예약 실행은 최선 노력이라 늦을 수 있고,
+# 유지 수집은 60분마다 실행한다. 초기 수집은 별도 연속 실행기가 이어받는다.
 # 제품에는 '2시간 내 반영'으로 표기한다.
 # 첫 백필이 끝나면 매시간으로 되돌리는 것을 검토한다.
 on:
   schedule:
     # 정각을 피해 지연을 줄인다.
-    - cron: "17,47 * * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       sources:
@@ -17,6 +17,10 @@ on:
         description: "자세한 기록"
         type: boolean
         default: false
+      initial_once:
+        description: "초기 수집 단일 회차 검사: 공개·중복 비교 생략"
+        type: boolean
+        default: false
 
 # 이전 실행이 끝나기 전에는 새 실행이 기다린다(7.4절). 취소하지 않는다.
 concurrency:
@@ -25,13 +29,13 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   collect:
     runs-on: ubuntu-latest
-    # 내보내기는 공지 한 건마다 데이터베이스를 왕복해서, 공지가 천 건을 넘으면
-    # 십분 단위로 걸린다. 수집을 40분에 끊고도 잘리지 않도록 넉넉히 둔다.
-    timeout-minutes: 120
+    # 초기 작업은 270분 단위로 이어받고 공개·종료에 여유를 둔다.
+    timeout-minutes: 330
     defaults:
       run:
         working-directory: backend
@@ -45,7 +49,8 @@ jobs:
       KHU_R2_BUCKET_EVIDENCE: ${{ vars.KHU_R2_BUCKET_EVIDENCE || 'khu-notice-evidence' }}
       KHU_R2_BUCKET_BACKUP: ${{ vars.KHU_R2_BUCKET_BACKUP || 'khu-notice-backup' }}
       KHU_HEARTBEAT_URL: ${{ secrets.KHU_HEARTBEAT_URL }}
-      # 워크플로 상한 55분. 수집을 40분에 끊어 내보내기·정리에 15분을 남긴다.
+      KHU_INITIAL_UNTIL: ${{ vars.KHU_INITIAL_UNTIL }}
+      # 유지 수집 예산. 초기 실행기는 짧은 회차로 덮어쓰고 연속 실행한다.
       KHU_RUN_BUDGET_SECONDS: "2400"
       # 첫 백필을 빨리 끝내기 위한 설정이다. 사이트가 125개인데 기본값(registrable)은
       # 이를 한 줄로 세워 2초에 1건씩만 받는다. host 모드는 사이트마다 따로 세어
@@ -83,10 +88,39 @@ jobs:
           fi
 
       - name: 수집 실행
+        env:
+          SOURCES: ${{ inputs.sources }}
+          VERBOSE: ${{ inputs.verbose }}
+          INITIAL_ONCE: ${{ inputs.initial_once }}
         run: |
-          python -m app.run.collect \
-            ${{ inputs.verbose && '--verbose' || '' }} \
-            ${{ inputs.sources && format('--sources {0}', inputs.sources) || '' }}
+          set -euo pipefail
+          if [ -n "$SOURCES" ] || [ "$INITIAL_ONCE" = "true" ]; then
+            args=()
+            if [ -n "$SOURCES" ]; then
+              read -r -a ids <<< "$SOURCES"
+              for id in "${ids[@]}"; do
+                [[ "$id" =~ ^src-[a-z0-9]+$ ]] || { echo '잘못된 출처 식별자'; exit 1; }
+              done
+              args+=(--sources "${ids[@]}")
+            fi
+            [ "$VERBOSE" != "true" ] || args+=(--verbose)
+            [ "$INITIAL_ONCE" != "true" ] || args+=(--initial --no-publish --no-dedupe)
+            python -m app.run.collect "${args[@]}"
+          else
+            python -m app.run.initial
+          fi
+
+      - name: 초기 작업 이어받기
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -f .localstore/initial-result.json ]; then
+            continuation=$(python -c "import json; print(str(json.load(open('.localstore/initial-result.json'))['continue_initial']).lower())")
+            if [ "$continuation" = "true" ]; then
+              gh workflow run collect.yml --ref main
+            fi
+          fi
 
       - name: 실행 요약
         if: always()
