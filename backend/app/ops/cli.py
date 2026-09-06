@@ -81,6 +81,7 @@ def sources_sync(args: argparse.Namespace) -> int:
     """
     registry = load_registry()
     added_org = added_src = updated_cfg = retired = 0
+    linked_org = 0
 
     with session_scope() as session:
         university_id = ids.university_id(UNIVERSITY_CODE)
@@ -102,8 +103,16 @@ def sources_sync(args: argparse.Namespace) -> int:
         for org in registry.organizations:
             path = registry.org_path(org.key)
             oid = ids.organization_id(UNIVERSITY_CODE, path)
-            org_ids[org.key] = oid
             row = session.get(m.Organization, oid)
+            if row is None and org.parent_key:
+                # 조직 식별자는 경로의 해시다. 상위를 뒤늦게 채우면 경로가 길어져 식별자가
+                # 바뀌고, 그대로 두면 공지가 이미 달린 행을 버리고 빈 행을 새로 만들게 된다.
+                # 상위 없이 만들어졌던 예전 식별자로 그 행을 찾아 자리를 지킨 채 상위만 채운다.
+                flat = ids.organization_id(UNIVERSITY_CODE, (UNIVERSITY_NAME, org.name))
+                existing = session.get(m.Organization, flat)
+                if existing is not None:
+                    row, oid = existing, flat
+            org_ids[org.key] = oid
             if row is None:
                 session.add(
                     m.Organization(
@@ -118,6 +127,11 @@ def sources_sync(args: argparse.Namespace) -> int:
                     )
                 )
                 added_org += 1
+            elif org.parent_key:
+                parent = org_ids.get(org.parent_key)
+                if parent and row.parent_id != parent:
+                    row.parent_id = parent
+                    linked_org += 1
             for code in org.campus_codes:
                 link = session.get(m.OrganizationCampus, {"organization_id": oid, "campus_id": campus_ids[code]})
                 if link is None:
@@ -226,7 +240,7 @@ def sources_sync(args: argparse.Namespace) -> int:
                 )
 
     print(
-        f"조직 추가 {added_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}"
+        f"조직 추가 {added_org} / 상위 연결 {linked_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}"
         f" / 폐쇄 {retired}"
     )
     if not args.update_config:

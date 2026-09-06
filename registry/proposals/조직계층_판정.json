@@ -1,0 +1,5829 @@
+{
+ "meta": {
+  "작성": "클로드 세션(조직 계층·캠퍼스 복원)",
+  "작성_시각": "2026-09-07T00:00:00+09:00",
+  "대상": "registry/bootstrap/organizations.json 의 조직 129개(단과대학 3개 새로 넣은 뒤 기준)",
+  "무엇을_했나": "parent(단과대학↔학과)와 campus_codes 를 학교 공식 자료로만 채웠다. 확인 못 한 조직은 비워 두었다.",
+  "쓴_공식_자료": [
+   {
+    "이름": "학교 공식 \"대학\" 목록표 — 단과대학마다 소속 학과와 학과 홈페이지 주소를 표로 공개한다",
+    "URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+    "쓰임": "parent(어느 학과가 어느 단과대학 소속인지)"
+   },
+   {
+    "이름": "학교 공식 \"부서 소개\" 명부 — 부서마다 캠퍼스(서울/국제/전체)·전화·이메일·홈페이지를 493행으로 공개한다",
+    "URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+    "쓰임": "campus_codes. 조직의 사이트 주소(호스트)로 이 명부의 행을 찾아 캠퍼스 칸을 그대로 읽었다."
+   },
+   {
+    "이름": "학교 CMS 공식 사이트 명부(registry/bootstrap/sites.json 의 원본)",
+    "URL": "https://neoscholar.khu.ac.kr/guide/user/guide/doShowSiteList.json",
+    "쓰임": "조직 이름이 상위 조직을 그대로 적고 있는 경우(예: \"경영대학원 세무관리학회\")"
+   },
+   {
+    "이름": "캠퍼스 주소(서울 02447 서울특별시 동대문구 경희대로 26 / 국제 17104 경기도 용인시 기흥구 덕영대로 1732 / 광릉 12001 경기도 남양주시 진접읍 광릉수목원로 195)",
+    "URL": "https://www.khu.ac.kr/kor/user/main/view.do",
+    "쓰임": "사이트 푸터에 한 캠퍼스 주소만 적힌 조직 2개(org-climates, org-regulation)"
+   }
+  ],
+  "숫자": {
+   "조직_전체": 129,
+   "parent_채움": 50,
+   "campus_채움": 123,
+   "campus_미상": 6,
+   "서울만": 54,
+   "국제만": 54,
+   "양쪽": 15
+  },
+  "주의": [
+   "이 파일은 판정 기록이다. organizations.json 의 parent 와 campus_codes 는 이미 이 판정대로 고쳐 두었다.",
+   "parent 를 채우면 조직 식별자가 바뀐다(app/domain/ids.py 의 organization_id 는 조직 이름 경로의 해시다). 아무 조치 없이 sources sync 를 돌리면 같은 조직이 새 식별자로 한 번 더 생기고, 기존 출처·공지는 옛 식별자에 그대로 남는다. 반영 전에 반드시 아래 \"반영_주의\" 를 읽어라.",
+   "캠퍼스가 \"전체\"로 적힌 조직은 양 캠퍼스 공통으로 보고 두 캠퍼스를 모두 붙였다(확신 중)."
+  ],
+  "반영_주의": {
+   "명령": "backend/.venv/Scripts/python.exe -m app.ops.cli sources sync   (backend/ 에서 실행)",
+   "문제": "organization_id 는 f\"org-{blake2b(khu, 경희대학교, ...상위조직 이름..., 조직 이름)}\" 이다. parent 가 null → 정경대학 으로 바뀌면 행정학과의 식별자가 org-ca2604ccfcab 에서 다른 값으로 바뀐다. sources_sync 는 없는 식별자를 새로 넣기만 하고 기존 행을 옮기지 않는다.",
+   "필요한_것": "parent 를 반영하려면 기존 organizations 행의 id 를 새 경로 해시로 옮기는 이관 절차(또는 parent_id 만 갱신하고 id 는 그대로 두도록 sources_sync 를 고치는 일)가 먼저 있어야 한다. 이 세션은 운영 DB 를 쓰지 않았다.",
+   "campus_codes_만_반영하면": "campus_codes 는 조직 식별자를 바꾸지 않는다. parent 를 빼고 campus_codes 만 넣으면 sources_sync 가 organization_campuses 에 안전하게 행을 추가한다.",
+   "예상_수치_2026-09-07_운영DB_기준": {
+    "비고": "수집이 돌고 있어 공지 건수는 계속 늘어난다. 아래는 판정 시점의 스냅샷이다.",
+    "공개_공지_전체": 8760,
+    "지금_캠퍼스가_붙는_공지": 354,
+    "campus_codes_만_반영": {
+     "캠퍼스가_붙는_조직": 123,
+     "캠퍼스가_붙는_공개_공지": 8174,
+     "비율": "93.3%",
+     "캠퍼스_미상으로_남는_공지": 586
+    },
+    "parent_까지_그대로_반영": {
+     "새로_생기는_조직_행": 50,
+     "organizations_행": "484 -> 534",
+     "식별자가_바뀌는_조직": 50,
+     "그_조직에_달린_공개_공지": 3467,
+     "경고": "3,467건이 옛 식별자(부모 없는 조직)에 그대로 남고, 새 조직 행에는 출처가 없어 화면에서 빈 단과대학으로 보인다."
+    }
+   }
+  }
+ },
+ "등록부에_새로_넣은_단과대학": [
+  {
+   "key": "org-khsma",
+   "이름": "정경대학",
+   "homepage_url": "https://khsma.khu.ac.kr/",
+   "넣은_이유": "이 단과대학 소속 학과가 등록부에 있는데 단과대학 자체가 없어서 parent 를 가리킬 대상이 없었다. 학교 공식 \"대학\" 목록표와 CMS 사이트 명부에 모두 있는 실재 단과대학이다.",
+   "근거_URL": [
+    "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+    "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355"
+   ],
+   "운영DB_확인": "이 이름으로 만들어지는 조직 식별자가 운영 DB 에 이미 있는 행과 같다(정경대학 org-2b9dd3fbe004, 전자정보대학 org-2a0194c49a1a, 소프트웨어융합대학 org-b7cb990aded9). 새 행이 생기지 않는다."
+  },
+  {
+   "key": "org-eni25",
+   "이름": "전자정보대학",
+   "homepage_url": "https://eni.khu.ac.kr/",
+   "넣은_이유": "이 단과대학 소속 학과가 등록부에 있는데 단과대학 자체가 없어서 parent 를 가리킬 대상이 없었다. 학교 공식 \"대학\" 목록표와 CMS 사이트 명부에 모두 있는 실재 단과대학이다.",
+   "근거_URL": [
+    "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+    "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355"
+   ],
+   "운영DB_확인": "이 이름으로 만들어지는 조직 식별자가 운영 DB 에 이미 있는 행과 같다(정경대학 org-2b9dd3fbe004, 전자정보대학 org-2a0194c49a1a, 소프트웨어융합대학 org-b7cb990aded9). 새 행이 생기지 않는다."
+  },
+  {
+   "key": "org-software25",
+   "이름": "소프트웨어융합대학",
+   "homepage_url": "https://software.khu.ac.kr/",
+   "넣은_이유": "이 단과대학 소속 학과가 등록부에 있는데 단과대학 자체가 없어서 parent 를 가리킬 대상이 없었다. 학교 공식 \"대학\" 목록표와 CMS 사이트 명부에 모두 있는 실재 단과대학이다.",
+   "근거_URL": [
+    "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+    "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355"
+   ],
+   "운영DB_확인": "이 이름으로 만들어지는 조직 식별자가 운영 DB 에 이미 있는 행과 같다(정경대학 org-2b9dd3fbe004, 전자정보대학 org-2a0194c49a1a, 소프트웨어융합대학 org-b7cb990aded9). 새 행이 생기지 않는다."
+  }
+ ],
+ "따로_보고하는_등록부_결함": {
+  "homepage_url_이_다른_조직_주소": {
+   "설명": "organizations.json 의 homepage_url 16행이 그 조직이 아니라 다른 조직의 사이트를 가리킨다. evidence_url 은 맞다. 이번 작업에서는 parent·campus_codes 만 고치라는 지시라 손대지 않았다.",
+   "행": [
+    {
+     "key": "org-applsci",
+     "이름": "응용과학대학",
+     "현재_homepage_url": "https://applchem.khu.ac.kr/",
+     "맞는_주소": "https://applsci.khu.ac.kr/",
+     "근거": "https://applsci.khu.ac.kr"
+    },
+    {
+     "key": "org-biz_kor",
+     "이름": "경영대학 (국문) 사이트",
+     "현재_homepage_url": "https://globaleminence.khu.ac.kr/",
+     "맞는_주소": "https://kbiz.khu.ac.kr/",
+     "근거": "https://kbiz.khu.ac.kr/"
+    },
+    {
+     "key": "org-cls",
+     "이름": "생명과학대학",
+     "현재_homepage_url": "https://cbam.khu.ac.kr/",
+     "맞는_주소": "https://cls.khu.ac.kr/",
+     "근거": "https://cls.khu.ac.kr"
+    },
+    {
+     "key": "org-edu_seoul",
+     "이름": "교육대학원 서울 캠퍼스",
+     "현재_homepage_url": "https://deptofenglish.khu.ac.kr/",
+     "맞는_주소": "https://eduseoul.khu.ac.kr/",
+     "근거": "https://eduseoul.khu.ac.kr"
+    },
+    {
+     "key": "org-foreign_kor",
+     "이름": "외국어대학",
+     "현재_homepage_url": "https://deptofenglish.khu.ac.kr/",
+     "맞는_주소": "https://foreign.khu.ac.kr/",
+     "근거": "https://foreign.khu.ac.kr/"
+    },
+    {
+     "key": "org-gep",
+     "이름": "미래문명원 글로벌사업팀 gep",
+     "현재_homepage_url": "https://impact.khu.ac.kr/",
+     "맞는_주소": "https://summer.khu.ac.kr/",
+     "근거": "https://summer.khu.ac.kr"
+    },
+    {
+     "key": "org-gglobalcenter",
+     "이름": "국제처 글로벌입학팀",
+     "현재_homepage_url": "https://bme.khu.ac.kr/",
+     "맞는_주소": "https://iadmission.khu.ac.kr/",
+     "근거": "https://iadmission.khu.ac.kr"
+    },
+    {
+     "key": "org-gskh_kor",
+     "이름": "일반대학원",
+     "현재_homepage_url": "https://and.khu.ac.kr/",
+     "맞는_주소": "https://gskh.khu.ac.kr/",
+     "근거": "https://gskh.khu.ac.kr"
+    },
+    {
+     "key": "org-hot20_kor",
+     "이름": "호텔관광대학",
+     "현재_homepage_url": "https://climates.khu.ac.kr/",
+     "맞는_주소": "https://hot.khu.ac.kr/",
+     "근거": "https://hot.khu.ac.kr"
+    },
+    {
+     "key": "org-kcsc_kor",
+     "이름": "K컬처스토리연구소",
+     "현재_homepage_url": "https://dc.khu.ac.kr/",
+     "맞는_주소": "https://kcsc.khu.ac.kr/",
+     "근거": "https://kcsc.khu.ac.kr"
+    },
+    {
+     "key": "org-khmba_kor",
+     "이름": "경영대학원",
+     "현재_homepage_url": "https://acmba.khu.ac.kr/",
+     "맞는_주소": "https://khmba.khu.ac.kr/",
+     "근거": "https://khmba.khu.ac.kr"
+    },
+    {
+     "key": "org-khuart",
+     "이름": "미술대학",
+     "현재_homepage_url": "https://iadmission.khu.ac.kr/",
+     "맞는_주소": "https://khuart.khu.ac.kr/",
+     "근거": "https://khuart.khu.ac.kr"
+    },
+    {
+     "key": "org-pharm_kor",
+     "이름": "약학대학",
+     "현재_homepage_url": "https://human.khu.ac.kr/",
+     "맞는_주소": "https://pharm.khu.ac.kr/",
+     "근거": "https://pharm.khu.ac.kr"
+    },
+    {
+     "key": "org-research",
+     "이름": "연구처&산학협력단",
+     "현재_homepage_url": "https://kmc.khu.ac.kr/",
+     "맞는_주소": "https://research.khu.ac.kr/",
+     "근거": "https://research.khu.ac.kr"
+    },
+    {
+     "key": "org-space",
+     "이름": "우주과학과",
+     "현재_homepage_url": "https://applsci.khu.ac.kr/",
+     "맞는_주소": "https://space.khu.ac.kr/",
+     "근거": "https://space.khu.ac.kr"
+    },
+    {
+     "key": "org-support",
+     "이름": "미래혁신원 장애학생지원센터(서울)",
+     "현재_homepage_url": "https://impact.khu.ac.kr/",
+     "맞는_주소": "https://support.khu.ac.kr/",
+     "근거": "https://support.khu.ac.kr"
+    }
+   ]
+  },
+  "이름이_같아_식별자가_겹치는_조직": {
+   "설명": "org-gpp 와 org-khugpp 가 둘 다 이름이 \"시설 대관 안내\" 라서 organization_id 가 같아진다(org-a4559375e177). 운영 DB 에서 두 조직이 한 행으로 합쳐진다. 공식 부서소개 명부으로는 khugpp 가 \"평화의전당\"(서울), gpp 가 \"시설운영팀\"(서울·국제)이다.",
+   "행": [
+    {
+     "key": "org-gpp",
+     "이름": "시설 대관 안내",
+     "evidence_url": "https://gpp.khu.ac.kr/"
+    },
+    {
+     "key": "org-khugpp",
+     "이름": "시설 대관 안내",
+     "evidence_url": "https://khugpp.khu.ac.kr/"
+    }
+   ]
+  }
+ },
+ "확신이_낮은_판정": [
+  {
+   "key": "org-climates",
+   "이름": "기후사회과학융합학과",
+   "값": [
+    "seoul"
+   ],
+   "왜": "해당 사이트 자체 푸터에 적힌 주소를 읽었다(한 캠퍼스 주소만 표기)",
+   "비고": null
+  },
+  {
+   "key": "org-hrc",
+   "이름": "경희 인권센터",
+   "값": [
+    "global",
+    "seoul"
+   ],
+   "왜": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+   "비고": "명부가 \"전체\"로 적은 조직이다. 양 캠퍼스 공통으로 보고 두 캠퍼스를 모두 붙였다."
+  },
+  {
+   "key": "org-igkh",
+   "이름": "4단계 BK21 대학원혁신",
+   "값": [
+    "global",
+    "seoul"
+   ],
+   "왜": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+   "비고": "명부가 \"전체\"로 적은 조직이다. 양 캠퍼스 공통으로 보고 두 캠퍼스를 모두 붙였다."
+  },
+  {
+   "key": "org-pa",
+   "이름": "행정학과",
+   "값": [
+    "seoul"
+   ],
+   "왜": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+   "비고": "부서소개 명부는 ['global', 'seoul'] 로 적었으나 상위 단과대학(정경대학)이 ['seoul'] 라서 상위를 따랐다."
+  },
+  {
+   "key": "org-regulation",
+   "이름": "규제과학과 홈페이지",
+   "값": [
+    "seoul"
+   ],
+   "왜": "해당 사이트 자체 푸터에 적힌 주소를 읽었다(한 캠퍼스 주소만 표기)",
+   "비고": null
+  }
+ ],
+ "캠퍼스_미상": [
+  {
+   "key": "org-application",
+   "이름": "통합예약",
+   "사유": "공식 부서소개 명부에 application.khu.ac.kr 로 등록된 부서가 없다."
+  },
+  {
+   "key": "org-earlychildhood",
+   "이름": "교육대학원(유아교육전공)",
+   "사유": "교육대학원은 서울·국제 두 곳에 있고, 유아교육전공이 어느 쪽인지 공식 자료에서 확인하지 못했다."
+  },
+  {
+   "key": "org-eduart",
+   "이름": "교육대학원(미술교육전공)",
+   "사유": "교육대학원은 서울·국제 두 곳에 있고, 미술교육전공이 어느 쪽인지 공식 자료에서 확인하지 못했다."
+  },
+  {
+   "key": "org-gip",
+   "이름": "평화복지대학원 국제평화-거버넌스학과 홈페이지",
+   "사유": "공식 부서소개 명부는 \"서울\"로 적었으나 전화번호(031-570)와 해당 사이트 주소가 모두 광릉캠퍼스(경기도 남양주시 진접읍 광릉수목원로 195)를 가리킨다. 등록부에 광릉 캠퍼스 코드가 없어 비워 둔다."
+  },
+  {
+   "key": "org-news",
+   "이름": "[확인 필요] news.khu.ac.kr",
+   "사유": "조직 이름 자체가 미확인 상태(needs_review)다."
+  },
+  {
+   "key": "org-www",
+   "이름": "[확인 필요] www.khu.ac.kr",
+   "사유": "대학 대표 사이트라 특정 캠퍼스에 속하지 않는다."
+  }
+ ],
+ "items": [
+  {
+   "key": "org-abeek",
+   "이름": "공학교육혁신센터",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "384",
+        "부서": "공학교육혁신센터",
+        "캠퍼스": "국제",
+        "URL": "http://abeek.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "abeek.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-academy",
+   "이름": "학술단체협의회",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "114",
+        "부서": "일반대학원(학술단체협의회)",
+        "캠퍼스": "서울",
+        "URL": ""
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "academy.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-acmba",
+   "이름": "경영대학원 문화예술경영학과",
+   "판정": {
+    "parent": "org-khmba_kor",
+    "parent_이름": "경영대학원",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-khmba_kor",
+     "근거": {
+      "방법": "학교 CMS 공식 사이트 명부의 사이트 이름이 상위 조직을 그대로 적고 있다",
+      "근거_URL": "https://neoscholar.khu.ac.kr/guide/user/guide/doShowSiteList.json",
+      "표기": "경영대학원 문화예술경영학과 → 상위 경영대학원",
+      "확신": "중"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "상위 단과대학의 캠퍼스를 따랐다(같은 단과대학 소속 학과는 같은 캠퍼스에 있다)",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "상위": "경영대학원",
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "acmba.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-aelts",
+   "이름": "응용영어통번역학과",
+   "판정": {
+    "parent": "org-human_kor",
+    "parent_이름": "문과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-human_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "문과대학 > 응용영어통번역학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "327",
+        "부서": "응용영어통번역학과",
+        "캠퍼스": "서울",
+        "URL": "http://aelts.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "aelts.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-afd",
+   "이름": "아트퓨전디자인대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "115",
+        "부서": "아트퓨전디자인대학원",
+        "캠퍼스": "국제",
+        "URL": "http://afd.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "afd.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-amie",
+   "이름": "신소재공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 신소재공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "265",
+        "부서": "신소재공학과",
+        "캠퍼스": "국제",
+        "URL": "https://mse.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "amie.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-and_kor",
+   "이름": "예술디자인대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "233",
+        "부서": "예술·디자인대학",
+        "캠퍼스": "국제",
+        "URL": "http://and.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "and.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-applchem",
+   "이름": "응용화학과",
+   "판정": {
+    "parent": "org-applsci",
+    "parent_이름": "응용과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-applsci",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "응용과학대학 > 응용화학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "252",
+        "부서": "응용화학과",
+        "캠퍼스": "국제",
+        "URL": "http://applchem.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "applchem.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-application",
+   "이름": "통합예약",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": []
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [],
+     "사유": "공식 부서소개 명부에 application.khu.ac.kr 로 등록된 부서가 없다."
+    }
+   },
+   "확인에_쓴_사이트": [
+    "application.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-applsci",
+   "이름": "응용과학대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "386",
+        "부서": "응용과학대학",
+        "캠퍼스": "국제",
+        "URL": "http://applsci.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "applsci.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-archi",
+   "이름": "건축학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 건축학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "261",
+        "부서": "건축학과",
+        "캠퍼스": "국제",
+        "URL": "http://archi.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "archi.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-archieng",
+   "이름": "건축공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 건축공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "263",
+        "부서": "건축공학과",
+        "캠퍼스": "국제",
+        "URL": "http://archieng.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "archieng.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-archives",
+   "이름": "경희기록관",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "149",
+        "부서": "경희기록관",
+        "캠퍼스": "서울",
+        "URL": "https://archives.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "archives.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-bio",
+   "이름": "융합바이오·신소재공학과",
+   "판정": {
+    "parent": "org-cls",
+    "parent_이름": "생명과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-cls",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "생명과학대학 > 융합바이오·신소재공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "472",
+        "부서": "융합바이오·신소재공학과",
+        "캠퍼스": "국제",
+        "URL": "https://cbam.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "cbam.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-biology",
+   "이름": "생물학과",
+   "판정": {
+    "parent": "org-science_kor",
+    "parent_이름": "이과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-science_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "이과대학 > 생물학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "301",
+        "부서": "생물학과",
+        "캠퍼스": "서울",
+        "URL": "http://biology.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "biology.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-biz_kor",
+   "이름": "경영대학 (국문) 사이트",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "413",
+        "부서": "경영대학",
+        "캠퍼스": "서울",
+        "URL": "http://kbiz.khu.ac.kr"
+       },
+       {
+        "번호": "316",
+        "부서": "경영학과",
+        "캠퍼스": "서울",
+        "URL": "https://kbiz.khu.ac.kr/biz_kor/user/contents/view.do?menuNo=14500078"
+       },
+       {
+        "번호": "315",
+        "부서": "회계·세무학과(학부·대학원)",
+        "캠퍼스": "서울",
+        "URL": "https://kbiz.khu.ac.kr/biz_kor/user/contents/view.do?menuNo=14500079"
+       },
+       {
+        "번호": "95",
+        "부서": "의료경영학과",
+        "캠퍼스": "서울",
+        "URL": "http://kbiz.khu.ac.kr"
+       },
+       {
+        "번호": "33",
+        "부서": "빅데이터응용학과",
+        "캠퍼스": "서울",
+        "URL": "https://kbiz.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "kbiz.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-bme25",
+   "이름": "경희대학교 생체의공학과",
+   "판정": {
+    "parent": "org-eni25",
+    "parent_이름": "전자정보대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eni25",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "전자정보대학 > 생체의공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "258",
+        "부서": "생체의공학과",
+        "캠퍼스": "국제",
+        "URL": "https://bme.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "bme.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ce25",
+   "이름": "컴퓨터공학부",
+   "판정": {
+    "parent": "org-software25",
+    "parent_이름": "소프트웨어융합대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-software25",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "소프트웨어융합대학 > 컴퓨터공학부(컴퓨터공학과, 인공지능학과)",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "256",
+        "부서": "컴퓨터공학과",
+        "캠퍼스": "국제",
+        "URL": "http://ce.khu.ac.kr/"
+       },
+       {
+        "번호": "32",
+        "부서": "인공지능학과",
+        "캠퍼스": "국제",
+        "URL": "http://ce.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ce.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-che",
+   "이름": "경희대학교 생활과학대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "298",
+        "부서": "생활과학대학",
+        "캠퍼스": "서울",
+        "URL": "http://che.khu.ac.kr/"
+       },
+       {
+        "번호": "297",
+        "부서": "아동가족학과",
+        "캠퍼스": "서울",
+        "URL": "https://che.khu.ac.kr/che/user/contents/view.do?menuNo=12700011"
+       },
+       {
+        "번호": "296",
+        "부서": "주거환경학과",
+        "캠퍼스": "서울",
+        "URL": "https://che.khu.ac.kr/che/user/contents/view.do?menuNo=12700012"
+       },
+       {
+        "번호": "295",
+        "부서": "의상학과",
+        "캠퍼스": "서울",
+        "URL": "https://che.khu.ac.kr/che/user/contents/view.do?menuNo=12700013"
+       },
+       {
+        "번호": "294",
+        "부서": "식품영양학과",
+        "캠퍼스": "서울",
+        "URL": "https://che.khu.ac.kr/che/user/contents/view.do?menuNo=12700014"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "che.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-chem",
+   "이름": "화학과",
+   "판정": {
+    "parent": "org-science_kor",
+    "parent_이름": "이과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-science_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "이과대학 > 화학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "302",
+        "부서": "화학과",
+        "캠퍼스": "서울",
+        "URL": "http://chem.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "chem.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-chemeng",
+   "이름": "화학공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 화학공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "266",
+        "부서": "화학공학과",
+        "캠퍼스": "국제",
+        "URL": "https://chemeng.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "chemeng.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-civileng",
+   "이름": "사회기반시스템공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 사회기반시스템공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "264",
+        "부서": "사회기반시스템공학과",
+        "캠퍼스": "국제",
+        "URL": "http://civileng.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "civileng.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-climates",
+   "이름": "기후사회과학융합학과",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "해당 사이트 자체 푸터에 적힌 주소를 읽었다(한 캠퍼스 주소만 표기)",
+      "근거_URL": "https://climates.khu.ac.kr/",
+      "주소": "서울특별시 동대문구 경희대로 26 경희대학교 스페이스21 이과대학 103호",
+      "확신": "중"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "climates.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-cls",
+   "이름": "생명과학대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "385",
+        "부서": "생명과학대학",
+        "캠퍼스": "국제",
+        "URL": "http://cls.khu.ac.kr"
+       },
+       {
+        "번호": "250",
+        "부서": "생명과학대학",
+        "캠퍼스": "국제",
+        "URL": "http://cls.khu.ac.kr/html_2018/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "cls.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-communication",
+   "이름": "미디어커뮤니케이션대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "447",
+        "부서": "미디어커뮤니케이션대학원",
+        "캠퍼스": "서울",
+        "URL": "http://communication.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "communication.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-counsel",
+   "이름": "심리상담센터 사이트",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "468",
+        "부서": "심리상담센터",
+        "캠퍼스": "국제",
+        "URL": "https://counsel.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "counsel.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-dance",
+   "이름": "무용학부",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "394",
+        "부서": "무용학부",
+        "캠퍼스": "서울",
+        "URL": "http://dance.khu.ac.kr/"
+       },
+       {
+        "번호": "275",
+        "부서": "한국무용전공",
+        "캠퍼스": "서울",
+        "URL": "http://dance.khu.ac.kr/"
+       },
+       {
+        "번호": "274",
+        "부서": "현대무용전공",
+        "캠퍼스": "서울",
+        "URL": "http://dance.khu.ac.kr/"
+       },
+       {
+        "번호": "273",
+        "부서": "발레전공",
+        "캠퍼스": "서울",
+        "URL": "http://dance.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "dance.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-dc",
+   "이름": "디지털콘텐츠학과",
+   "판정": {
+    "parent": "org-and_kor",
+    "parent_이름": "예술디자인대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-and_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "예술·디자인대학 > 디지털콘텐츠학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "228",
+        "부서": "디지털콘텐츠학과",
+        "캠퍼스": "국제",
+        "URL": "http://dc.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "dc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-dental_kor",
+   "이름": "치과대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "437",
+        "부서": "치의학전문대학원",
+        "캠퍼스": "서울",
+        "URL": "http://dental.khu.ac.kr/"
+       },
+       {
+        "번호": "288",
+        "부서": "치과대학",
+        "캠퍼스": "서울",
+        "URL": "http://dental.khu.ac.kr/"
+       },
+       {
+        "번호": "287",
+        "부서": "치의예과",
+        "캠퍼스": "서울",
+        "URL": "http://dental.khu.ac.kr/"
+       },
+       {
+        "번호": "286",
+        "부서": "치의학과",
+        "캠퍼스": "서울",
+        "URL": "http://dental.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "dental.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-deptofenglish",
+   "이름": "글로벌커뮤니케이션학부",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 글로벌커뮤니케이션학부 -",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "235",
+        "부서": "글로벌커뮤니케이션학부-영미어문전공",
+        "캠퍼스": "국제",
+        "URL": "http://deptofenglish.khu.ac.kr/"
+       },
+       {
+        "번호": "234",
+        "부서": "글로벌커뮤니케이션학부-영미문화전공",
+        "캠퍼스": "국제",
+        "URL": "http://deptofenglish.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "deptofenglish.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-display",
+   "이름": "미래정보디스플레이학부",
+   "판정": {
+    "parent": "org-science_kor",
+    "parent_이름": "이과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-science_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "이과대학 > 미래정보디스플레이학부",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "300",
+        "부서": "미래정보디스플레이학부",
+        "캠퍼스": "서울",
+        "URL": "http://display.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "display.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-earlychildhood",
+   "이름": "교육대학원(유아교육전공)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": []
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [],
+     "사유": "교육대학원은 서울·국제 두 곳에 있고, 유아교육전공이 어느 쪽인지 공식 자료에서 확인하지 못했다."
+    }
+   },
+   "확인에_쓴_사이트": [
+    "earlychildhood.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-econ",
+   "이름": "경제학과",
+   "판정": {
+    "parent": "org-khsma",
+    "parent_이름": "정경대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-khsma",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "정경대학 > 경제학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "319",
+        "부서": "경제학과",
+        "캠퍼스": "서울",
+        "URL": "http://econ.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "econ.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ecosystem",
+   "이름": "식물ㆍ환경신소재공학과",
+   "판정": {
+    "parent": "org-cls",
+    "parent_이름": "생명과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-cls",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "생명과학대학 > 식물ㆍ환경신소재공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "246",
+        "부서": "식물·환경신소재공학과",
+        "캠퍼스": "국제",
+        "URL": "http://ecosystem.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ecosystem.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-edu_global",
+   "이름": "교육대학원 국제 캠퍼스",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "430",
+        "부서": "교육대학원",
+        "캠퍼스": "국제",
+        "URL": "https://eduglobal.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "eduglobal.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-edu_seoul",
+   "이름": "교육대학원 서울 캠퍼스",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "454",
+        "부서": "교육대학원",
+        "캠퍼스": "서울",
+        "URL": "https://eduseoul.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "eduseoul.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-eduart",
+   "이름": "교육대학원(미술교육전공)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": []
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [],
+     "사유": "교육대학원은 서울·국제 두 곳에 있고, 미술교육전공이 어느 쪽인지 공식 자료에서 확인하지 못했다."
+    }
+   },
+   "확인에_쓴_사이트": [
+    "eduart.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-education",
+   "이름": "교무처 교직팀",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "455",
+        "부서": "교무처(교직팀)",
+        "캠퍼스": "서울",
+        "URL": "http://education.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "education.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ee25",
+   "이름": "전자공학부",
+   "판정": {
+    "parent": "org-eni25",
+    "parent_이름": "전자정보대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eni25",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "전자정보대학 > 전자공학부",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "259",
+        "부서": "전자공학과",
+        "캠퍼스": "국제",
+        "URL": "https://ee.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ee.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-eng_kor",
+   "이름": "공과대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "270",
+        "부서": "공과대학",
+        "캠퍼스": "국제",
+        "URL": "http://eng.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "eng.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-eni25",
+   "이름": "전자정보대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "260",
+        "부서": "전자정보대학",
+        "캠퍼스": "국제",
+        "URL": "http://eni.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "eni.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-env",
+   "이름": "환경학및환경공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 환경학 및 환경공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "262",
+        "부서": "환경학,환경공학과",
+        "캠퍼스": "국제",
+        "URL": "http://env.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "env.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-foreign_kor",
+   "이름": "외국어대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "380",
+        "부서": "외국어대학",
+        "캠퍼스": "국제",
+        "URL": "http://foreign.khu.ac.kr/"
+       },
+       {
+        "번호": "242",
+        "부서": "외국어대학",
+        "캠퍼스": "국제",
+        "URL": "http://foreign.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "foreign.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-france",
+   "이름": "프랑스어학과",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 프랑스어학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "241",
+        "부서": "프랑스어학과",
+        "캠퍼스": "국제",
+        "URL": "http://france.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "france.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-fst",
+   "이름": "식품생명공학과",
+   "판정": {
+    "parent": "org-cls",
+    "parent_이름": "생명과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-cls",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "생명과학대학 > 식품생명공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "248",
+        "부서": "식품생명공학과",
+        "캠퍼스": "국제",
+        "URL": "https://fst.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "fst.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gafc_kor",
+   "이름": "미래문명원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "402",
+        "부서": "미래문명원(서울)",
+        "캠퍼스": "서울",
+        "URL": "http://gafc.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "gafc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-genetech",
+   "이름": "유전생명공학과",
+   "판정": {
+    "parent": "org-cls",
+    "parent_이름": "생명과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-cls",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "생명과학대학 > 유전생명공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "249",
+        "부서": "유전생명공학과",
+        "캠퍼스": "국제",
+        "URL": "http://genetech.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "genetech.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-geo",
+   "이름": "지리학과",
+   "판정": {
+    "parent": "org-science_kor",
+    "parent_이름": "이과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-science_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "이과대학 > 지리학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "299",
+        "부서": "지리학과",
+        "캠퍼스": "서울",
+        "URL": "http://geo.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "geo.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gep",
+   "이름": "미래문명원 글로벌사업팀 gep",
+   "판정": {
+    "parent": "org-gafc_kor",
+    "parent_이름": "미래문명원",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-gafc_kor",
+     "근거": {
+      "방법": "학교 CMS 공식 사이트 명부의 사이트 이름이 상위 조직을 그대로 적고 있다",
+      "근거_URL": "https://neoscholar.khu.ac.kr/guide/user/guide/doShowSiteList.json",
+      "표기": "미래문명원 글로벌사업팀 gep → 상위 미래문명원",
+      "확신": "중"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "상위 단과대학의 캠퍼스를 따랐다(같은 단과대학 소속 학과는 같은 캠퍼스에 있다)",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "상위": "미래문명원",
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "summer.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gglobalcenter",
+   "이름": "국제처 글로벌입학팀",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "29",
+        "부서": "국제처(글로벌입학팀)",
+        "캠퍼스": "서울",
+        "URL": "https://iadmission.khu.ac.kr/"
+       },
+       {
+        "번호": "27",
+        "부서": "국제처(글로벌입학팀)",
+        "캠퍼스": "국제",
+        "URL": "https://iadmission.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "iadmission.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gip",
+   "이름": "평화복지대학원 국제평화-거버넌스학과 홈페이지",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": []
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [],
+     "사유": "공식 부서소개 명부는 \"서울\"로 적었으나 전화번호(031-570)와 해당 사이트 주소가 모두 광릉캠퍼스(경기도 남양주시 진접읍 광릉수목원로 195)를 가리킨다. 등록부에 광릉 캠퍼스 코드가 없어 비워 둔다."
+    }
+   },
+   "확인에_쓴_사이트": [
+    "gip.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-give",
+   "이름": "대외협력처",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "411",
+        "부서": "대외협력처(서울)",
+        "캠퍼스": "서울",
+        "URL": "http://give.khu.ac.kr/"
+       },
+       {
+        "번호": "410",
+        "부서": "대외협력처(국제)",
+        "캠퍼스": "국제",
+        "URL": "http://give.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "give.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-glamp",
+   "이름": "G-LAMP 사업단",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "489",
+        "부서": "G-LAMP 사업단",
+        "캠퍼스": "국제",
+        "URL": "https://glamp.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "glamp.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-globalcenter",
+   "이름": "국제처 글로벌교육지원팀",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "428",
+        "부서": "국제처(글로벌교육지원팀)",
+        "캠퍼스": "국제",
+        "URL": "http://isss.khu.ac.kr"
+       },
+       {
+        "번호": "427",
+        "부서": "국제처(글로벌교육지원팀)",
+        "캠퍼스": "서울",
+        "URL": "http://isss.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "isss.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-globaleminence",
+   "이름": "자율전공학부",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "392",
+        "부서": "자율전공학부",
+        "캠퍼스": "서울",
+        "URL": "http://globaleminence.khu.ac.kr/"
+       },
+       {
+        "번호": "272",
+        "부서": "글로벌리더전공",
+        "캠퍼스": "서울",
+        "URL": "http://globaleminence.khu.ac.kr/"
+       },
+       {
+        "번호": "271",
+        "부서": "글로벌비지니스전공",
+        "캠퍼스": "서울",
+        "URL": "http://globaleminence.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "globaleminence.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-goodjob",
+   "이름": "미래인재센터",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "426",
+        "부서": "미래인재센터(서울)",
+        "캠퍼스": "서울",
+        "URL": "https://goodjob.khu.ac.kr/"
+       },
+       {
+        "번호": "424",
+        "부서": "미래인재센터(취업)",
+        "캠퍼스": "국제",
+        "URL": "https://goodjob.khu.ac.kr/"
+       },
+       {
+        "번호": "164",
+        "부서": "오픈랩",
+        "캠퍼스": "서울",
+        "URL": "https://goodjob.khu.ac.kr/s7/s7_1_1.php"
+       },
+       {
+        "번호": "129",
+        "부서": "미래인재센터(경력)",
+        "캠퍼스": "국제",
+        "URL": "https://goodjob.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "goodjob.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gpp",
+   "이름": "시설 대관 안내",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "475",
+        "부서": "시설운영팀(국제)",
+        "캠퍼스": "국제",
+        "URL": "https://gpp.khu.ac.kr"
+       },
+       {
+        "번호": "474",
+        "부서": "시설운영팀(서울)",
+        "캠퍼스": "서울",
+        "URL": "https://gpp.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "gpp.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-great",
+   "이름": "미래혁신원 장애학생지원센터(국제)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "443",
+        "부서": "장애학생지원센터(국제)",
+        "캠퍼스": "국제",
+        "URL": "http://great.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "great.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-grise",
+   "이름": "앵커사업단 (국제캠퍼스)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "482",
+        "부서": "(국제)RISE사업단",
+        "캠퍼스": "국제",
+        "URL": "https://grise.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "grise.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gskh_kor",
+   "이름": "일반대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "467",
+        "부서": "일반대학원",
+        "캠퍼스": "국제",
+        "URL": "https://gskh.khu.ac.kr"
+       },
+       {
+        "번호": "462",
+        "부서": "일반대학원",
+        "캠퍼스": "서울",
+        "URL": "https://gskh.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "gskh.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gsp",
+   "이름": "국제대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "429",
+        "부서": "국제대학원",
+        "캠퍼스": "국제",
+        "URL": "http://gsp.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "gsp.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-gukmun",
+   "이름": "국어국문학과",
+   "판정": {
+    "parent": "org-human_kor",
+    "parent_이름": "문과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-human_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "문과대학 > 국어국문학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "331",
+        "부서": "국어국문학과",
+        "캠퍼스": "서울",
+        "URL": "http://gukmun.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "gukmun.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-hc_kor",
+   "이름": "후마니타스칼리지",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "334",
+        "부서": "후마니타스칼리지",
+        "캠퍼스": "서울",
+        "URL": "http://hc.khu.ac.kr"
+       },
+       {
+        "번호": "333",
+        "부서": "후마니타스칼리지",
+        "캠퍼스": "국제",
+        "URL": "http://hc.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "hc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-healthsc",
+   "이름": "건강센터(서울)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "408",
+        "부서": "건강센터(서울)",
+        "캠퍼스": "서울",
+        "URL": "https://healthsc.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "healthsc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-history",
+   "이름": "사학과",
+   "판정": {
+    "parent": "org-human_kor",
+    "parent_이름": "문과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-human_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "문과대학 > 사학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "330",
+        "부서": "사학과",
+        "캠퍼스": "서울",
+        "URL": "http://history.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "history.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-hot20_kor",
+   "이름": "호텔관광대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "314",
+        "부서": "호텔관광대학",
+        "캠퍼스": "서울",
+        "URL": "https://hot.khu.ac.kr/"
+       },
+       {
+        "번호": "313",
+        "부서": "호텔경영학과",
+        "캠퍼스": "서울",
+        "URL": "https://hot.khu.ac.kr/"
+       },
+       {
+        "번호": "312",
+        "부서": "컨벤션경영학과",
+        "캠퍼스": "서울",
+        "URL": "https://hot.khu.ac.kr/"
+       },
+       {
+        "번호": "311",
+        "부서": "외식경영학과",
+        "캠퍼스": "서울",
+        "URL": "https://hot.khu.ac.kr/"
+       },
+       {
+        "번호": "310",
+        "부서": "조리·서비스경영학과",
+        "캠퍼스": "서울",
+        "URL": "https://hot.khu.ac.kr/"
+       },
+       {
+        "번호": "309",
+        "부서": "관광학과",
+        "캠퍼스": "서울",
+        "URL": "https://hot.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "hot.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-hrc",
+   "이름": "경희 인권센터",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "20",
+        "부서": "인권센터",
+        "캠퍼스": "전체",
+        "URL": "https://hrc.khu.ac.kr"
+       }
+      ],
+      "확신": "중",
+      "비고": "명부가 \"전체\"로 적은 조직이다. 양 캠퍼스 공통으로 보고 두 캠퍼스를 모두 붙였다."
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "hrc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-hssdi",
+   "이름": "인문·사회과학 데이터 연구소",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "478",
+        "부서": "인문·사회과학 데이터 연구소",
+        "캠퍼스": "서울",
+        "URL": ""
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "hssdi.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-human_kor",
+   "이름": "문과대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "332",
+        "부서": "문과대학",
+        "캠퍼스": "서울",
+        "URL": "http://human.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "human.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ice",
+   "이름": "평생교육원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "369",
+        "부서": "평생교육원(국제)",
+        "캠퍼스": "국제",
+        "URL": "https://ice.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ice.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-id",
+   "이름": "예술디자인대학 산업디자인학과",
+   "판정": {
+    "parent": "org-and_kor",
+    "parent_이름": "예술디자인대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-and_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "예술·디자인대학 > 산업디자인학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "232",
+        "부서": "산업디자인학과",
+        "캠퍼스": "국제",
+        "URL": "https://id.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "id.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ie",
+   "이름": "산업경영공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 산업경영공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "268",
+        "부서": "산업경영공학과",
+        "캠퍼스": "국제",
+        "URL": "http://imse.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ie.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-igkh",
+   "이름": "4단계 BK21 대학원혁신",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "39",
+        "부서": "대학원혁신지원사업단",
+        "캠퍼스": "전체",
+        "URL": "http://igkh.khu.ac.kr/"
+       }
+      ],
+      "확신": "중",
+      "비고": "명부가 \"전체\"로 적은 조직이다. 양 캠퍼스 공통으로 보고 두 캠퍼스를 모두 붙였다."
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "igkh.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ile_kor",
+   "이름": "국제교육원(국제캠퍼스)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "336",
+        "부서": "국제교육원(국제)",
+        "캠퍼스": "국제",
+        "URL": "https://ile.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ile.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ils",
+   "이름": "법학연구소",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "373",
+        "부서": "경희법학연구소",
+        "캠퍼스": "서울",
+        "URL": "http://ils.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ils.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-janghak",
+   "이름": "미래혁신원 학생지원센터 (장학)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "450",
+        "부서": "학생지원센터(장학)",
+        "캠퍼스": "서울",
+        "URL": "http://janghak.khu.ac.kr"
+       },
+       {
+        "번호": "131",
+        "부서": "학생지원센터(장학)",
+        "캠퍼스": "국제",
+        "URL": "http://janghak.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "janghak.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-japanese",
+   "이름": "일본어학과",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 일본어학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "237",
+        "부서": "일본어학과",
+        "캠퍼스": "국제",
+        "URL": "http://japanese.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "japanese.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-kcsc_kor",
+   "이름": "K컬처스토리연구소",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "37",
+        "부서": "K-컬처·스토리콘텐츠연구소",
+        "캠퍼스": "서울",
+        "URL": "https://kcsc.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "kcsc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khao",
+   "이름": "천문대",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "375",
+        "부서": "천문대(국제)",
+        "캠퍼스": "국제",
+        "URL": "http://khao.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khao.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khctl",
+   "이름": "경희대학교 교수학습개발원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "406",
+        "부서": "교수학습개발원(서울)",
+        "캠퍼스": "서울",
+        "URL": "https://khctl.khu.ac.kr/"
+       },
+       {
+        "번호": "201",
+        "부서": "교수학습개발원(국제)",
+        "캠퍼스": "국제",
+        "URL": "https://khctl.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khctl.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khctri",
+   "이름": "융합기술연구원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "470",
+        "부서": "융합기술연구원",
+        "캠퍼스": "국제",
+        "URL": "https://cti.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "cti.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khenglish",
+   "이름": "영어영문학과",
+   "판정": {
+    "parent": "org-human_kor",
+    "parent_이름": "문과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-human_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "문과대학 > 영어영문학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "328",
+        "부서": "영어영문학과",
+        "캠퍼스": "서울",
+        "URL": "http://khenglish.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khenglish.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khmba_kor",
+   "이름": "경영대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "104",
+        "부서": "경영대학원",
+        "캠퍼스": "서울",
+        "URL": "https://khmba.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khmba.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khsma",
+   "이름": "정경대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "324",
+        "부서": "정경대학",
+        "캠퍼스": "서울",
+        "URL": "http://khsma.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khsma.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khuart",
+   "이름": "미술대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "397",
+        "부서": "미술대학",
+        "캠퍼스": "서울",
+        "URL": "https://khuart.khu.ac.kr"
+       },
+       {
+        "번호": "278",
+        "부서": "미술학부-한국화",
+        "캠퍼스": "서울",
+        "URL": "https://khuart.khu.ac.kr/khuart/user/contents/view.do?menuNo=1400179"
+       },
+       {
+        "번호": "277",
+        "부서": "미술학부-회화",
+        "캠퍼스": "서울",
+        "URL": "https://khuart.khu.ac.kr/"
+       },
+       {
+        "번호": "276",
+        "부서": "미술학부-조소",
+        "캠퍼스": "서울",
+        "URL": "https://khuart.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khuart.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khugpp",
+   "이름": "시설 대관 안내",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "387",
+        "부서": "평화의전당",
+        "캠퍼스": "서울",
+        "URL": "https://khugpp.khu.ac.kr/"
+       },
+       {
+        "번호": "151",
+        "부서": "평화의전당(관리운영팀)",
+        "캠퍼스": "서울",
+        "URL": "https://khugpp.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khugpp.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-khusm",
+   "이름": "의과대학·의학전문대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "293",
+        "부서": "의과대학",
+        "캠퍼스": "서울",
+        "URL": "http://khusm.khu.ac.kr/"
+       },
+       {
+        "번호": "292",
+        "부서": "의예과",
+        "캠퍼스": "서울",
+        "URL": "http://khusm.khu.ac.kr/"
+       },
+       {
+        "번호": "291",
+        "부서": "의학과",
+        "캠퍼스": "서울",
+        "URL": "http://khusm.khu.ac.kr/"
+       },
+       {
+        "번호": "109",
+        "부서": "의학전문대학원",
+        "캠퍼스": "서울",
+        "URL": "https://khusm.khu.ac.kr/"
+       },
+       {
+        "번호": "108",
+        "부서": "의학전문대학원(의학교육실)",
+        "캠퍼스": "서울",
+        "URL": "https://khusm.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "khusm.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-kic_kor",
+   "이름": "국제대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "244",
+        "부서": "국제대학",
+        "캠퍼스": "국제",
+        "URL": "http://kic.khu.ac.kr/"
+       },
+       {
+        "번호": "243",
+        "부서": "국제학과",
+        "캠퍼스": "국제",
+        "URL": "http://kic.khu.ac.kr/"
+       },
+       {
+        "번호": "41",
+        "부서": "아시아학과",
+        "캠퍼스": "국제",
+        "URL": "http://kic.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "kic.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-kmc_kor",
+   "이름": "한의과대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "412",
+        "부서": "한의과대학",
+        "캠퍼스": "서울",
+        "URL": "http://kmc.khu.ac.kr/"
+       },
+       {
+        "번호": "350",
+        "부서": "한의학안전성유효성평가연구소",
+        "캠퍼스": "서울",
+        "URL": "https://kmc.khu.ac.kr/kmc_kor/user/contents/view.do?menuNo=4200019"
+       },
+       {
+        "번호": "290",
+        "부서": "한의예과",
+        "캠퍼스": "서울",
+        "URL": "http://kmc.khu.ac.kr"
+       },
+       {
+        "번호": "289",
+        "부서": "한의학과",
+        "캠퍼스": "서울",
+        "URL": "https://kmc.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "kmc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-korean",
+   "이름": "한국어학과",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 한국어학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "236",
+        "부서": "한국어학과",
+        "캠퍼스": "국제",
+        "URL": "http://korean.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "korean.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-labanimal",
+   "이름": "중앙실험동물센터",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "18",
+        "부서": "중앙실험동물센터",
+        "캠퍼스": "서울",
+        "URL": "https://labanimal.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "labanimal.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-law",
+   "이름": "법학전문대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "449",
+        "부서": "법학전문대학원",
+        "캠퍼스": "서울",
+        "URL": "http://law.khu.ac.kr"
+       },
+       {
+        "번호": "326",
+        "부서": "법과대학",
+        "캠퍼스": "서울",
+        "URL": "http://law.khu.ac.kr/eum/?mid=main1#skin1-top-basic_display"
+       },
+       {
+        "번호": "325",
+        "부서": "법학부",
+        "캠퍼스": "서울",
+        "URL": "http://law.khu.ac.kr/eum1/main1#skin1-top-basic_display"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "law.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-math",
+   "이름": "응용수학과",
+   "판정": {
+    "parent": "org-applsci",
+    "parent_이름": "응용과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-applsci",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "응용과학대학 > 응용수학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "254",
+        "부서": "응용수학과",
+        "캠퍼스": "국제",
+        "URL": "http://math.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "math.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-maths",
+   "이름": "수학과",
+   "판정": {
+    "parent": "org-science_kor",
+    "parent_이름": "이과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-science_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "이과대학 > 수학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "304",
+        "부서": "수학과",
+        "캠퍼스": "서울",
+        "URL": "http://maths.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "maths.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-me",
+   "이름": "기계공학부",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 기계공학부",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "269",
+        "부서": "기계공학부",
+        "캠퍼스": "국제",
+        "URL": "https://me.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "me.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-media",
+   "이름": "미디어센터",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "396",
+        "부서": "신문방송국(사무실)",
+        "캠퍼스": "서울",
+        "URL": "http://media.khu.ac.kr/"
+       },
+       {
+        "번호": "379",
+        "부서": "신문방송국(국제)",
+        "캠퍼스": "국제",
+        "URL": "http://media.khu.ac.kr/"
+       },
+       {
+        "번호": "339",
+        "부서": "TheUniversityLife",
+        "캠퍼스": "전체",
+        "URL": "http://media.khu.ac.kr/khul_eng/"
+       },
+       {
+        "번호": "148",
+        "부서": "신문방송국(대학주보사)",
+        "캠퍼스": "서울",
+        "URL": "http://media.khu.ac.kr/khunews/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "media.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ne",
+   "이름": "원자력공학과",
+   "판정": {
+    "parent": "org-eng_kor",
+    "parent_이름": "공과대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-eng_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "공과대학 > 원자력공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "267",
+        "부서": "원자력공학과",
+        "캠퍼스": "국제",
+        "URL": "http://ne.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ne.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-news",
+   "이름": "[확인 필요] news.khu.ac.kr",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": []
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [],
+     "사유": "조직 이름 자체가 미확인 상태(needs_review)다."
+    }
+   },
+   "확인에_쓴_사이트": [
+    "news.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-nhm_kor",
+   "이름": "자연사박물관",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "391",
+        "부서": "자연사박물관(서울)",
+        "캠퍼스": "서울",
+        "URL": "https://nhm.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "nhm.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-nursing_kor",
+   "이름": "간호과학대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "471",
+        "부서": "간호대학원",
+        "캠퍼스": "서울",
+        "URL": "https://nursing.khu.ac.kr/nursing_kor/user/contents/view.do?menuNo=19300060"
+       },
+       {
+        "번호": "404",
+        "부서": "간호과학대학",
+        "캠퍼스": "서울",
+        "URL": "http://nursing.khu.ac.kr/"
+       },
+       {
+        "번호": "282",
+        "부서": "간호학과",
+        "캠퍼스": "서울",
+        "URL": "https://nursing.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "nursing.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-oiak_kor",
+   "이름": "국제처 국제교류팀",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "431",
+        "부서": "국제처(국제교류팀)",
+        "캠퍼스": "서울",
+        "URL": "http://oia.khu.ac.kr/"
+       },
+       {
+        "번호": "28",
+        "부서": "국제처(국제교류팀)",
+        "캠퍼스": "국제",
+        "URL": "http://oia.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "oiak.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ois",
+   "이름": "경희대학교 정보처",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "490",
+        "부서": "정보처(정보화전략팀)",
+        "캠퍼스": "서울",
+        "URL": "https://ois.khu.ac.kr/"
+       },
+       {
+        "번호": "480",
+        "부서": "긴급장애신고(문자서비스)",
+        "캠퍼스": "전체",
+        "URL": "https://ois.khu.ac.kr"
+       },
+       {
+        "번호": "479",
+        "부서": "정보처(IT 문의)",
+        "캠퍼스": "국제",
+        "URL": "https://ois.khu.ac.kr"
+       },
+       {
+        "번호": "433",
+        "부서": "정보처(서울)",
+        "캠퍼스": "서울",
+        "URL": "https://ois.khu.ac.kr/"
+       },
+       {
+        "번호": "432",
+        "부서": "정보처(Info21 ARS)",
+        "캠퍼스": "전체",
+        "URL": "https://ois.khu.ac.kr/"
+       },
+       {
+        "번호": "209",
+        "부서": "홈페이지",
+        "캠퍼스": "전체",
+        "URL": "http://ois.khu.ac.kr/infra/infra_05.do"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ois.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-oldmaps",
+   "이름": "혜정박물관",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "367",
+        "부서": "혜정박물관(국제)",
+        "캠퍼스": "국제",
+        "URL": "https://oldmaps.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "global-museum.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-ommp",
+   "이름": "한방생명공학과",
+   "판정": {
+    "parent": "org-cls",
+    "parent_이름": "생명과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-cls",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "생명과학대학 > 한방생명공학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "247",
+        "부서": "한방생명공학과",
+        "캠퍼스": "국제",
+        "URL": "http://ommp.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "ommp.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-pa",
+   "이름": "행정학과",
+   "판정": {
+    "parent": "org-khsma",
+    "parent_이름": "정경대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-khsma",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "정경대학 > 행정학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "322",
+        "부서": "행정학과",
+        "캠퍼스": "전체",
+        "URL": "http://pa.khu.ac.kr/"
+       }
+      ],
+      "확신": "중",
+      "비고": "부서소개 명부는 ['global', 'seoul'] 로 적었으나 상위 단과대학(정경대학)이 ['seoul'] 라서 상위를 따랐다."
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "pa.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-pharm_kor",
+   "이름": "약학대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "409",
+        "부서": "약학대학",
+        "캠퍼스": "서울",
+        "URL": "http://pharm.khu.ac.kr/"
+       },
+       {
+        "번호": "285",
+        "부서": "약학과",
+        "캠퍼스": "서울",
+        "URL": "http://pharm.khu.ac.kr/"
+       },
+       {
+        "번호": "284",
+        "부서": "한약학과",
+        "캠퍼스": "서울",
+        "URL": "http://pharm.khu.ac.kr/"
+       },
+       {
+        "번호": "283",
+        "부서": "약과학과",
+        "캠퍼스": "서울",
+        "URL": "http://pharm.khu.ac.kr/"
+       },
+       {
+        "번호": "85",
+        "부서": "융합약학연구소",
+        "캠퍼스": "서울",
+        "URL": "http://pharm.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "pharm.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-physics",
+   "이름": "응용물리학과",
+   "판정": {
+    "parent": "org-applsci",
+    "parent_이름": "응용과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-applsci",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "응용과학대학 > 응용물리학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "253",
+        "부서": "응용물리학과",
+        "캠퍼스": "국제",
+        "URL": "http://physics.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "physics.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-pnc",
+   "이름": "공공대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "459",
+        "부서": "공공대학원",
+        "캠퍼스": "서울",
+        "URL": "http://pnc.khu.ac.kr/"
+       },
+       {
+        "번호": "88",
+        "부서": "공공거버넌스연구소",
+        "캠퍼스": "서울",
+        "URL": "https://pnc.khu.ac.kr/"
+       },
+       {
+        "번호": "15",
+        "부서": "공공대학원-정책학과",
+        "캠퍼스": "서울",
+        "URL": "https://pnc.khu.ac.kr/pnc/user/contents/view.do?menuNo=800072"
+       },
+       {
+        "번호": "14",
+        "부서": "공공대학원-의료관리학과",
+        "캠퍼스": "서울",
+        "URL": "https://pnc.khu.ac.kr/pnc/user/contents/view.do?menuNo=800144"
+       },
+       {
+        "번호": "13",
+        "부서": "공공대학원-사회복지학과",
+        "캠퍼스": "서울",
+        "URL": "https://pnc.khu.ac.kr/pnc/user/contents/view.do?menuNo=800075"
+       },
+       {
+        "번호": "12",
+        "부서": "공공대학원-시민사회전공",
+        "캠퍼스": "서울",
+        "URL": "https://pnc.khu.ac.kr/pnc/user/contents/view.do?menuNo=800082"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "pnc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-politics",
+   "이름": "정치외교학과",
+   "판정": {
+    "parent": "org-khsma",
+    "parent_이름": "정경대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-khsma",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "정경대학 > 정치외교학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "323",
+        "부서": "정치외교학과",
+        "캠퍼스": "서울",
+        "URL": "http://politics.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "politics.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-regulation",
+   "이름": "규제과학과 홈페이지",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "해당 사이트 자체 푸터에 적힌 주소를 읽었다(한 캠퍼스 주소만 표기)",
+      "근거_URL": "https://pharmreg.khu.ac.kr/",
+      "주소": "02447 서울특별시 동대문구 경희대로 26 (푸터에 서울 주소만 표기)",
+      "확신": "중"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "pharmreg.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-research",
+   "이름": "연구처&산학협력단",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global",
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global",
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "442",
+        "부서": "연구처-연구진흥팀(서울)",
+        "캠퍼스": "서울",
+        "URL": "http://research.khu.ac.kr"
+       },
+       {
+        "번호": "441",
+        "부서": "연구처-연구진흥팀(국제)",
+        "캠퍼스": "국제",
+        "URL": "http://research.khu.ac.kr"
+       },
+       {
+        "번호": "399",
+        "부서": "산학협력단(연구관리실)",
+        "캠퍼스": "서울",
+        "URL": "https://research.khu.ac.kr"
+       },
+       {
+        "번호": "383",
+        "부서": "산학협력단(국제)",
+        "캠퍼스": "국제",
+        "URL": "https://research.khu.ac.kr"
+       },
+       {
+        "번호": "191",
+        "부서": "바이오나노컴포지트연구소",
+        "캠퍼스": "서울",
+        "URL": "http://research.khu.ac.kr/html_2014/"
+       },
+       {
+        "번호": "21",
+        "부서": "의무산학협력단",
+        "캠퍼스": "서울",
+        "URL": "https://research.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "research.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-russia",
+   "이름": "러시아어학과",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 러시아어학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "239",
+        "부서": "러시아어학과",
+        "캠퍼스": "국제",
+        "URL": "http://russia.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "russia.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-science_kor",
+   "이름": "이과대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "305",
+        "부서": "이과대학",
+        "캠퍼스": "서울",
+        "URL": "http://science.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "science.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-sls_kor",
+   "이름": "자유전공학부",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "473",
+        "부서": "자유전공학부",
+        "캠퍼스": "국제",
+        "URL": "https://sls.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "sls.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-soc",
+   "이름": "사회학과",
+   "판정": {
+    "parent": "org-khsma",
+    "parent_이름": "정경대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-khsma",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "정경대학 > 사회학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "321",
+        "부서": "사회학과",
+        "캠퍼스": "서울",
+        "URL": "http://soc.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "soc.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-software25",
+   "이름": "소프트웨어융합대학",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "257",
+        "부서": "소프트웨어융합대학",
+        "캠퍼스": "국제",
+        "URL": "https://software.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "software.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-sophia",
+   "이름": "철학과",
+   "판정": {
+    "parent": "org-human_kor",
+    "parent_이름": "문과대학",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-human_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "문과대학 > 철학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "329",
+        "부서": "철학과",
+        "캠퍼스": "서울",
+        "URL": "http://sophia.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "sophia.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-space",
+   "이름": "우주과학과",
+   "판정": {
+    "parent": "org-applsci",
+    "parent_이름": "응용과학대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-applsci",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "응용과학대학 > 우주과학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "251",
+        "부서": "우주과학과",
+        "캠퍼스": "국제",
+        "URL": "http://space.khu.ac.kr/html/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "space.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-spanish",
+   "이름": "스페인어학과",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 스페인어학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "240",
+        "부서": "스페인어학과",
+        "캠퍼스": "국제",
+        "URL": "http://spanish.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "spanish.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-srise",
+   "이름": "앵커사업단 (서울캠퍼스)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "492",
+        "부서": "(서울)RISE사업단",
+        "캠퍼스": "서울",
+        "URL": "https://srise.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "srise.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-startup_kor",
+   "이름": "창업보육센터",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 이름의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "162",
+        "부서": "창업지원단(창업보육센터)",
+        "캠퍼스": "서울",
+        "URL": ""
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "com.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-support",
+   "이름": "미래혁신원 장애학생지원센터(서울)",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "444",
+        "부서": "장애학생지원센터(서울)",
+        "캠퍼스": "서울",
+        "URL": "http://support.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "support.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-swcon",
+   "이름": "소프트웨어융합학과",
+   "판정": {
+    "parent": "org-software25",
+    "parent_이름": "소프트웨어융합대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-software25",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "소프트웨어융합대학 > 소프트웨어융합학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "255",
+        "부서": "소프트웨어융합학과",
+        "캠퍼스": "국제",
+        "URL": "http://swcon.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "swcon.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-tma",
+   "이름": "경영대학원 세무관리학회",
+   "판정": {
+    "parent": "org-khmba_kor",
+    "parent_이름": "경영대학원",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-khmba_kor",
+     "근거": {
+      "방법": "학교 CMS 공식 사이트 명부의 사이트 이름이 상위 조직을 그대로 적고 있다",
+      "근거_URL": "https://neoscholar.khu.ac.kr/guide/user/guide/doShowSiteList.json",
+      "표기": "경영대학원 세무관리학회 → 상위 경영대학원",
+      "확신": "중"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "상위 단과대학의 캠퍼스를 따랐다(같은 단과대학 소속 학과는 같은 캠퍼스에 있다)",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "상위": "경영대학원",
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "tma.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-tourism",
+   "이름": "관광대학원",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "458",
+        "부서": "관광대학원",
+        "캠퍼스": "서울",
+        "URL": "https://tourism.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "tourism.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-uninternship",
+   "이름": "미래문명원 글로벌사업팀 uninternship",
+   "판정": {
+    "parent": "org-gafc_kor",
+    "parent_이름": "미래문명원",
+    "campus_codes": [
+     "seoul"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-gafc_kor",
+     "근거": {
+      "방법": "학교 CMS 공식 사이트 명부의 사이트 이름이 상위 조직을 그대로 적고 있다",
+      "근거_URL": "https://neoscholar.khu.ac.kr/guide/user/guide/doShowSiteList.json",
+      "표기": "미래문명원 글로벌사업팀 uninternship → 상위 미래문명원",
+      "확신": "중"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "seoul"
+     ],
+     "근거": {
+      "방법": "상위 단과대학의 캠퍼스를 따랐다(같은 단과대학 소속 학과는 같은 캠퍼스에 있다)",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "상위": "미래문명원",
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "uninternship.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-vd",
+   "이름": "시각디자인학과",
+   "판정": {
+    "parent": "org-and_kor",
+    "parent_이름": "예술디자인대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-and_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "예술·디자인대학 > 시각디자인학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "477",
+        "부서": "시각디자인학과",
+        "캠퍼스": "국제",
+        "URL": "https://vd.khu.ac.kr/"
+       },
+       {
+        "번호": "231",
+        "부서": "시각정보디자인학과",
+        "캠퍼스": "국제",
+        "URL": "http://vd.khu.ac.kr"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "vd.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-www",
+   "이름": "[확인 필요] www.khu.ac.kr",
+   "판정": {
+    "parent": null,
+    "parent_이름": null,
+    "campus_codes": []
+   },
+   "근거": {
+    "상위조직": {
+     "값": null,
+     "사유": "공식 자료에서 상위 단과대학을 확인하지 못했거나, 이 조직 자체가 최상위(단과대학·대학원·본부기관)다."
+    },
+    "캠퍼스": {
+     "값": [],
+     "사유": "대학 대표 사이트라 특정 캠퍼스에 속하지 않는다."
+    }
+   },
+   "확인에_쓴_사이트": [
+    "www.khu.ac.kr"
+   ]
+  },
+  {
+   "key": "org-zhongwen",
+   "이름": "중국어학과",
+   "판정": {
+    "parent": "org-foreign_kor",
+    "parent_이름": "외국어대학",
+    "campus_codes": [
+     "global"
+    ]
+   },
+   "근거": {
+    "상위조직": {
+     "값": "org-foreign_kor",
+     "근거": {
+      "방법": "학교 공식 \"대학\" 목록표에서 이 사이트가 어느 단과대학 아래 있는지 확인",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200105",
+      "표기": "외국어대학 > 중국어학과",
+      "확신": "상"
+     }
+    },
+    "캠퍼스": {
+     "값": [
+      "global"
+     ],
+     "근거": {
+      "방법": "학교 공식 \"부서 소개\" 명부에서 같은 주소(호스트)의 부서 행을 찾아 캠퍼스 칸을 읽었다",
+      "근거_URL": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+      "명부_행": [
+       {
+        "번호": "238",
+        "부서": "중국어학과",
+        "캠퍼스": "국제",
+        "URL": "http://zhongwen.khu.ac.kr/"
+       }
+      ],
+      "확신": "상"
+     }
+    }
+   },
+   "확인에_쓴_사이트": [
+    "zhongwen.khu.ac.kr"
+   ]
+  }
+ ]
+}
