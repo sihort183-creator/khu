@@ -49,8 +49,9 @@ jobs:
       - name: PostgreSQL 클라이언트 설치
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client
-          pg_dump --version
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+          echo '/usr/lib/postgresql/17/bin' >> "$GITHUB_PATH"
+          /usr/lib/postgresql/17/bin/pg_dump --version
 
       - name: 의존성 설치
         run: |

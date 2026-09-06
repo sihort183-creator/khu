@@ -17,6 +17,15 @@ const STATUS_DOT: Record<string, string> = {
   retired: "bg-gray-2",
 };
 
+const BACKFILL_LABEL: Record<string, string> = {
+  not_started: "초기 수집 전",
+  in_progress: "초기 수집 중",
+  boundary_reached: "시작일까지 확인",
+  complete: "전체 확인",
+  detail_pending: "상세 확인 대기",
+  blocked: "확인 중단",
+};
+
 export default function SourcesPage() {
   const { settings, toggleSource } = useSettings();
   const { sources, loading } = useSources(settings.campus_id);
@@ -59,7 +68,8 @@ export default function SourcesPage() {
                     <div className="truncate">{s.name}</div>
                     <small className="block text-xs text-gray">
                       {s.medium.label}
-                      {s.initial_window_days ? ` · 최근 ${s.initial_window_days}일치부터 수집` : ""}
+                      {s.initial_window_start ? ` · ${s.initial_window_start} 이후 범위` : s.initial_window_days ? ` · 최근 ${s.initial_window_days}일치부터 수집` : ""}
+                      {s.backfill_status && ` · ${BACKFILL_LABEL[s.backfill_status] ?? "초기 범위 상태 확인 필요"}`}
                       {s.status.code !== "active" && <span className="sm:hidden"> · {s.status.label}</span>}
                     </small>
                   </div>

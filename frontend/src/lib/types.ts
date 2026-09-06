@@ -51,6 +51,7 @@ export interface Catalog {
   categories: Coded[];
   media: Coded[];
   features: { accounts: boolean; instagram: boolean; deadlines: boolean };
+  initial_window_start?: string | null;
 }
 
 /* ---------- organization ---------- */
@@ -61,12 +62,14 @@ export interface Organization {
   name: string;
   type: Coded & { code: OrgType };
   parent_id: string | null;
-  campus_id: string | null;
+  /** 실제 정적 계약은 campuses 배열이다. campus_id는 기존 화면 호환용 파생 값이다. */
+  campuses?: Campus[];
+  campus_id?: string | null;
   has_children: boolean;
 }
 
 /* ---------- notice ---------- */
-export type Audience = { type: "university" | "campus" | "organization" | "unknown"; id: string | null; name: string };
+export type Audience = { type: "university" | "campus" | "organization" | "undetermined" | "unknown"; id: string | null; name: string };
 
 export interface Deadline {
   date: string;
@@ -161,8 +164,9 @@ export interface Contact {
 export interface Source {
   id: string;
   name: string;
-  organization: { id: string; name: string };
-  campus_id: string | null;
+  organization: { id: string; name: string; campuses?: Campus[] };
+  /** 실제 정적 계약에는 없고 organization.campuses에서 파생한다. */
+  campus_id?: string | null;
   medium: Coded;
   content_kind: Coded; // notice | contact
   url: string | null;
@@ -170,6 +174,11 @@ export interface Source {
   status_message: string | null;
   last_success_at: string | null;
   initial_window_days: number | null;
+  initial_window_start?: string | null;
+  backfill_status?: string | null;
+  backfill_complete?: boolean;
+  backfill_oldest_date?: string | null;
+  last_scan_stop_reason?: string | null;
 }
 
 /* ---------- query ---------- */

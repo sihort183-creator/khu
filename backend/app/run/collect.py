@@ -15,11 +15,14 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import os
 import time
 from dataclasses import dataclass, field
+from datetime import date
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
@@ -28,10 +31,11 @@ from app.domain import audiences as audience_rules
 from app.domain import categories as category_rules
 from app.domain import dates as date_rules
 from app.domain import dedupe as dedupe_rules
-from app.export.static import ExportResult, export_static
+from app.export.static import ExportResult, export_static, refresh_public_status
 from app.ingestion import get_adapter
-from app.ingestion.base import FetchedDetail, ListedItem, ListPage, ParseError
+from app.ingestion.base import FetchedDetail, ListedItem, ParseError
 from app.ingestion.http import Fetcher, FetchError
+from app.storage import models as m
 from app.storage import repository as repo
 from app.storage.db import assert_schema_ready, session_scope
 from app.storage.objects import ObjectStore, build_store, evidence_key
@@ -51,6 +55,12 @@ class SourceOutcome:
     error_kind: str | None = None
     error_message: str | None = None
     detail_failures: int = 0
+    list_complete: bool = False
+    detail_complete: bool = True
+    scan_stop_reason: str = "not_started"
+    backfill_complete: bool = False
+    missing_check_performed: bool = False
+    partial: bool = False
 
 
 @dataclass
@@ -69,7 +79,7 @@ class RunOutcome:
 
 
 class TimeBudget:
-    """실행 시간 상한. 30분이 지나면 새 출처를 시작하지 않는다."""
+    """실행 시간 상한. 남은 시간은 다음 출처·내보내기에 남겨 둔다."""
 
     def __init__(self, seconds: int) -> None:
         self.seconds = seconds
@@ -88,126 +98,185 @@ class TimeBudget:
 
 
 async def collect_source(
-    session: Session,
-    fetcher: Fetcher,
-    store: ObjectStore,
-    due: repo.DueSource,
-    *,
-    cfg: Settings,
-    budget: TimeBudget,
-    campus_map: dict[str, tuple[str, str]],
+    session: Session, fetcher: Fetcher, store: ObjectStore, due: repo.DueSource,
+    *, cfg: Settings, budget: TimeBudget, campus_map: dict[str, tuple[str, str]],
+    persist_progress: bool = False,
 ) -> SourceOutcome:
-    """출처 하나를 처리한다. 여기서 난 예외는 다른 출처로 번지지 않는다."""
+    """최신 확인, 실패 상세 재시도, 기준 원문을 확인한 과거 재개를 수행한다."""
     started = time.monotonic()
-    source = due.source
+    source, health = due.source, due.health
     adapter = get_adapter(source.adapter)
     outcome = SourceOutcome(source_id=source.id, name=source.name, ok=False)
+    window = cfg.initial_window_start
+    policy_window = window or date(2026, 3, 1)
+    if health.initial_window_start is not None and health.initial_window_start != policy_window:
+        health.backfill_complete = False
+        health.backfill_boundary_reached = False
+        health.backfill_cursor_page = 1
+        health.backfill_cursor_external_id = None
+        health.backfill_oldest_date = None
+    cursor = health.backfill_cursor_page or 1
+    anchor = health.backfill_cursor_external_id
+    if cursor > 1 and not anchor:
+        cursor = 1
+    reached = bool(health.backfill_boundary_reached)
+    seen: set[str] = set()
+    processed: set[str] = set()
+    stop = "not_started"
+    oldest = health.backfill_oldest_date
+    limit = max(1, cfg.list_page_limit)
+    # 날짜순을 검증한 출처만 조기 종료할 수 있다. 기본값은 보수적으로 끝까지 탐색.
+    ordered = due.config.get("date_ordered") is True
+    full_scan = False
 
-    seen_ids: set[str] = set()
-    known_streak = 0
-    detail_complete = True
-    # 목록을 끝까지 훑었는지. 시간이 모자라 중간에 끊기면 거짓이 된다.
-    # 개별 글의 분석 실패와 구분해야 한다. 없어진 글 판정에 이 값을 쓴다.
-    list_complete = True
+    async def process(listed: ListedItem) -> bool:
+        """일반 글의 기존 여부를 반환한다. 실패·고정 글로 종료를 유발하지 않는다."""
+        if budget.exhausted:
+            return False
+        existing = repo.item_for_listing(session, source.id, listed.external_id)
+        known = existing is not None and existing.current_revision_id is not None and not existing.last_detail_error
+        if listed.external_id in processed:
+            return bool(known and not listed.is_pinned)
+        processed.add(listed.external_id)
+        published = date_rules.parse_published(listed.published_raw).date
+        if window and published and published < window and not listed.is_pinned:
+            return bool(known)
+        try:
+            if repo.detail_is_due(session, source_id=source.id, listed=listed, recheck_days=cfg.recheck_days):
+                if persist_progress:
+                    session.commit()
+                changed = await _process_item(
+                    session, fetcher, store, adapter, due, listed, cfg=cfg, campus_map=campus_map,
+                )
+                outcome.new_items += int(changed == "new")
+                outcome.updated_items += int(changed == "updated")
+                seen.add(listed.external_id)
+            else:
+                repo.touch_item_from_listing(session, source_id=source.id, listed=listed)
+        except (ParseError, FetchError) as exc:
+            repo.ensure_item_stub(session, source=source, listed=listed)
+            repo.mark_detail_failure(session, source_id=source.id, external_id=listed.external_id, message=str(exc))
+            outcome.detail_failures += 1
+            outcome.partial = True
+            if isinstance(exc, FetchError) and exc.kind in {"access_denied", "rate_limited", "blocked_target"}:
+                raise
+            return False
+        return bool(known and not listed.is_pinned)
+
+    async def scan(start: int, *, history: bool, expected_anchor: str | None = None) -> str:
+        nonlocal cursor, anchor, oldest, reached, full_scan
+        anchor_found = expected_anchor is None
+        # 겹침 확인에 사용한 두 쪽은 신규 구간 예산을 잠식하지 않는다.
+        for page_no in range(start, start + limit + (2 if expected_anchor else 0)):
+            if budget.exhausted:
+                return "time_budget"
+            if persist_progress:
+                session.commit()
+            page = await adapter.list_page(fetcher, due.config, page_no)
+            outcome.list_items += len(page.items)
+            if expected_anchor and any(i.external_id == expected_anchor for i in page.items):
+                anchor_found = True
+            if not page.items:
+                if history and not anchor_found:
+                    cursor, anchor = 1, None
+                    return "anchor_missing"
+                if history:
+                    reached = True
+                full_scan = start == 1
+                return "end_of_board"
+            normal = [i for i in page.items if not i.is_pinned]
+            known_normal = 0
+            for listed in page.items:
+                if budget.exhausted:
+                    # 현재 페이지를 완료하지 않았으므로 이전 확정 위치를 유지한다.
+                    return "time_budget"
+                seen.add(listed.external_id)
+                published = date_rules.parse_published(listed.published_raw).date
+                if published and not listed.is_pinned:
+                    oldest = min(oldest, published) if oldest else published
+                known_normal += int(await process(listed))
+            if history and anchor_found:
+                cursor = page_no
+                anchor = normal[-1].external_id if normal else page.items[-1].external_id
+                repo.record_scan_progress(
+                    session, health, initial_window_start=policy_window, cursor_page=cursor,
+                    cursor_external_id=anchor, oldest_date=oldest, stop_reason="in_progress", complete=False,
+                )
+                if persist_progress:
+                    session.commit()
+            dates = [date_rules.parse_published(i.published_raw).date for i in normal]
+            boundary = bool(window and ordered and dates and all(d is not None and d < window for d in dates))
+            if not page.has_next or boundary:
+                if history and not anchor_found:
+                    cursor, anchor = 1, None
+                    return "anchor_missing"
+                if history:
+                    reached = True
+                full_scan = not page.has_next and start == 1
+                return "date_boundary" if boundary else "end_of_board"
+            if not history and normal and known_normal == len(normal):
+                return "known_streak"
+        if history and not anchor_found:
+            cursor, anchor = 1, None
+            return "anchor_missing"
+        return "page_limit"
 
     try:
-        for page_index in range(1, cfg.list_page_limit + 1):
-            page: ListPage = await adapter.list_page(fetcher, due.config, page_index)
-            outcome.list_items += len(page.items)
-
-            if not page.items:
-                break
-
-            for listed in page.items:
-                # 글 하나를 받는 데도 서버 예의상 간격을 지킨다. 첫 수집처럼 새 글이
-                # 수십 건인 게시판에서는 이 안쪽 루프만으로 예산을 넘길 수 있다.
-                # 넘기면 남은 글은 다음 실행으로 넘긴다.
-                if budget.exhausted:
-                    detail_complete = False
-                    list_complete = False
-                    break
-
-                seen_ids.add(listed.external_id)
-                try:
-                    changed = await _process_item(
-                        session,
-                        fetcher,
-                        store,
-                        adapter,
-                        due,
-                        listed,
-                        cfg=cfg,
-                        campus_map=campus_map,
-                    )
-                except ParseError as exc:
-                    # 한 건의 분석 실패가 출처 전체 실패는 아니다(4절 8항).
-                    outcome.detail_failures += 1
-                    detail_complete = False
-                    log.warning("상세 분석 실패 %s/%s: %s", source.id, listed.external_id, exc)
-                    continue
-                except FetchError as exc:
-                    outcome.detail_failures += 1
-                    detail_complete = False
-                    if exc.kind in ("access_denied", "rate_limited", "blocked_target"):
-                        raise
-                    log.warning("상세 요청 실패 %s/%s: %s", source.id, listed.external_id, exc)
-                    continue
-
-                if changed == "new":
-                    outcome.new_items += 1
-                elif changed == "updated":
-                    outcome.updated_items += 1
-                else:
-                    known_streak += 1
-
-            if budget.exhausted:
-                detail_complete = False
-                list_complete = False
-                break
-
-            # 이미 아는 항목만 나오는 구간에 닿으면 멈춘다.
-            # 고정 공지만 만났다고 끝내지 않는다(7.2절 2항).
-            non_pinned = [i for i in page.items if not i.is_pinned]
-            if non_pinned and known_streak >= len(non_pinned) and page_index >= 1:
-                break
-            if not page.has_next:
-                break
-            if budget.exhausted:
-                detail_complete = False
-                list_complete = False
-                break
-
-        # 목록을 끝까지 훑었을 때만 없어진 글을 센다. 시간이 모자라 중간에 끊긴
-        # 회차에서는 "아직 안 본 글"과 "사라진 글"을 구분할 수 없다. 그대로 세면
-        # 멀쩡한 공지가 연속 미발견으로 쌓여 삭제 표시된다(4절 9항).
-        if list_complete:
-            removed = repo.mark_items_missing(session, source.id, seen_ids)
-            if removed:
-                log.info("%s: 연속 미발견으로 삭제 표시 %d건", source.id, removed)
+        # 첫 순회는 최신 확인과 과거 탐색이 같은 연속 구간이다.
+        if cursor <= 1 and not anchor and not reached:
+            stop = await scan(1, history=True)
         else:
-            log.info("%s: 목록을 끝까지 보지 못해 누락 판정을 건너뛴다", source.id)
+            latest_stop = await scan(1, history=False)
+            stop = latest_stop
+            if latest_stop == "page_limit":
+                # 최신 구간에 저장된 글과의 겹침이 없다. 간격을 메우기 전 완료 금지.
+                reached = False
+                cursor, anchor = 1, None
+            if latest_stop != "time_budget" and not reached:
+                stop = await scan(max(1, cursor - 1), history=True, expected_anchor=anchor)
 
-        repo.mark_source_success(session, due.health, detail_complete=detail_complete)
-        if source.status == "delayed":
-            # 지연 상태였다가 성공하면 정상으로 되돌린다. pending 은 여기서 올리지 않는다.
-            source.status = "active"
-            source.status_message = None
+        # 목록 위치에 의존하지 않는 재시도. 이미 이번에 처리한 글은 중복 요청하지 않는다.
+        for listed in repo.pending_detail_listings(session, source.id):
+            if budget.exhausted:
+                outcome.partial = True
+                break
+            await process(listed)
+
+        health.backfill_boundary_reached = reached
+        repo.record_scan_progress(
+            session, health, initial_window_start=policy_window, cursor_page=cursor,
+            cursor_external_id=anchor, oldest_date=oldest, stop_reason=stop, complete=full_scan,
+        )
+        outcome.backfill_complete = bool(health.backfill_complete)
+        outcome.detail_complete = not bool(session.scalar(
+            select(func.count()).select_from(m.SourceItem)
+            .where(
+                m.SourceItem.source_id == source.id,
+                m.SourceItem.last_detail_error.isnot(None),
+            )
+        ))
+        outcome.list_complete = full_scan
+        if full_scan:
+            repo.mark_items_missing(session, source.id, seen)
+            outcome.missing_check_performed = True
+        repo.mark_source_success(session, health, detail_complete=outcome.detail_complete and stop != "time_budget")
         outcome.ok = True
-
-    except FetchError as exc:
-        repo.mark_source_failure(session, due.health, kind=exc.kind, message=str(exc))
-        outcome.error_kind = exc.kind
-        outcome.error_message = str(exc)
-    except ParseError as exc:
-        repo.mark_source_failure(session, due.health, kind="parse_error", message=str(exc))
-        outcome.error_kind = "parse_error"
-        outcome.error_message = str(exc)
-    except Exception as exc:  # noqa: BLE001 - 한 출처의 장애를 실행 전체로 번지지 않게 한다
-        repo.mark_source_failure(session, due.health, kind="unexpected", message=repr(exc))
-        outcome.error_kind = "unexpected"
-        outcome.error_message = repr(exc)
-        log.exception("출처 처리 중 예상치 못한 오류: %s", source.id)
-
+        outcome.partial |= not outcome.detail_complete or stop in {"page_limit", "anchor_missing", "time_budget"}
+        if source.status == "delayed":
+            source.status, source.status_message = "active", None
+    except (FetchError, ParseError) as exc:
+        kind = exc.kind if isinstance(exc, FetchError) else "parse_error"
+        repo.mark_source_failure(session, health, kind=kind, message=str(exc))
+        outcome.error_kind, outcome.error_message = kind, str(exc)
+        stop = "blocked" if kind in {"access_denied", "rate_limited", "blocked_target"} else "list_error"
+        health.backfill_boundary_reached = reached
+        repo.record_scan_progress(
+            session, health, initial_window_start=policy_window, cursor_page=cursor,
+            cursor_external_id=anchor, oldest_date=oldest, stop_reason=stop, complete=False,
+        )
+        outcome.partial = True
+        outcome.detail_complete = False
+    outcome.scan_stop_reason = stop
     outcome.duration_ms = int((time.monotonic() - started) * 1000)
     return outcome
 
@@ -227,13 +296,26 @@ async def _process_item(
     detail: FetchedDetail = await adapter.detail(fetcher, due.config, listed)
 
     published = date_rules.parse_published(detail.published_raw or listed.published_raw)
-    digest = dedupe_rules.content_hash(detail.title, detail.body_text)
+    digest = dedupe_rules.content_hash(detail.title, detail.body_text, detail.attachments)
 
-    raw_key: str | None = None
-    if not cfg.dry_run:
-        raw_key = evidence_key(due.source.id, listed.external_id, digest)
+    # 상세를 열기 전에는 목록 메타데이터로 재요청 여부를 판단한다. 여기까지
+    # 도달한 항목은 이미 재확인 대상이므로, 같은 내용의 원문은 다시 올리지 않는다.
+    existing = repo.item_for_listing(session, due.source.id, listed.external_id)
+    current = (
+        session.get(
+            __import__("app.storage.models", fromlist=["SourceItemRevision"]).SourceItemRevision,
+            existing.current_revision_id,
+        )
+        if existing is not None and existing.current_revision_id
+        else None
+    )
+
+    raw_key: str | None = current.raw_object_key if current else None
+    should_store_evidence = current is None or not raw_key or current.content_hash != digest or current.published_raw != published.raw
+    if not cfg.dry_run and should_store_evidence:
+        raw_key = evidence_key(due.source.id, listed.external_id, hashlib.sha256(detail.raw_html.encode("utf-8")).hexdigest())
         try:
-            store.put_bytes(
+            await asyncio.to_thread(store.put_bytes,
                 cfg.r2.bucket_evidence,
                 raw_key,
                 detail.raw_html.encode("utf-8"),
@@ -241,8 +323,7 @@ async def _process_item(
                 compress=True,
             )
         except Exception as exc:  # noqa: BLE001 - 증거 저장 실패가 수집을 멈추지 않는다
-            log.warning("원문 증거 보관 실패 %s: %s", raw_key, exc)
-            raw_key = None
+            raise ParseError("원문 증거 보관 실패: 재시도 전까지 공개를 보류합니다") from exc
 
     written = repo.upsert_item_and_revision(
         session,
@@ -356,7 +437,11 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
 
     with session_scope(cfg) as session:
         assert_schema_ready(session)
-        run = repo.start_run(session, code_commit=commit)
+        run = repo.start_run(
+            session,
+            code_commit=commit,
+            stale_after_minutes=cfg.stale_run_after_minutes,
+        )
         run_id = run.id
         campus_map = repo.campus_lookup(session)
         due_list = repo.load_due_sources(session)
@@ -384,21 +469,27 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
                     return
                 due_ref = pending.pop(0)
 
-            # 출처마다 짧은 트랜잭션을 쓴다. 원문 요청 중 데이터베이스를 잡고 있지 않는다.
+            # 페이지 진행과 항목 변경을 나누어 확정하고, 원문 대기 전에 연결을 반환한다.
             with session_scope(cfg) as session:
                 due = _reload_due(session, due_ref)
                 if due is None:
                     continue
                 run = session.get(_run_model(), run_id)
-                source_outcome = await collect_source(
-                    session,
-                    fetcher,
-                    store,
-                    due,
-                    cfg=cfg,
-                    budget=budget,
-                    campus_map=campus_map,
-                )
+                try:
+                    source_outcome = await collect_source(
+                        session, fetcher, store, due, cfg=cfg,
+                        budget=TimeBudget(min(cfg.source_budget_seconds, budget.remaining())),
+                        campus_map=campus_map, persist_progress=True,
+                    )
+                except Exception as exc:
+                    # DB 오류가 난 세션은 반드시 되돌린 뒤 새 실패 기록을 쓴다.
+                    session.rollback()
+                    due = _reload_due(session, due_ref)
+                    repo.mark_source_failure(session, due.health, kind="unexpected", message=str(exc))
+                    source_outcome = SourceOutcome(
+                        source_id=due.source.id, name=due.source.name, ok=False,
+                        error_kind="unexpected", error_message=str(exc), partial=True,
+                    )
                 repo.record_source_run(
                     session,
                     run,
@@ -410,6 +501,10 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
                     duration_ms=source_outcome.duration_ms,
                     error_kind=source_outcome.error_kind,
                     error_message=source_outcome.error_message,
+                    detail_failures=source_outcome.detail_failures,
+                    scan_stop_reason=source_outcome.scan_stop_reason,
+                    backfill_complete=source_outcome.backfill_complete,
+                    missing_check_performed=source_outcome.missing_check_performed,
                 )
 
             async with tally:
@@ -433,10 +528,11 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
     with session_scope(cfg) as session:
         run = session.get(_run_model(), run_id)
         failed = [o for o in outcomes if not o.ok]
+        partial = [o for o in outcomes if o.partial or not o.detail_complete]
         result = "success"
         if outcome.attempted and len(failed) == outcome.attempted:
             result = "failed"
-        elif failed or outcome.skipped:
+        elif failed or outcome.skipped or partial:
             result = "partial"
         run.sources_attempted = outcome.attempted
         run.sources_succeeded = outcome.succeeded
@@ -454,6 +550,10 @@ async def run_collection(cfg: Settings | None = None, *, source_keys: list[str] 
                 else f"실패 {len(failed)}건: " + ", ".join(f"{o.name}({o.error_kind})" for o in failed[:5])
             ),
         )
+
+    # 내보내기 때 만들어진 상태는 실행 종료 전 스냅샷일 수 있으므로,
+    # 마지막 정상 개정은 유지한 채 공개 상태만 최종 결과로 갱신한다.
+    refresh_public_status(cfg, revision=export_result.revision, store=store)
 
     outcome.result = result
     outcome.outcomes = outcomes

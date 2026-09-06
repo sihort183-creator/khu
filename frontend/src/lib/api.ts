@@ -2,12 +2,14 @@
 // 실제 서버가 생기면 각 함수의 fetch 분기만 살아남고 mock 분기는 제거한다.
 import type {
   Catalog,
+  Coded,
   Contact,
   FeedPreviewBody,
   ItemResponse,
   ListResponse,
   Notice,
   NoticeDetail,
+  NoticeSource,
   NoticeQuery,
   Organization,
   Source,
@@ -16,6 +18,460 @@ import * as M from "@/mocks/data";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 const useMock = BASE === "";
+const STATIC_BASE = BASE.replace(/\/+$/, "").replace(/\/v1$/, "");
+
+type StaticLatest = {
+  revision: string;
+  generated_at: string;
+  base_path: string;
+  contract_version: string;
+  notice_pages: number;
+  notices_total: number;
+  contacts_total: number;
+  initial_window_start?: string | null;
+};
+
+type StaticIndexEntry = {
+  id: string;
+  t: string;
+  c: string;
+  o: string | null;
+  s: string;
+  m?: string;
+  d: string | null;
+  v: string;
+  a: string[];
+};
+
+type StaticIndex = {
+  revision: string;
+  generated_at: string;
+  count: number;
+  entries?: StaticIndexEntry[];
+  shards?: { path: string; count?: number }[];
+};
+
+type StaticIndexShard = StaticIndexEntry[] | {
+  revision?: string;
+  generated_at?: string;
+  count?: number;
+  entries?: StaticIndexEntry[];
+};
+
+function relativeStaticPath(path: string, pointer: StaticLatest): string {
+  const clean = path.replace(/^\/+/, "");
+  const base = pointer.base_path.replace(/^\/+/, "").replace(/\/+$/, "");
+  return clean.startsWith(`${base}/`) ? clean.slice(base.length + 1) : clean;
+}
+
+type BackendNoticeSource = {
+  source_item_id?: string;
+  source?: { id: string; name: string; medium: Coded };
+  id?: string;
+  source_id?: string;
+  source_name?: string;
+  medium?: Coded;
+  url: string;
+  published_date: string | null;
+  original_status: Coded;
+  is_primary: boolean;
+};
+
+type BackendAttachment = {
+  id: string;
+  filename: string;
+  kind?: string | null;
+  type?: string;
+  size_bytes: number | null;
+  url: string | null;
+  status: Coded;
+};
+
+type BackendChannel = {
+  id?: string;
+  kind: Coded;
+  display_value?: string;
+  value?: string | null;
+  action_url?: string | null;
+};
+
+type BackendContactMention = {
+  raw_text?: string;
+  text?: string;
+  channels?: BackendChannel[];
+  channel?: BackendChannel | null;
+  contact_id: string | null;
+};
+
+type StaticNoticeDetail = Omit<NoticeDetail, "sources" | "attachments" | "contact_mentions"> & {
+  sources?: (NoticeSource | BackendNoticeSource)[];
+  attachments?: BackendAttachment[];
+  contact_mentions?: BackendContactMention[];
+};
+
+type LatestCache = { promise: Promise<StaticLatest>; expires_at: number };
+const LATEST_TTL_MS = 10_000;
+let latestCache: LatestCache | null = null;
+
+async function staticLatest(force = false): Promise<StaticLatest> {
+  if (!force && latestCache && latestCache.expires_at > Date.now()) return latestCache.promise;
+
+  const request = fetch(`${STATIC_BASE}/v1/latest.json`, { cache: "no-store" }).then(async (res) => {
+      if (!res.ok) throw await res.json();
+      return res.json() as Promise<StaticLatest>;
+    });
+  const tracked = request.catch((error) => {
+    if (latestCache?.promise === tracked) latestCache = null;
+    throw error;
+  });
+  latestCache = { promise: tracked, expires_at: Date.now() + LATEST_TTL_MS };
+  return tracked;
+}
+
+async function staticGet<T>(relative: string, latest?: StaticLatest): Promise<T> {
+  const pointer = latest ?? (await staticLatest());
+  const path = `${STATIC_BASE}/${pointer.base_path.replace(/^\/+/, "")}/${relative.replace(/^\/+/, "")}`;
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) throw await res.json();
+  return res.json() as Promise<T>;
+}
+
+const staticCursor = (offset: number, revision: string) => btoa(`${revision}:${offset}`);
+const staticOffset = (cursor: string | null | undefined, revision: string) => {
+  if (!cursor) return 0;
+  const [seenRevision, raw] = atob(cursor).split(":");
+  if (seenRevision !== revision) throw feedChanged();
+  return Number(raw) || 0;
+};
+
+async function staticIndex(pointer: StaticLatest): Promise<StaticIndex> {
+  const index = await staticGet<StaticIndex>("notices/index.json", pointer);
+  if (index.revision !== pointer.revision) throw feedChanged();
+  if (index.generated_at && index.generated_at !== pointer.generated_at) {
+    throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인의 개정 시각이 포인터와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+  }
+  // 새 계약은 entries를 유지하면서 shards를 선택적으로 제공한다. 구형/경량
+  // 배포에서 entries가 빠진 경우에만 모든 조각을 읽어 같은 색인으로 합친다.
+  if (index.entries && index.entries.length > 0) {
+    if (index.count !== index.entries.length) {
+      throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인의 전체 건수가 실제 항목 수와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+    }
+    return index;
+  }
+  if (!index.shards?.length) {
+    if (index.count !== (index.entries ?? []).length) {
+      throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인이 비어 있고 전체 건수도 일치하지 않습니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+    }
+    return { ...index, entries: index.entries ?? [] };
+  }
+
+  // 조각 하나라도 실패하면 []로 조용히 바꾸지 않는다. 호출자가 오류 상태를
+  // 보여 주고 같은 개정으로 재시도할 수 있도록 원래 오류를 전달한다.
+  const payloads = await Promise.all(index.shards.map(async (shard) => {
+    const payload = await staticGet<StaticIndexShard>(relativeStaticPath(shard.path, pointer), pointer);
+    const payloadEntries = Array.isArray(payload) ? payload : payload.entries ?? [];
+    if (!Array.isArray(payload)) {
+      if (payload.revision && payload.revision !== pointer.revision) throw feedChanged();
+      if (payload.generated_at && payload.generated_at !== pointer.generated_at) {
+        throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인 조각의 개정 시각이 포인터와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+      }
+      if (payload.count !== undefined && payload.count !== payloadEntries.length) {
+        throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인 조각의 건수가 실제 항목 수와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+      }
+    }
+    if (shard.count !== undefined && shard.count !== payloadEntries.length) {
+      throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인 조각 설명의 건수가 실제 항목 수와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+    }
+    return payloadEntries;
+  }));
+  const entries = payloads.flat();
+  if (index.count !== entries.length) {
+    throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인 조각 합계가 전체 건수와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
+  }
+  return { ...index, entries };
+}
+
+function normalizeOrganization(organization: Organization, campusId?: string): Organization {
+  const campuses = organization.campuses ?? (organization.campus_id ? [{ id: organization.campus_id, name: "" }] : []);
+  const campus_id = campusId && campuses.some((campus) => campus.id === campusId)
+    ? campusId
+    : organization.campus_id ?? campuses[0]?.id ?? null;
+  return { ...organization, campuses, campus_id };
+}
+
+function organizationMatchesCampus(organization: Organization | undefined, campusId: string): boolean {
+  if (!organization) return true;
+  const campuses = organization.campuses ?? (organization.campus_id ? [{ id: organization.campus_id, name: "" }] : []);
+  return campuses.length === 0 || campuses.some((campus) => campus.id === campusId);
+}
+
+function audienceMatchesCampus(
+  audience: string,
+  campusIds: Set<string>,
+  organizations: Map<string, Organization>,
+): boolean {
+  if (!campusIds.size) return true;
+  if (audience === "university" || audience === "undetermined") return true;
+  if (audience.startsWith("campus:")) return campusIds.has(audience.slice(7));
+  if (audience.startsWith("org:")) {
+    const organization = organizations.get(audience.slice(4));
+    return [...campusIds].some((campusId) => organizationMatchesCampus(organization, campusId));
+  }
+  return false;
+}
+
+type NoticeMatchContext = {
+  organizationIds: Set<string>;
+  campusIds?: Set<string>;
+  organizations?: Map<string, Organization>;
+  sourceMedia?: Map<string, string>;
+};
+
+function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, context: NoticeMatchContext) {
+  if (query.q) {
+    const words = query.q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.every((word) => entry.t.toLowerCase().includes(word))) return false;
+  }
+  if (query.category_code?.length && !query.category_code.includes(entry.c)) return false;
+  if (query.source_id?.length && !query.source_id.includes(entry.s)) return false;
+  if (query.medium?.length) {
+    const medium = entry.m ?? context.sourceMedia?.get(entry.s);
+    if (!medium || !query.medium.includes(medium)) return false;
+  }
+  if (context.campusIds?.size) {
+    const organizations = context.organizations ?? new Map<string, Organization>();
+    if (!entry.a.some((audience) => audienceMatchesCampus(audience, context.campusIds!, organizations))) return false;
+  }
+  if (query.organization_id?.length) {
+    const wanted = query.include_descendants ? context.organizationIds : new Set(query.organization_id);
+    if (!entry.a.some((audience) => audience.startsWith("org:") && wanted.has(audience.slice(4)))) return false;
+  }
+  return true;
+}
+
+async function staticOrganizations(pointer: StaticLatest): Promise<Organization[]> {
+  const response = await staticGet<ListResponse<Organization>>("organizations.json", pointer);
+  if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
+  return response.data.map((organization) => normalizeOrganization(organization));
+}
+
+async function staticSourceMedia(pointer: StaticLatest): Promise<Map<string, string>> {
+  const response = await staticGet<ListResponse<Source>>("sources.json", pointer);
+  if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
+  return new Map(response.data.map((source) => [source.id, source.medium.code]));
+}
+
+function normalizeNotice(notice: Notice): Notice {
+  const raw = notice as Notice & { deadline?: (Notice["deadline"] & { evidence_text?: string | null }) | null };
+  return {
+    ...notice,
+    deadline: raw.deadline
+      ? { ...raw.deadline, evidence: raw.deadline.evidence ?? raw.deadline.evidence_text ?? "" }
+      : null,
+  };
+}
+
+function normalizeNoticeSource(source: NoticeSource | BackendNoticeSource, index: number): NoticeSource {
+  const backend = source as BackendNoticeSource;
+  if (backend.source) {
+    return {
+      id: backend.source_item_id ?? backend.id ?? `${backend.source.id}:${backend.url}:${index}`,
+      source_id: backend.source.id,
+      source_name: backend.source.name,
+      medium: backend.source.medium,
+      url: backend.url,
+      published_date: backend.published_date,
+      original_status: backend.original_status,
+      is_primary: backend.is_primary,
+    };
+  }
+  return {
+    ...(source as NoticeSource),
+    id: backend.id ?? backend.source_item_id ?? `${backend.source_id ?? "source"}:${backend.url}:${index}`,
+    source_id: backend.source_id ?? "",
+    source_name: backend.source_name ?? "",
+    medium: backend.medium ?? { code: "web", label: "웹" },
+  };
+}
+
+function normalizeNoticeDetail(response: ItemResponse<StaticNoticeDetail>): ItemResponse<NoticeDetail> {
+  const raw = response.data;
+  const sources = (raw.sources ?? []).map(normalizeNoticeSource);
+  const attachments = (raw.attachments ?? []).map((attachment) => ({
+    ...attachment,
+    type: attachment.type ?? attachment.kind ?? "",
+  }));
+  const contact_mentions = (raw.contact_mentions ?? []).flatMap((mention) => {
+    const channels = mention.channels?.length
+      ? mention.channels
+      : mention.channel
+        ? [mention.channel]
+        : [null];
+    return channels.map((channel) => ({
+      text: mention.raw_text ?? mention.text ?? "",
+      channel: channel
+        ? {
+            kind: channel.kind,
+            value: channel.value ?? channel.display_value ?? "",
+            action_url: channel.action_url ?? null,
+          }
+        : null,
+      contact_id: mention.contact_id,
+    }));
+  });
+  return {
+    ...response,
+    data: {
+      ...normalizeNotice(raw),
+      body_text: raw.body_text ?? null,
+      body_html: raw.body_html ?? null,
+      sources,
+      attachments,
+      contact_mentions,
+      related_notices: raw.related_notices ?? [],
+      resolved_from_id: raw.resolved_from_id ?? null,
+    },
+  };
+}
+
+async function loadNoticePageSlice(pointer: StaticLatest, offset: number, limit: number) {
+  let pageNumber = Math.floor(offset / 50) + 1;
+  let localOffset = offset % 50;
+  let remaining = limit;
+  const data: Notice[] = [];
+  let hasNext = false;
+
+  while (remaining > 0) {
+    const file = await staticGet<ListResponse<Notice>>(`notices/page/${pageNumber}.json`, pointer);
+    if (file.page.dataset_revision !== pointer.revision) throw feedChanged();
+    const chunk = file.data.slice(localOffset, localOffset + remaining).map(normalizeNotice);
+    data.push(...chunk);
+    remaining -= chunk.length;
+    hasNext = file.page.has_next || localOffset + chunk.length < file.data.length;
+    if (remaining <= 0 || !file.page.has_next) break;
+    pageNumber += 1;
+    localOffset = 0;
+  }
+
+  return {
+    data,
+    hasNext,
+    nextOffset: offset + data.length,
+  };
+}
+
+async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> {
+  const pointer = await staticLatest();
+  const offset = staticOffset(query.cursor, pointer.revision);
+  const limit = query.limit ?? 20;
+  const needsIndex = Boolean(
+    query.q
+      || query.category_code?.length
+      || query.source_id?.length
+      || query.medium?.length
+      || query.campus_id?.length
+      || query.organization_id?.length
+      || query.sort === "published",
+  );
+
+  if (!needsIndex && (!query.sort || query.sort === "recent")) {
+    const page = await loadNoticePageSlice(pointer, offset, limit);
+    return {
+      data: page.data,
+      page: {
+        next_cursor: page.hasNext ? staticCursor(page.nextOffset, pointer.revision) : null,
+        has_next: page.hasNext,
+        snapshot_at: pointer.generated_at,
+        dataset_revision: pointer.revision,
+      },
+      meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
+    };
+  }
+
+  const index = await staticIndex(pointer);
+  const needsOrganizations = Boolean(query.campus_id?.length || (query.organization_id?.length && query.include_descendants));
+  const organizations = needsOrganizations ? await staticOrganizations(pointer) : [];
+  const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
+  const sourceMedia = query.medium?.length ? await staticSourceMedia(pointer) : undefined;
+  const organizationIds = new Set(query.organization_id ?? []);
+  if (query.include_descendants) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const org of organizations) {
+        if (org.parent_id && organizationIds.has(org.parent_id) && !organizationIds.has(org.id)) {
+          organizationIds.add(org.id);
+          changed = true;
+        }
+      }
+    }
+  }
+  let entries = (index.entries ?? []).filter((entry) => staticNoticeMatches(entry, query, {
+    organizationIds,
+    campusIds: query.campus_id?.length ? new Set(query.campus_id) : undefined,
+    organizations: organizationMap,
+    sourceMedia,
+  }));
+  if (query.sort === "published") {
+    entries = [...entries].sort((a, b) => (b.d ?? "").localeCompare(a.d ?? "") || a.id.localeCompare(b.id));
+  }
+  const selected = entries.slice(offset, offset + limit);
+  const data = await Promise.all(selected.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
+  const hasNext = offset + data.length < entries.length;
+  return {
+    data,
+    page: { next_cursor: hasNext ? staticCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
+    meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
+  };
+}
+
+async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice>> {
+  const pointer = await staticLatest();
+  const index = await staticIndex(pointer);
+  const organizations = body.organization_ids.length || body.campus_id
+    ? await staticOrganizations(pointer)
+    : [];
+  const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
+  // 맞춤 목록은 선택 조직 자체와 그 상위 조직만 포함한다. 상위 조직을
+  // 선택했다고 자식 조직 전체를 자동 구독시키면 범위가 과도하게 넓어진다.
+  const organizationIds = new Set(body.organization_ids);
+  for (const selectedId of body.organization_ids) {
+    let current = organizationMap.get(selectedId);
+    const seen = new Set<string>();
+    while (current?.parent_id && !seen.has(current.parent_id)) {
+      seen.add(current.parent_id);
+      organizationIds.add(current.parent_id);
+      current = organizationMap.get(current.parent_id);
+    }
+  }
+  const subscribed = new Set(body.subscribed_source_ids);
+  const filters = body.filters ?? {};
+  const sourceMedia = filters.medium?.length ? await staticSourceMedia(pointer) : undefined;
+  const selected = (index.entries ?? []).filter((entry) => {
+    const campusIds = body.campus_id ? new Set([body.campus_id]) : new Set<string>();
+    const inCampus = !campusIds.size || entry.a.some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap));
+    const inOrganization = entry.a.some((audience) => audience.startsWith("org:") && organizationIds.has(audience.slice(4)));
+    // 기존 가상 분기와 같은 계약: 먼저 선택 캠퍼스 범위로 줄인 뒤
+    // 조직 대상 또는 구독 출처를 적용한다.
+    const inScope = inCampus && (subscribed.has(entry.s) || entry.a.some((audience) => audience === "university" || audience === "undetermined" || inOrganization || audience.startsWith("campus:")));
+    return inScope && staticNoticeMatches(entry, filters, {
+      organizationIds,
+      campusIds: undefined,
+      organizations: organizationMap,
+      sourceMedia,
+    });
+  });
+  const offset = staticOffset(body.cursor, pointer.revision);
+  const limit = body.limit ?? 20;
+  const slice = selected.slice(offset, offset + limit);
+  const data = await Promise.all(slice.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
+  const hasNext = offset + data.length < selected.length;
+  return {
+    data,
+    page: { next_cursor: hasNext ? staticCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
+    meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
+  };
+}
 
 /* ---------- helpers ---------- */
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -44,23 +500,6 @@ function paginate<T>(items: T[], limit = 20, cursor?: string | null): ListRespon
     meta: meta(),
   };
 }
-
-async function http<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { ...init, headers: { "content-type": "application/json", ...(init?.headers ?? {}) } });
-  if (!res.ok) throw await res.json();
-  return res.json();
-}
-
-const qs = (params: object) => {
-  const p = new URLSearchParams();
-  for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
-    if (v === undefined || v === null || v === "") continue;
-    if (Array.isArray(v)) v.forEach((x) => p.append(k, String(x)));
-    else p.set(k, String(v));
-  }
-  const s = p.toString();
-  return s ? `?${s}` : "";
-};
 
 /* ---------- 조직 관계 (mock 전용) ---------- */
 export function descendantIds(orgId: string): Set<string> {
@@ -118,13 +557,20 @@ const textMatch = (n: Notice, q?: string) => {
 
 /* ---------- public API ---------- */
 export async function getCatalog(): Promise<ItemResponse<Catalog>> {
-  if (!useMock) return http("/v1/catalog");
+  if (!useMock) return staticLatest().then((pointer) => staticGet<ItemResponse<Catalog>>("catalog.json", pointer));
   await delay(60);
   return { data: M.catalog, meta: meta() };
 }
 
 export async function listOrganizations(params: { campus_id?: string; parent_id?: string | null } = {}): Promise<ListResponse<Organization>> {
-  if (!useMock) return http(`/v1/organizations${qs(params)}`);
+  if (!useMock) {
+    const pointer = await staticLatest();
+    const response = await staticGet<ListResponse<Organization>>("organizations.json", pointer);
+    let data = response.data.map((organization) => normalizeOrganization(organization, params.campus_id));
+    if (params.campus_id) data = data.filter((organization) => organizationMatchesCampus(organization, params.campus_id!));
+    if (params.parent_id !== undefined) data = data.filter((organization) => organization.parent_id === params.parent_id);
+    return { ...response, data };
+  }
   await delay(60);
   let list = M.organizations;
   if (params.campus_id) list = list.filter((o) => o.campus_id === params.campus_id || o.campus_id === null);
@@ -133,7 +579,7 @@ export async function listOrganizations(params: { campus_id?: string; parent_id?
 }
 
 export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse<Notice>> {
-  if (!useMock) return http(`/v1/notices${qs(query)}`);
+  if (!useMock) return staticNotices(query);
   await delay(120);
   let list = M.notices.filter((n) => matchesCampus(n, query.campus_id ?? []));
   if (query.category_code?.length) list = list.filter((n) => query.category_code!.includes(n.primary_category.code));
@@ -149,7 +595,10 @@ export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse
 }
 
 export async function getNotice(id: string): Promise<ItemResponse<NoticeDetail>> {
-  if (!useMock) return http(`/v1/notices/${id}`);
+  if (!useMock) {
+    const pointer = await staticLatest();
+    return staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${id}.json`, pointer).then(normalizeNoticeDetail);
+  }
   await delay(100);
   const d = M.noticeDetails[id];
   if (!d) throw { error: { code: "NOT_FOUND", message: "해당 공지를 찾을 수 없습니다.", retryable: false, request_id: "mock" } };
@@ -158,7 +607,7 @@ export async function getNotice(id: string): Promise<ItemResponse<NoticeDetail>>
 
 /** 비회원 맞춤 조회: 선택 캠퍼스 + 소속 조직(상위 포함) + 구독 출처 */
 export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<Notice>> {
-  if (!useMock) return http("/v1/feeds/preview", { method: "POST", body: JSON.stringify(body) });
+  if (!useMock) return staticPreview(body);
   await delay(140);
   const orgScope = new Set<string>();
   for (const id of body.organization_ids) {
@@ -180,7 +629,29 @@ export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<N
 }
 
 export async function listSources(params: { campus_id?: string; q?: string } = {}): Promise<ListResponse<Source>> {
-  if (!useMock) return http(`/v1/sources${qs(params)}`);
+  if (!useMock) {
+    const pointer = await staticLatest();
+    const [response, organizations] = await Promise.all([
+      staticGet<ListResponse<Source>>("sources.json", pointer),
+      staticOrganizations(pointer),
+    ]);
+    if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
+    const organizationsById = new Map(organizations.map((organization) => [organization.id, organization]));
+    const data = response.data
+      .map((source) => {
+        const organization = organizationsById.get(source.organization.id);
+        const campuses = source.organization.campuses ?? organization?.campuses ?? [];
+        const campus_id = params.campus_id && campuses.some((campus) => campus.id === params.campus_id)
+          ? params.campus_id
+          : source.campus_id ?? campuses[0]?.id ?? null;
+        return { ...source, organization: { ...source.organization, campuses }, campus_id };
+      })
+      .filter((source) =>
+        (!params.campus_id || source.campus_id === params.campus_id || source.organization.campuses?.length === 0)
+        && (!params.q || `${source.name} ${source.organization.name}`.toLowerCase().includes(params.q.toLowerCase())),
+      );
+    return { ...response, data };
+  }
   await delay(80);
   let list = M.sources;
   if (params.campus_id) list = list.filter((s) => s.campus_id === params.campus_id || s.campus_id === null);
@@ -189,7 +660,43 @@ export async function listSources(params: { campus_id?: string; q?: string } = {
 }
 
 export async function listContacts(params: { campus_id?: string; q?: string; organization_id?: string[] } = {}): Promise<ListResponse<Contact>> {
-  if (!useMock) return http(`/v1/contacts${qs(params)}`);
+  if (!useMock) {
+    const pointer = await staticLatest();
+    const all: Contact[] = [];
+    let pageNumber = 1;
+    let firstPage: ListResponse<Contact> | null = null;
+    while (true) {
+      const page = await staticGet<ListResponse<Contact>>(`contacts/page/${pageNumber}.json`, pointer);
+      if (page.page.dataset_revision !== pointer.revision) throw feedChanged();
+      firstPage ??= page;
+      all.push(...page.data);
+      if (!page.page.has_next) break;
+      pageNumber += 1;
+    }
+    const data = all.filter((contact) =>
+      (!params.campus_id || contact.campuses.some((campus) => campus.id === params.campus_id))
+      && (!params.organization_id?.length || params.organization_id.includes(contact.organization.id))
+      && (!params.q || `${contact.organization.name} ${contact.organization.path.join(" ")} ${contact.service_name} ${contact.location ?? ""} ${contact.channels.map((channel) => channel.display_value).join(" ")}`.toLowerCase().includes(params.q.toLowerCase())),
+    );
+    return {
+      ...(firstPage ?? {
+        data: [],
+        page: { next_cursor: null, has_next: false, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
+        meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
+      }),
+      data,
+      page: {
+        ...(firstPage ?? {
+          next_cursor: null,
+          has_next: false,
+          snapshot_at: pointer.generated_at,
+          dataset_revision: pointer.revision,
+        }).page,
+        next_cursor: null,
+        has_next: false,
+      },
+    };
+  }
   await delay(80);
   let list = M.contacts;
   if (params.campus_id) list = list.filter((ct) => ct.campuses.some((cp) => cp.id === params.campus_id));
@@ -206,7 +713,10 @@ export async function listContacts(params: { campus_id?: string; q?: string; org
 }
 
 export async function getContact(id: string): Promise<ItemResponse<Contact>> {
-  if (!useMock) return http(`/v1/contacts/${id}`);
+  if (!useMock) {
+    const pointer = await staticLatest();
+    return staticGet<ItemResponse<Contact>>(`contacts/${id}.json`, pointer);
+  }
   await delay(60);
   const ct = M.contacts.find((x) => x.id === id);
   if (!ct) throw { error: { code: "NOT_FOUND", message: "해당 연락처를 찾을 수 없습니다.", retryable: false, request_id: "mock" } };

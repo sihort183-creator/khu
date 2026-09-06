@@ -61,6 +61,7 @@ def settings(tmp_path: Path) -> Settings:
         http_concurrency=2,
         http_delay_seconds=0.0,
         list_page_limit=2,
+        initial_window_start=None,
     )
 
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 RULE_VERSION = "dedupe/1"
@@ -40,9 +41,24 @@ def normalize_title(title: str) -> str:
     return _WS.sub(" ", text).strip().lower()
 
 
-def content_hash(title: str, body_text: str | None) -> str:
-    """이력 중복 방지용 해시. 제목과 본문을 함께 본다."""
-    payload = f"{normalize_title(title)}\n{_WS.sub(' ', (body_text or '')).strip()}"
+def content_hash(title: str, body_text: str | None, attachments: Iterable[object] | None = None) -> str:
+    """이력 중복 방지용 해시.
+
+    제목·본문뿐 아니라 첨부 이름·주소·크기도 포함한다. 본문은 같고 신청서
+    파일만 교체된 공지를 변화 없음으로 삼지 않기 위해서다.
+    """
+    attachment_part = ""
+    if attachments:
+        values = []
+        for attachment in attachments:
+            values.append(
+                "|".join(
+                    str(getattr(attachment, name, "") or "")
+                    for name in ("filename", "url", "kind", "size_bytes")
+                )
+            )
+        attachment_part = "\n[attachments]\n" + "\n".join(sorted(values))
+    payload = f"{normalize_title(title)}\n{_WS.sub(' ', (body_text or '')).strip()}{attachment_part}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 

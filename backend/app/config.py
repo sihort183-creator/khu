@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +50,16 @@ def _bool(name: str, default: bool = False) -> bool:
     return raw in {"1", "true", "yes", "on"}
 
 
+def _date(name: str, default: date) -> date:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return default
+
+
 class ConfigError(RuntimeError):
     """필수 설정이 없을 때. 실행을 조용히 계속하지 않는다."""
 
@@ -79,6 +90,7 @@ class Settings:
     heartbeat_url: str = ""
 
     run_budget_seconds: int = 1800
+    source_budget_seconds: int = 120
     http_concurrency: int = 5
     http_delay_seconds: float = 2.0
     # 원문 서버를 묶는 단위: registrable(하위 도메인을 하나로) 또는 host(따로).
@@ -91,9 +103,13 @@ class Settings:
     dry_run: bool = False
 
     # 수집 범위
-    initial_history_days: int = 90
+    # 상대 날짜가 아니라 고정된 학기 시작일을 기본값으로 삼는다.
+    # None은 기간 제한 없이 원문 표본을 확인할 때만 명시적으로 사용한다.
+    initial_window_start: date | None = date(2026, 3, 1)
+    initial_history_days: int = 90  # 이전 호환용. 초기 범위 판정에는 사용하지 않는다.
     list_page_limit: int = 5
     recheck_days: int = 14
+    stale_run_after_minutes: int = 120
 
     @property
     def is_production(self) -> bool:
@@ -137,6 +153,7 @@ def load_settings() -> Settings:
         ),
         heartbeat_url=os.environ.get("KHU_HEARTBEAT_URL", "").strip(),
         run_budget_seconds=_int("KHU_RUN_BUDGET_SECONDS", 1800),
+        source_budget_seconds=_int("KHU_SOURCE_BUDGET_SECONDS", 120),
         http_concurrency=_int("KHU_HTTP_CONCURRENCY", 5),
         http_delay_seconds=_float("KHU_HTTP_DELAY_SECONDS", 2.0),
         host_group_mode=os.getenv("KHU_HOST_GROUP_MODE", "registrable"),
@@ -146,6 +163,8 @@ def load_settings() -> Settings:
         user_agent=os.environ.get("KHU_USER_AGENT", "").strip()
         or "khu-notice-bot/0.1 (+https://github.com/sihort183-creator/khu)",
         dry_run=_bool("KHU_DRY_RUN", False),
+        initial_window_start=_date("KHU_INITIAL_WINDOW_START", date(2026, 3, 1)),
+        stale_run_after_minutes=_int("KHU_STALE_RUN_AFTER_MINUTES", 120),
     )
 
 

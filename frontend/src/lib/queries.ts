@@ -4,10 +4,14 @@ import useSWR from "swr";
 import { getCatalog, getNotice, listContacts, listOrganizations, listSources } from "./api";
 import type { ApiError } from "./types";
 
-const opts = { revalidateOnFocus: false } as const;
+const opts = {
+  revalidateOnFocus: true,
+  revalidateIfStale: true,
+  refreshInterval: 60_000,
+} as const;
 
 export function useCatalog() {
-  const { data } = useSWR("catalog", () => getCatalog().then((r) => r.data), { ...opts, revalidateIfStale: false });
+  const { data } = useSWR("catalog", () => getCatalog().then((r) => r.data), opts);
   return data ?? null;
 }
 

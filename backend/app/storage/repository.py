@@ -9,10 +9,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.domain import ids
@@ -97,6 +97,15 @@ def load_due_sources(session: Session, *, now: datetime | None = None, limit: in
         )
         if limit is not None and len(due) >= limit:
             break
+    # 초기 범위를 못 채운 출처를 먼저 재개하되, 최신 확인이 오래 밀린 출처도
+    # 같은 실행에서 뒤로 밀리지 않게 한다.
+    due.sort(
+        key=lambda item: (
+            _aware(item.health.last_attempt_at) if item.health.last_attempt_at else datetime.min.replace(tzinfo=UTC),
+            bool(getattr(item.health, "backfill_complete", False)),
+            item.source.id,
+        )
+    )
     return due
 
 
@@ -128,14 +137,20 @@ def campus_lookup(session: Session) -> dict[str, tuple[str, str]]:
 # ------------------------------------------------------------------ 실행 기록
 
 
-def start_run(session: Session, *, kind: str = "collect", code_commit: str | None = None) -> m.Run:
-    """실행 시작. 30분 넘게 안 끝난 이전 실행은 비정상 종료로 표시한다(7.4절)."""
+def start_run(
+    session: Session,
+    *,
+    kind: str = "collect",
+    code_commit: str | None = None,
+    stale_after_minutes: int = 30,
+) -> m.Run:
+    """실행 시작. 실제 실행 제한에 맞는 오래된 실행만 비정상 종료로 표시한다."""
     now = utcnow()
     stale = session.execute(
         select(m.Run).where(m.Run.kind == kind, m.Run.finished_at.is_(None))
     ).scalars().all()
     for old in stale:
-        if now - _aware(old.started_at) > timedelta(minutes=30):
+        if now - _aware(old.started_at) > timedelta(minutes=max(1, stale_after_minutes)):
             old.finished_at = now
             old.result = "abandoned"
             old.note = "다음 실행 시작 시점에 종료되지 않은 상태로 발견됨"
@@ -174,6 +189,10 @@ def record_source_run(
     duration_ms: int | None = None,
     error_kind: str | None = None,
     error_message: str | None = None,
+    detail_failures: int = 0,
+    scan_stop_reason: str | None = None,
+    backfill_complete: bool = False,
+    missing_check_performed: bool = False,
 ) -> None:
     session.add(
         m.SourceRun(
@@ -187,6 +206,10 @@ def record_source_run(
             duration_ms=duration_ms,
             error_kind=error_kind,
             error_message=(error_message or "")[:2000] or None,
+            detail_failures=detail_failures,
+            scan_stop_reason=scan_stop_reason,
+            backfill_complete=backfill_complete,
+            missing_check_performed=missing_check_performed,
         )
     )
 
@@ -235,6 +258,181 @@ def mark_source_failure(
         source.status_message = "연속 실패로 갱신이 지연되고 있습니다."
 
 
+def record_scan_progress(
+    session: Session,
+    health: m.SourceHealth,
+    *,
+    initial_window_start: date,
+    cursor_page: int,
+    cursor_external_id: str | None,
+    oldest_date: date | None,
+    stop_reason: str,
+    complete: bool,
+    now: datetime | None = None,
+) -> None:
+    """목록 경계 도달과 미해결 상세를 분리해 완료를 계산한다."""
+    now = now or utcnow()
+    previous_page = health.backfill_cursor_page or 1
+    previous_anchor = health.backfill_cursor_external_id
+    health.initial_window_start = initial_window_start
+    health.range_policy_version = f"{initial_window_start.isoformat()}-v1"
+    health.backfill_cursor_page = max(1, cursor_page)
+    health.backfill_cursor_external_id = cursor_external_id
+    if oldest_date is not None and (
+        health.backfill_oldest_date is None or oldest_date < health.backfill_oldest_date
+    ):
+        health.backfill_oldest_date = oldest_date
+    if previous_page != cursor_page or previous_anchor != cursor_external_id:
+        health.backfill_last_progress_at = now
+    health.backfill_last_stop_reason = stop_reason
+    health.last_scan_complete = complete
+    health.last_scan_stop_reason = stop_reason
+    if stop_reason in {"end_of_board", "date_boundary"}:
+        health.backfill_boundary_reached = True
+    session.flush()
+    pending = session.scalar(
+        select(func.count(m.SourceItem.id)).where(
+            m.SourceItem.source_id == health.source_id,
+            m.SourceItem.last_detail_error.isnot(None),
+        )
+    ) or 0
+    health.backfill_complete = bool(health.backfill_boundary_reached and not pending)
+    health.backfill_status = (
+        "complete" if health.backfill_complete else
+        "blocked" if stop_reason == "blocked" else
+        "detail_pending" if health.backfill_boundary_reached else "in_progress"
+    )
+
+
+def pending_detail_listings(session: Session, source_id: str, *, limit: int = 20) -> list[ListedItem]:
+    """목록 위치와 무관하게 실패 원문을 재시도한다. 추출 힌트도 보존한다."""
+    now = utcnow()
+    rows = session.scalars(
+        select(m.SourceItem).where(
+            m.SourceItem.source_id == source_id,
+            m.SourceItem.last_detail_error.isnot(None),
+            (m.SourceItem.next_detail_attempt_after.is_(None))
+            | (m.SourceItem.next_detail_attempt_after <= now),
+        ).order_by(m.SourceItem.next_detail_attempt_after, m.SourceItem.id).limit(limit)
+    ).all()
+    listings = []
+    for item in rows:
+        if item.detail_listing:
+            listings.append(ListedItem(**item.detail_listing))
+        else:
+            current = session.get(m.SourceItemRevision, item.current_revision_id) if item.current_revision_id else None
+            listings.append(ListedItem(
+                external_id=item.external_id, url=item.canonical_url,
+                title=current.title if current else "", is_pinned=bool(item.is_pinned),
+                published_raw=current.published_raw if current else None,
+            ))
+    return listings
+
+
+def item_for_listing(session: Session, source_id: str, external_id: str) -> m.SourceItem | None:
+    """출처별 원문 번호로만 기존 항목을 찾는다."""
+    return session.get(m.SourceItem, ids.source_item_id(source_id, external_id))
+
+
+def ensure_item_stub(session: Session, *, source: m.Source, listed: ListedItem) -> m.SourceItem:
+    """상세를 열지 못한 목록 항목도 재시도할 수 있게 최소 원본을 만든다."""
+    item = item_for_listing(session, source.id, listed.external_id)
+    if item is not None:
+        item.detail_listing = asdict(listed)
+        item.last_seen_at = utcnow()
+        item.is_pinned = bool(listed.is_pinned)
+        return item
+    item = m.SourceItem(
+        id=ids.source_item_id(source.id, listed.external_id),
+        source_id=source.id,
+        external_id=listed.external_id,
+        canonical_url=ids.canonical_url(listed.url),
+        last_seen_at=utcnow(),
+        original_status="available",
+        is_pinned=bool(listed.is_pinned),
+        detail_listing=asdict(listed),
+    )
+    session.add(item)
+    session.flush()
+    return item
+
+
+def detail_is_due(
+    session: Session,
+    *,
+    source_id: str,
+    listed: ListedItem,
+    recheck_days: int = 14,
+    now: datetime | None = None,
+) -> bool:
+    """목록 변화·재확인 주기에 해당하는 글만 상세를 다시 요청한다."""
+    now = now or utcnow()
+    item = item_for_listing(session, source_id, listed.external_id)
+    if item is None:
+        return True
+    if item.next_detail_attempt_after and _aware(item.next_detail_attempt_after) > now:
+        return False
+    if not item.current_revision_id or item.last_detail_error:
+        return True
+    current = session.get(m.SourceItemRevision, item.current_revision_id)
+    if current is None:
+        return True
+    if current.title != listed.title or bool(item.is_pinned) != bool(listed.is_pinned):
+        return True
+    if listed.published_raw and current.published_raw and listed.published_raw.strip() != current.published_raw.strip():
+        return True
+    if item.last_detail_checked_at is None:
+        return True
+    published = current.published_date
+    recent_cutoff = now.date() - timedelta(days=14)
+    active_notice = session.execute(
+        select(m.Notice.id).join(m.NoticeSource, m.NoticeSource.notice_id == m.Notice.id)
+        .where(m.NoticeSource.source_item_id == item.id, m.NoticeSource.is_active.is_(True),
+               m.Notice.deadline_date >= now.date()).limit(1)
+    ).first()
+    interval_days = 1 if listed.is_pinned or active_notice or (published is not None and published >= recent_cutoff) else max(1, recheck_days)
+    return now - _aware(item.last_detail_checked_at) >= timedelta(days=interval_days)
+
+
+def touch_item_from_listing(
+    session: Session,
+    *,
+    source_id: str,
+    listed: ListedItem,
+    now: datetime | None = None,
+) -> bool:
+    """상세를 생략한 목록 항목도 발견 사실과 자동 삭제 복구를 기록한다."""
+    now = now or utcnow()
+    item = item_for_listing(session, source_id, listed.external_id)
+    if item is None:
+        return False
+    item.last_seen_at = now
+    item.original_status = "available"
+    item.missing_streak = 0
+    item.is_pinned = bool(listed.is_pinned)
+    _restore_notice_for_item(session, item.id)
+    return True
+
+
+def mark_detail_failure(
+    session: Session,
+    *,
+    source_id: str,
+    external_id: str,
+    message: str,
+    now: datetime | None = None,
+) -> None:
+    """상세 실패를 별도 재시도 상태로 남기고 목록 진전은 막지 않는다."""
+    now = now or utcnow()
+    item = item_for_listing(session, source_id, external_id)
+    if item is None:
+        return
+    item.detail_attempts = int(item.detail_attempts or 0) + 1
+    backoff_hours = min(24, 2 ** min(item.detail_attempts - 1, 4))
+    item.next_detail_attempt_after = now + timedelta(hours=backoff_hours)
+    item.last_detail_error = message[:2000]
+
+
 # ------------------------------------------------------------------ 원본 저장
 
 
@@ -254,7 +452,8 @@ def upsert_item_and_revision(
     item_id = ids.source_item_id(source.id, listed.external_id)
 
     item = session.get(m.SourceItem, item_id)
-    is_new_item = item is None
+    is_new_item = item is None or item.current_revision_id is None
+    was_removed = bool(item is not None and item.original_status == "removed")
     if item is None:
         item = m.SourceItem(
             id=item_id,
@@ -270,13 +469,22 @@ def upsert_item_and_revision(
     item.original_status = "available"
     item.missing_streak = 0
     item.is_pinned = bool(listed.is_pinned)
+    item.last_detail_checked_at = now
+    item.detail_attempts = 0
+    item.next_detail_attempt_after = None
+    item.last_detail_error = None
 
-    digest = make_content_hash(detail.title, detail.body_text)
+    digest = make_content_hash(detail.title, detail.body_text, detail.attachments)
 
     # 현재 채택된 이력과 내용이 같으면 새 이력을 만들지 않는다.
     current = session.get(m.SourceItemRevision, item.current_revision_id) if item.current_revision_id else None
-    if current is not None and current.content_hash == digest:
+    if (current is not None and current.content_hash == digest
+            and current.published_date == published.date and current.published_at == published.at
+            and current.published_raw == published.raw and current.board_category == detail.board_category):
         current.observed_at = now
+        if raw_object_key:
+            current.raw_object_key = raw_object_key
+        _restore_notice_for_item(session, item.id)
         return ItemWriteResult(item.id, current.id, is_new_item, False, digest)
 
     # A → B → A 로 돌아온 경우도 새 사건으로 기록한다(6.2절).
@@ -315,6 +523,8 @@ def upsert_item_and_revision(
 
     item.current_revision_id = revision.id
     _record_url_alias(session, item, detail.url or listed.url)
+    if was_removed:
+        _restore_notice_for_item(session, item.id)
     return ItemWriteResult(item.id, revision.id, is_new_item, True, digest)
 
 
@@ -333,7 +543,13 @@ def _record_url_alias(session: Session, item: m.SourceItem, url: str) -> None:
         )
 
 
-def mark_items_missing(session: Session, source_id: str, seen_ids: set[str], *, now: datetime | None = None) -> int:
+def mark_items_missing(
+    session: Session,
+    source_id: str,
+    seen_ids: set[str],
+    *,
+    now: datetime | None = None,
+) -> int:
     """목록에서 보이지 않은 원본의 연속 미발견 횟수를 올린다.
 
     한 번의 누락으로 삭제하지 않는다(4절 9항). 최근에 본 항목만 대상으로 한다.
@@ -350,8 +566,13 @@ def mark_items_missing(session: Session, source_id: str, seen_ids: set[str], *, 
     ).scalars().all()
 
     changed = 0
+    # 목록 어댑터가 반환하는 것은 출처 내부 원문 번호다. 내부 digest 식별자와
+    # 비교하면 매번 모든 글이 미발견으로 계산되므로 외부 번호로 통일한다.
+    # 기존 운영 명령이 내부 id를 넘기는 호환 호출도 잠시 허용해, 마이그레이션
+    # 중 한 번의 실행으로 정상 글을 숨기지 않게 한다.
+    normalized_seen = {str(value) for value in seen_ids}
     for item in rows:
-        if item.id in seen_ids:
+        if str(item.external_id) in normalized_seen or str(item.id) in normalized_seen:
             continue
         item.missing_streak = int(item.missing_streak or 0) + 1
         if item.missing_streak >= MISSING_STREAK_FOR_REMOVED:
@@ -383,8 +604,26 @@ def _hide_notice_for_item(session: Session, item_id: str) -> None:
             m.SourceItem.original_status == "available",
         )
     ).first()
-    if others is None:
+    if others is None and notice.status == "visible":
         notice.status = "removed"
+        notice.updated_at = utcnow()
+
+
+def _restore_notice_for_item(session: Session, item_id: str) -> None:
+    """자동 누락으로 제거된 공지만 원문 재발견 시 복구한다.
+
+    운영자가 숨긴 공지나 병합으로 숨긴 공지는 건드리지 않는다.
+    """
+    link = session.execute(
+        select(m.NoticeSource).where(
+            m.NoticeSource.source_item_id == item_id, m.NoticeSource.is_active.is_(True)
+        )
+    ).scalar_one_or_none()
+    if link is None:
+        return
+    notice = session.get(m.Notice, link.notice_id)
+    if notice is not None and notice.status == "removed":
+        notice.status = "visible"
         notice.updated_at = utcnow()
 
 

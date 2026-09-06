@@ -54,7 +54,7 @@ from app.storage.objects import ObjectStore, build_store
 log = logging.getLogger("khu.export")
 
 PAGE_SIZE = 50
-INDEX_LIMIT = 8000
+INDEX_SHARD_SIZE = 2000
 BASE = "v1"
 
 
@@ -305,7 +305,18 @@ def _notice_detail(
     base: api.Notice,
     revision: m.SourceItemRevision,
     source_refs: dict[str, api.SourceRef],
+    *,
+    attachments_by_revision: dict[str, list[m.Attachment]] | None = None,
+    links_by_notice: dict[str, list[tuple[m.NoticeSource, m.SourceItem, m.SourceItemRevision | None]]] | None = None,
+    mentions_by_revision: dict[str, list[m.NoticeContactMention]] | None = None,
 ) -> api.NoticeDetail:
+    attachment_rows = (
+        attachments_by_revision.get(revision.id, [])
+        if attachments_by_revision is not None
+        else session.execute(
+            select(m.Attachment).where(m.Attachment.revision_id == revision.id)
+        ).scalars().all()
+    )
     attachments = [
         api.Attachment(
             id=a.id,
@@ -315,17 +326,18 @@ def _notice_detail(
             url=a.url,
             status=api.Coded(code=a.status, label="목록 확인됨" if a.status == "listed" else a.status),
         )
-        for a in session.execute(
-            select(m.Attachment).where(m.Attachment.revision_id == revision.id)
-        ).scalars()
+        for a in attachment_rows
     ]
 
-    linked = session.execute(
-        select(m.NoticeSource, m.SourceItem, m.SourceItemRevision)
-        .join(m.SourceItem, m.SourceItem.id == m.NoticeSource.source_item_id)
-        .outerjoin(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
-        .where(m.NoticeSource.notice_id == base.id, m.NoticeSource.is_active.is_(True))
-    ).all()
+    if links_by_notice is None:
+        linked = session.execute(
+            select(m.NoticeSource, m.SourceItem, m.SourceItemRevision)
+            .join(m.SourceItem, m.SourceItem.id == m.NoticeSource.source_item_id)
+            .outerjoin(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .where(m.NoticeSource.notice_id == base.id, m.NoticeSource.is_active.is_(True))
+        ).all()
+    else:
+        linked = links_by_notice.get(base.id, [])
 
     sources = [
         api.NoticeSourceRef(
@@ -339,6 +351,13 @@ def _notice_detail(
         for link, item, rev in linked
     ]
 
+    mention_rows = (
+        mentions_by_revision.get(revision.id, [])
+        if mentions_by_revision is not None
+        else session.execute(
+            select(m.NoticeContactMention).where(m.NoticeContactMention.revision_id == revision.id)
+        ).scalars().all()
+    )
     mentions = [
         api.ContactMention(
             raw_text=row.raw_text,
@@ -356,9 +375,7 @@ def _notice_detail(
             ),
             contact_id=row.contact_id,
         )
-        for row in session.execute(
-            select(m.NoticeContactMention).where(m.NoticeContactMention.revision_id == revision.id)
-        ).scalars()
+        for row in mention_rows
     ]
 
     return api.NoticeDetail(
@@ -445,6 +462,50 @@ def _load_contacts(session: Session, org_paths: dict[str, list[str]]) -> list[ap
     return out
 
 
+def _load_notice_detail_parts(
+    session: Session,
+    notices: list[tuple[api.Notice, m.SourceItemRevision, m.SourceItem, list]],
+) -> tuple[
+    dict[str, list[m.Attachment]],
+    dict[str, list[tuple[m.NoticeSource, m.SourceItem, m.SourceItemRevision | None]]],
+    dict[str, list[m.NoticeContactMention]],
+]:
+    """공지 상세에 필요한 관계를 묶어서 읽는다.
+
+    공지마다 첨부·원문 연결·문의처를 다시 조회하면 대량 내보내기에서
+    왕복이 공지 수에 비례한다. 개정 스냅샷의 식별자를 먼저 모은 뒤 세 번의
+    조회로 전체 상세 자료를 준비한다.
+    """
+    revision_ids = [revision.id for _, revision, _, _ in notices]
+    notice_ids = [notice.id for notice, _, _, _ in notices]
+
+    attachments: dict[str, list[m.Attachment]] = {}
+    if revision_ids:
+        for row in session.execute(
+            select(m.Attachment).where(m.Attachment.revision_id.in_(revision_ids))
+        ).scalars():
+            attachments.setdefault(row.revision_id, []).append(row)
+
+    links: dict[str, list[tuple[m.NoticeSource, m.SourceItem, m.SourceItemRevision | None]]] = {}
+    if notice_ids:
+        rows = session.execute(
+            select(m.NoticeSource, m.SourceItem, m.SourceItemRevision)
+            .join(m.SourceItem, m.SourceItem.id == m.NoticeSource.source_item_id)
+            .outerjoin(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .where(m.NoticeSource.notice_id.in_(notice_ids), m.NoticeSource.is_active.is_(True))
+        ).all()
+        for link, item, revision in rows:
+            links.setdefault(link.notice_id, []).append((link, item, revision))
+
+    mentions: dict[str, list[m.NoticeContactMention]] = {}
+    if revision_ids:
+        for row in session.execute(
+            select(m.NoticeContactMention).where(m.NoticeContactMention.revision_id.in_(revision_ids))
+        ).scalars():
+            mentions.setdefault(row.revision_id, []).append(row)
+    return attachments, links, mentions
+
+
 def _action_url(channel: m.ContactChannel) -> str | None:
     """팩스에는 전화 연결 주소를 만들지 않는다(10절)."""
     if not channel.value:
@@ -496,6 +557,7 @@ def export_static(
                     source_statuses=[api.Coded(**c) for c in code_list(SOURCE_STATUS_LABELS)],
                     features=api.CatalogFeatures(accounts=False, instagram=False, deadlines=True),
                     contract_version=CONTRACT_VERSION,
+                    initial_window_start=cfg.initial_window_start,
                 ),
                 meta=_meta(rev, now),
             ),
@@ -580,8 +642,13 @@ def export_static(
                     status=api.Coded(**coded(SOURCE_STATUS_LABELS, source.status)),
                     status_message=source.status_message,
                     last_success_at=health.last_list_success_at if health else None,
-                    history_from=None,
+                    history_from=(health.backfill_oldest_date if health else None),
                     notice_count=int(notice_counts.get(source.id, 0)),
+                    initial_window_start=(health.initial_window_start if health else cfg.initial_window_start),
+                    backfill_status=(health.backfill_status if health else "not_started"),
+                    backfill_complete=bool(health.backfill_complete) if health else False,
+                    backfill_oldest_date=(health.backfill_oldest_date if health else None),
+                    last_scan_stop_reason=(health.last_scan_stop_reason if health else None),
                 )
             )
         writer.put(
@@ -618,11 +685,20 @@ def export_static(
             )
 
         # 공지 상세는 서로 의존하지 않는다. 한꺼번에 올린다.
+        detail_attachments, detail_links, detail_mentions = _load_notice_detail_parts(session, notices)
         writer.put_many(
             (
                 f"{prefix}/notices/{notice.id}.json",
                 api.ItemResponse[api.NoticeDetail](
-                    data=_notice_detail(session, notice, revision_row, source_refs),
+                    data=_notice_detail(
+                        session,
+                        notice,
+                        revision_row,
+                        source_refs,
+                        attachments_by_revision=detail_attachments,
+                        links_by_notice=detail_links,
+                        mentions_by_revision=detail_mentions,
+                    ),
                     meta=_meta(rev, now),
                 ),
             )
@@ -645,11 +721,20 @@ def export_static(
                     for a in n.audiences
                 ],
             )
-            for n, _, _, _ in notices[:INDEX_LIMIT]
+            for n, _, _, _ in notices
         ]
+        shards = []
+        if len(entries) > INDEX_SHARD_SIZE:
+            for offset in range(0, len(entries), INDEX_SHARD_SIZE):
+                chunk = entries[offset:offset + INDEX_SHARD_SIZE]
+                path = f"notices/index/{offset // INDEX_SHARD_SIZE + 1}.json"
+                writer.put(f"{prefix}/{path}", api.NoticeIndexFile(
+                    revision=rev, generated_at=now, count=len(chunk), entries=chunk,
+                ))
+                shards.append({"path": path, "count": len(chunk)})
         writer.put(
             f"{prefix}/notices/index.json",
-            api.NoticeIndexFile(revision=rev, generated_at=now, count=len(entries), entries=entries),
+            api.NoticeIndexFile(revision=rev, generated_at=now, count=len(entries), entries=[] if shards else entries, shards=shards),
         )
 
         # 연락처
@@ -689,6 +774,9 @@ def export_static(
                 status=api.Coded(**coded(SOURCE_STATUS_LABELS, s.status)),
                 last_success_at=(health_rows.get(s.id).last_list_success_at if health_rows.get(s.id) else None),
                 consecutive_failures=(health_rows.get(s.id).consecutive_failures if health_rows.get(s.id) else 0),
+                backfill_status=(health_rows.get(s.id).backfill_status if health_rows.get(s.id) else "not_started"),
+                backfill_complete=bool(health_rows.get(s.id).backfill_complete) if health_rows.get(s.id) else False,
+                last_scan_stop_reason=(health_rows.get(s.id).last_scan_stop_reason if health_rows.get(s.id) else None),
             )
             for s in session.execute(
                 select(m.Source).where(m.Source.is_public.is_(True)).order_by(m.Source.name)
@@ -707,6 +795,9 @@ def export_static(
             sources_failing=sum(1 for s in source_lines if s.consecutive_failures > 0),
             notices_total=result.notices,
             contacts_total=result.contacts,
+            initial_window_start=cfg.initial_window_start,
+            sources_backfill_complete=sum(1 for s in source_lines if s.backfill_complete),
+            sources_backfill_incomplete=sum(1 for s in source_lines if not s.backfill_complete),
             sources=source_lines,
         )
         writer.put(f"{BASE}/status.json", status)
@@ -722,12 +813,89 @@ def export_static(
             notice_pages=result.pages,
             notices_total=result.notices,
             contacts_total=result.contacts,
+            initial_window_start=cfg.initial_window_start,
         ),
     )
     log.info(
         "정적 파일 %d개 생성(%.1fKB), 개정 %s", result.files_written, result.bytes_written / 1024, rev
     )
     return result
+
+
+def refresh_public_status(
+    cfg: Settings | None = None,
+    *,
+    revision: str,
+    store: ObjectStore | None = None,
+) -> None:
+    """수집 실행을 마친 뒤 공개 상태 파일만 다시 쓴다.
+
+    전체 개정 파일은 이미 포인터 전환 전에 생성되므로, 실행 종료 시각을
+    반영하기 위해 상태 파일만 같은 개정으로 갱신한다. 이전에는 내보내기가
+    실행 종료보다 먼저 만들어져 ``last_run_result``가 한 회차 늦었다.
+    """
+    cfg = cfg or default_settings
+    store = store or build_store(cfg)
+    now = utcnow()
+    with session_scope(cfg) as session:
+        health_rows = {h.source_id: h for h in session.execute(select(m.SourceHealth)).scalars()}
+        last_run = session.execute(
+            select(m.Run).where(m.Run.kind == "collect").order_by(m.Run.started_at.desc()).limit(1)
+        ).scalar_one_or_none()
+        sources = list(
+            session.execute(
+                select(m.Source).where(m.Source.is_public.is_(True)).order_by(m.Source.name)
+            ).scalars()
+        )
+        lines = [
+            api.SourceStatusLine(
+                id=source.id,
+                name=source.name,
+                status=api.Coded(**coded(SOURCE_STATUS_LABELS, source.status)),
+                last_success_at=(health_rows[source.id].last_list_success_at if source.id in health_rows else None),
+                consecutive_failures=(health_rows[source.id].consecutive_failures if source.id in health_rows else 0),
+                backfill_status=(health_rows[source.id].backfill_status if source.id in health_rows else "not_started"),
+                backfill_complete=bool(health_rows[source.id].backfill_complete) if source.id in health_rows else False,
+                last_scan_stop_reason=(health_rows[source.id].last_scan_stop_reason if source.id in health_rows else None),
+            )
+            for source in sources
+        ]
+        notices_total = int(
+            session.execute(
+                select(func.count(m.Notice.id))
+                .join(m.SourceItem, m.SourceItem.id == m.Notice.primary_source_item_id)
+                .join(m.Source, m.Source.id == m.SourceItem.source_id)
+                .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
+            ).scalar()
+            or 0
+        )
+        contacts_total = int(
+            session.execute(
+                select(func.count(m.ContactEntry.id)).where(
+                    m.ContactEntry.status.in_(("verified", "stale", "conflict"))
+                )
+            ).scalar()
+            or 0
+        )
+        status = api.RunStatus(
+            generated_at=now,
+            revision=revision,
+            last_run_started_at=last_run.started_at if last_run else None,
+            last_run_finished_at=last_run.finished_at if last_run else None,
+            last_run_result=last_run.result if last_run else None,
+            code_commit=last_run.code_commit if last_run else None,
+            contract_version=CONTRACT_VERSION,
+            sources_total=len(lines),
+            sources_active=sum(1 for line in lines if line.status.code == "active"),
+            sources_failing=sum(1 for line in lines if line.consecutive_failures > 0),
+            notices_total=notices_total,
+            contacts_total=contacts_total,
+            initial_window_start=cfg.initial_window_start,
+            sources_backfill_complete=sum(1 for line in lines if line.backfill_complete),
+            sources_backfill_incomplete=sum(1 for line in lines if not line.backfill_complete),
+            sources=lines,
+        )
+        Writer(store, cfg.r2.bucket_public, ExportResult(revision=revision)).put(f"{BASE}/status.json", status)
 
 
 def prune_old_revisions(cfg: Settings | None = None, *, keep: int = 3, store: ObjectStore | None = None) -> int:

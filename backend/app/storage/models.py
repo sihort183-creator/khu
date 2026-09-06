@@ -180,6 +180,19 @@ class SourceHealth(Base):
     last_error_kind = mapped_column(String(64), nullable=True)
     last_error_message = mapped_column(Text, nullable=True)
     backfill_complete = mapped_column(Boolean, nullable=False, default=False)
+    backfill_boundary_reached = mapped_column(Boolean, nullable=False, default=False)
+    # 초기 범위 수집은 실행 성공 여부와 별도로 진행 상태를 보존한다.
+    # 2026-03-01은 기본 정책이며, 정책이 바뀌면 range_policy_version으로 재평가한다.
+    initial_window_start = mapped_column(Date, nullable=True)
+    range_policy_version = mapped_column(String(32), nullable=False, default="2026-03-01-v1")
+    backfill_status = mapped_column(String(32), nullable=False, default="not_started")
+    backfill_cursor_page = mapped_column(Integer, nullable=False, default=1)
+    backfill_cursor_external_id = mapped_column(String(200), nullable=True)
+    backfill_oldest_date = mapped_column(Date, nullable=True)
+    backfill_last_progress_at = mapped_column(DateTime(timezone=True), nullable=True)
+    backfill_last_stop_reason = mapped_column(String(64), nullable=True)
+    last_scan_complete = mapped_column(Boolean, nullable=False, default=False)
+    last_scan_stop_reason = mapped_column(String(64), nullable=True)
     blocked_abroad = mapped_column(Boolean, nullable=False, default=False)
     __table_args__ = (Index("ix_source_health_next", "next_attempt_after"),)
 
@@ -201,6 +214,11 @@ class SourceItem(Base):
     original_status = mapped_column(String(32), nullable=False, default="available")
     missing_streak = mapped_column(Integer, nullable=False, default=0)
     is_pinned = mapped_column(Boolean, nullable=False, default=False)
+    last_detail_checked_at = mapped_column(DateTime(timezone=True), nullable=True)
+    detail_attempts = mapped_column(Integer, nullable=False, default=0)
+    next_detail_attempt_after = mapped_column(DateTime(timezone=True), nullable=True)
+    last_detail_error = mapped_column(Text, nullable=True)
+    detail_listing = mapped_column(JSON, nullable=True)
     __table_args__ = (
         UniqueConstraint("source_id", "external_id", name="uq_source_items_source_external"),
         Index("ix_source_items_source_seen", "source_id", "last_seen_at"),
@@ -545,6 +563,10 @@ class SourceRun(Base):
     new_items = mapped_column(Integer, nullable=False, default=0)
     updated_items = mapped_column(Integer, nullable=False, default=0)
     duration_ms = mapped_column(Integer, nullable=True)
+    detail_failures = mapped_column(Integer, nullable=False, default=0)
+    scan_stop_reason = mapped_column(String(64), nullable=True)
+    backfill_complete = mapped_column(Boolean, nullable=False, default=False)
+    missing_check_performed = mapped_column(Boolean, nullable=False, default=False)
     __table_args__ = (
         Index("ix_source_runs_run", "run_id"),
         Index("ix_source_runs_source", "source_id", "attempted_at"),

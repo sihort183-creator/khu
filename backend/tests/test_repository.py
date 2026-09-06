@@ -147,6 +147,18 @@ def test_single_absence_does_not_remove_an_item(db, source):
     assert db.execute(select(m.SourceItem)).scalar_one().original_status == "removed"
 
 
+def test_missing_comparison_uses_external_id_without_hiding_seen_item(db, source):
+    first = _write(db, source, _listed("first"), _detail(_listed("first")))
+    second = _write(db, source, _listed("second"), _detail(_listed("second")))
+    db.flush()
+
+    repo.mark_items_missing(db, source.id, seen_ids={"first"})
+    db.flush()
+
+    assert db.get(m.SourceItem, first.item_id).missing_streak == 0
+    assert db.get(m.SourceItem, second.item_id).missing_streak == 1
+
+
 def test_reappearing_item_resets_missing_streak(db, source):
     listed = _listed()
     _write(db, source, listed, _detail(listed))
@@ -158,6 +170,51 @@ def test_reappearing_item_resets_missing_streak(db, source):
     item = db.execute(select(m.SourceItem)).scalar_one()
     assert item.missing_streak == 0
     assert item.original_status == "available"
+
+
+def test_reappearing_item_restores_automatically_removed_notice(db, source):
+    listed = _listed()
+    written = _write(db, source, listed, _detail(listed))
+    notice, _ = _notice_for(db, written)
+    db.flush()
+
+    for _ in range(3):
+        repo.mark_items_missing(db, source.id, seen_ids=set())
+    db.flush()
+    assert notice.status == "removed"
+
+    _write(db, source, listed, _detail(listed))
+    db.flush()
+    assert notice.status == "visible"
+
+
+def test_listing_repairs_available_item_removed_notice_but_not_manual_hide(db, source):
+    listed = _listed()
+    written = _write(db, source, listed, _detail(listed))
+    notice, _ = _notice_for(db, written)
+    db.flush()
+    notice.status = "removed"
+    repo.touch_item_from_listing(db, source_id=source.id, listed=listed)
+    assert notice.status == "visible"
+    notice.status = "hidden"
+    repo.touch_item_from_listing(db, source_id=source.id, listed=listed)
+    assert notice.status == "hidden"
+
+
+def test_failed_stub_respects_retry_time(db, source):
+    listed = _listed()
+    repo.ensure_item_stub(db, source=source, listed=listed)
+    repo.mark_detail_failure(db, source_id=source.id, external_id=listed.external_id, message="실패")
+    assert not repo.detail_is_due(db, source_id=source.id, listed=listed)
+    assert repo.pending_detail_listings(db, source.id) == []
+
+
+def test_old_pinned_detail_is_rechecked_daily(db, source):
+    listed = _listed(pinned=True)
+    written = _write(db, source, listed, _detail(listed))
+    stored = db.get(m.SourceItem, written.item_id)
+    stored.last_detail_checked_at = datetime.now(UTC) - timedelta(days=2)
+    assert repo.detail_is_due(db, source_id=source.id, listed=listed)
 
 
 def _notice_for(db, written, title="공지 제목", body="본문"):

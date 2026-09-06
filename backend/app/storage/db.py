@@ -18,7 +18,7 @@ from app.storage.models import SchemaState, metadata
 
 # 코드가 기대하는 스키마 표시. 마이그레이션이 이 값을 올리고,
 # 수집 실행은 시작할 때 일치를 확인한 뒤에만 진행한다(17.1절 3항).
-EXPECTED_SCHEMA_VERSION = "0001"
+EXPECTED_SCHEMA_VERSION = "0002"
 SCHEMA_STATE_KEY = "schema_version"
 
 _engine: Engine | None = None

@@ -105,6 +105,11 @@ class Source(Strict):
     last_success_at: datetime | None = None
     history_from: date | None = None
     notice_count: int = 0
+    initial_window_start: date | None = None
+    backfill_status: str | None = None
+    backfill_complete: bool = False
+    backfill_oldest_date: date | None = None
+    last_scan_stop_reason: str | None = None
 
 
 # ---------------------------------------------------------------- 공지
@@ -254,6 +259,7 @@ class Catalog(Strict):
     source_statuses: list[Coded] = Field(default_factory=list)
     features: CatalogFeatures = Field(default_factory=CatalogFeatures)
     contract_version: str = "v1"
+    initial_window_start: date | None = None
 
 
 class SourceStatusLine(Strict):
@@ -262,6 +268,9 @@ class SourceStatusLine(Strict):
     status: Coded
     last_success_at: datetime | None = None
     consecutive_failures: int = 0
+    backfill_status: str | None = None
+    backfill_complete: bool = False
+    last_scan_stop_reason: str | None = None
 
 
 class RunStatus(Strict):
@@ -279,6 +288,9 @@ class RunStatus(Strict):
     sources_failing: int = 0
     notices_total: int = 0
     contacts_total: int = 0
+    initial_window_start: date | None = None
+    sources_backfill_complete: int = 0
+    sources_backfill_incomplete: int = 0
     sources: list[SourceStatusLine] = Field(default_factory=list)
 
 
@@ -292,6 +304,7 @@ class LatestPointer(Strict):
     notice_pages: int = 0
     notices_total: int = 0
     contacts_total: int = 0
+    initial_window_start: date | None = None
 
 
 class NoticePageFile(Strict):
@@ -321,3 +334,4 @@ class NoticeIndexFile(Strict):
     generated_at: datetime
     count: int
     entries: list[IndexEntry] = Field(default_factory=list)
+    shards: list[dict[str, str | int]] = Field(default_factory=list)

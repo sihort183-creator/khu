@@ -1,7 +1,7 @@
 "use client";
 // 이어보기(cursor) 공지 목록. SWR Infinite 위에 규격 2·8절의 페이지 규칙을 얹는다.
 // FEED_CHANGED(409)가 오면 이어보기 위치를 버리고 첫 페이지부터 다시 읽는다.
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import useSWRInfinite from "swr/infinite";
 import { listNotices, previewFeed } from "./api";
 import type { ApiError, FeedPreviewBody, ListResponse, Notice, NoticeQuery } from "./types";
@@ -27,21 +27,46 @@ export function useNoticeFeed(request: FeedRequest | null) {
   };
 
   const { data, error, size, setSize, isLoading, isValidating, mutate } = useSWRInfinite<ListResponse<Notice>, ApiError>(getKey, fetchPage, {
-    revalidateFirstPage: false,
-    revalidateOnFocus: false,
-    onError: (e) => {
-      if (e?.error?.code === "FEED_CHANGED") void mutate(undefined, { revalidate: true });
-    },
+    // 첫 페이지를 주기적으로 다시 읽어 latest 포인터가 바뀌었는지 확인한다.
+    // 페이지 개정이 바뀌면 아래 효과가 size를 1로 줄여 오래된 페이지와 섞이지 않게 한다.
+    revalidateFirstPage: true,
+    revalidateOnFocus: true,
+    refreshInterval: 60_000,
   });
 
   const pages = data ?? [];
-  const items = pages.flatMap((p) => p.data);
-  const last = pages[pages.length - 1];
+  const firstRevision = pages[0]?.page.dataset_revision;
+  const sameRevision = !firstRevision || pages.every((page) => page.page.dataset_revision === firstRevision);
+  const visiblePages = sameRevision ? pages : pages.slice(0, 1);
+  const items = visiblePages.flatMap((p) => p.data);
+  const last = visiblePages[visiblePages.length - 1];
   const hasNext = !!last?.page.has_next;
   const loadingMore = size > pages.length && isValidating;
 
+  const previousRevision = useRef<string | undefined>(firstRevision);
+  const resetting = useRef(false);
+  const resetToFirst = useCallback(async () => {
+    if (resetting.current) return;
+    resetting.current = true;
+    try {
+      await setSize(1);
+      await mutate(undefined, { revalidate: true });
+    } finally {
+      resetting.current = false;
+    }
+  }, [mutate, setSize]);
+
+  useEffect(() => {
+    if (firstRevision && previousRevision.current && firstRevision !== previousRevision.current) void resetToFirst();
+    previousRevision.current = firstRevision;
+  }, [firstRevision, resetToFirst]);
+
+  useEffect(() => {
+    if (error?.error?.code === "FEED_CHANGED") void resetToFirst();
+  }, [error, resetToFirst]);
+
   const more = useCallback(() => void setSize((s) => s + 1), [setSize]);
-  const retry = useCallback(() => void mutate(undefined, { revalidate: true }), [mutate]);
+  const retry = useCallback(() => void resetToFirst(), [resetToFirst]);
 
   return {
     items,

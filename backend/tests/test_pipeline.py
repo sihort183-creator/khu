@@ -342,6 +342,29 @@ def test_generated_at_is_timezone_aware(seeded, settings, store, board_fixture):
     assert parsed.astimezone(UTC) <= datetime.now(UTC)
 
 
+def test_search_shards_preserve_every_public_notice(seeded, settings, store, board_fixture, monkeypatch):
+    from app.export import static
+
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+    monkeypatch.setattr(static, "INDEX_SHARD_SIZE", 2)
+    result = export_static(settings, run_id="run-shards", store=store)
+    prefix = f"v1/r/{result.revision}"
+    manifest = json.loads(store.get_bytes(settings.r2.bucket_public, f"{prefix}/notices/index.json"))
+    assert manifest["count"] == 6
+    assert manifest["entries"] == []
+    ids = []
+    for shard in manifest["shards"]:
+        payload = json.loads(store.get_bytes(settings.r2.bucket_public, f"{prefix}/{shard['path']}"))
+        assert payload["revision"] == result.revision
+        assert payload["count"] == shard["count"]
+        ids.extend(entry["id"] for entry in payload["entries"])
+    expected = set(session.scalars(select(m.Notice.id).where(m.Notice.status == "visible")))
+    assert set(ids) == expected
+    assert len(ids) == len(expected)
+
+
 def test_budget_cut_run_does_not_mark_items_missing(seeded, settings, store, board_fixture):
     """시간이 모자라 목록을 끝까지 못 본 회차는 없어진 글을 세지 않는다.
 
