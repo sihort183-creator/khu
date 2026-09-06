@@ -1,8 +1,14 @@
 name: 조회 서버 배포
 
-# 손으로 눌러야만 배포한다. 밀어넣기만으로 자동 배포하지 않는다.
-# 조회 서버는 사용자가 실제로 보는 통로라 의도한 때에만 바뀌어야 한다.
+# main 에 조회 서버 코드가 올라가면 스스로 배포한다. 사람이 버튼을 누를 일을 만들지 않는다.
+# 배포 전에 검사를 다시 돌리고, 배포 뒤에는 중계가 학교 밖 주소를 막는지 확인한다.
 on:
+  # 해당 코드가 main 에 올라가면 스스로 배포한다. 사람이 누를 일을 만들지 않는다.
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - ".github/workflows/deploy-worker.yml"
   workflow_dispatch:
 
 concurrency:

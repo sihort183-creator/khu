@@ -78,6 +78,9 @@ jobs:
       KHU_OPTIMISTIC_DATE_BOUNDARY: ${{ vars.KHU_OPTIMISTIC_DATE_BOUNDARY || 'true' }}
       # 본문 그림 중계 주소. 비우면 상대 경로로 나가 화면 쪽 주소로 붙어 깨진다.
       KHU_PUBLIC_API_BASE: ${{ vars.KHU_PUBLIC_API_BASE }}
+      # 초기 수집 중에는 DB 가 시간당 수천 건씩 자란다. 한 시간에 한 번 공개하면
+      # 화면이 계속 서너 시간 낡은 것만 보여준다.
+      KHU_PUBLISH_SECONDS: ${{ vars.KHU_PUBLISH_SECONDS || '1200' }}
 
     steps:
       - uses: actions/checkout@v4

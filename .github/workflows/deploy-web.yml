@@ -1,10 +1,16 @@
 name: 화면 배포
 
-# 손으로 눌러야만 돈다. 기본은 빌드만 하고 배포하지 않는다.
-# 배포는 사용자가 보는 것을 바꾸는 일이라 의도한 때에만 나가야 한다.
+# main 에 화면 코드가 올라가면 스스로 배포한다. 사람이 버튼을 누를 일을 만들지 않는다.
+# 손으로 돌릴 때만 배포 여부를 고를 수 있게 남겨 둔다.
 #
 # OpenNext 는 Windows 에서 빌드되지 않는다(공식 경고). 그래서 빌드는 여기(리눅스)서 한다.
 on:
+  # 해당 코드가 main 에 올라가면 스스로 배포한다. 사람이 누를 일을 만들지 않는다.
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-web.yml"
   workflow_dispatch:
     inputs:
       deploy:
@@ -64,7 +70,8 @@ jobs:
           du -sh .open-next
 
       - name: 배포
-        if: inputs.deploy
+        # main 에 올라온 변경은 그대로 배포한다. 손으로 돌릴 때만 배포 여부를 고른다.
+        if: github.event_name == 'push' || inputs.deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.KHU_R2_ACCOUNT_ID }}

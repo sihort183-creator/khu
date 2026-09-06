@@ -126,7 +126,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--until", default=os.getenv("KHU_INITIAL_UNTIL", ""))
     parser.add_argument("--max-seconds", type=int, default=16200)
     parser.add_argument("--round-seconds", type=int, default=300)
-    parser.add_argument("--publish-seconds", type=int, default=3600)
+    # 초기 수집 동안에는 DB 가 시간당 수천 건씩 자라므로 한 시간에 한 번 공개하면
+    # 화면이 계속 낡은 것만 보여준다. 변수로 두어 상황에 맞게 줄인다.
+    parser.add_argument("--publish-seconds", type=int,
+        default=int(os.getenv("KHU_PUBLISH_SECONDS", "1200")))
     parser.add_argument("--result-file", default=".localstore/initial-result.json")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
