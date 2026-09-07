@@ -193,11 +193,15 @@ test("캠퍼스·매체 필터와 상위 조직 범위를 실제 색인 계약�
     { id: "college", t: "단과대 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-college"] },
     { id: "dept", t: "학과 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-dept"] },
     { id: "child", t: "하위 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-child"] },
+    { id: "alias", t: "별칭 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-alias"] },
+    { id: "sibling", t: "형제 학과 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-sibling"] },
   ];
   const organizations = page([
     { id: "org-college", name: "단과대", type: coded("college", "단과대"), parent_id: null, campuses: [{ id: "campus-seoul", name: "서울" }], has_children: true },
     { id: "org-dept", name: "학과", type: coded("department", "학과"), parent_id: "org-college", campuses: [{ id: "campus-seoul", name: "서울" }], has_children: true },
     { id: "org-child", name: "세부 조직", type: coded("office", "부서"), parent_id: "org-dept", campuses: [{ id: "campus-seoul", name: "서울" }], has_children: false },
+    { id: "org-alias", name: "학과(옛 이름)", type: coded("department", "학과"), parent_id: "org-dept", campuses: [{ id: "campus-seoul", name: "서울" }], has_children: false, is_alias: true },
+    { id: "org-sibling", name: "형제 학과", type: coded("department", "학과"), parent_id: "org-college", campuses: [{ id: "campus-seoul", name: "서울" }], has_children: false },
   ]);
   const sources = page([
     { id: "src-web", name: "웹 출처", organization: { id: "org-college", name: "단과대" }, medium: coded("web", "웹"), content_kind: coded("notice", "공지"), url: "https://example.test/web", status: coded("active", "정상"), status_message: null, last_success_at: null, initial_window_days: null },
@@ -217,14 +221,20 @@ test("캠퍼스·매체 필터와 상위 조직 범위를 실제 색인 계약�
   const api = await loadApi(fetchImpl);
   const filtered = await api.listNotices({ campus_id: ["campus-seoul"], medium: ["instagram"], limit: 20 });
   assert.deepEqual(filtered.data.map((item) => item.id), ["campus-ig"]);
-  // 조직을 고른 사람에게는 그 조직과 상위 조직 대상 공지만 보인다. 캠퍼스 전체 공지는
-  // 빼는데, 그것이 실제로는 학과 공지인 경우가 많기 때문이다 - 2026-09-07 운영 기준
-  // 캠퍼스 대상 1,546건 중 916건이 학과·단과대 게시판 글이었다. 캠퍼스 전체 공지는
-  // '전체 공지'에서 본다. 대상 분류가 정리되면 이 결정을 다시 볼 수 있다.
+  // 조직을 고르면 그 조직 + 그 아래 전부 + 그 위가 보인다(사용자 결정 2026-09-07).
+  // 아래를 합치지 않으면 단과대를 고른 사람의 홈이 비어 버린다 - 공지 대부분이
+  // 단과대가 아니라 학과 게시판에서 오기 때문이다. 별칭 조직도 부모로 이어져 딸려 온다.
+  // 위(상위)는 그대로 둔다: 학사·장학 같은 굵직한 공지가 위에서 나온다.
+  // 캠퍼스 전체 공지는 뺀다. 그것이 실제로는 학과 공지인 경우가 많기 때문이다 -
+  // 2026-09-07 운영 기준 캠퍼스 대상 1,546건 중 916건이 학과·단과대 게시판 글이었다.
   const preview = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: ["org-dept"], subscribed_source_ids: [], limit: 20 });
-  assert.deepEqual(Array.from(preview.data, (item) => item.id).sort(), ["college", "dept"]);
-  assert.equal(preview.data.some((item) => item.id === "child"), false);
+  assert.deepEqual(Array.from(preview.data, (item) => item.id).sort(), ["alias", "child", "college", "dept"]);
   assert.equal(preview.data.some((item) => item.id === "campus-web"), false);
+  // 상위를 얹는다고 그 상위의 다른 자식까지 딸려 오면 안 된다.
+  assert.equal(preview.data.some((item) => item.id === "sibling"), false);
+  // 단과대를 고르면 그 아래 학과·별칭 공지가 모두 들어온다.
+  const collegePreview = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: ["org-college"], subscribed_source_ids: [], limit: 20 });
+  assert.deepEqual(Array.from(collegePreview.data, (item) => item.id).sort(), ["alias", "child", "college", "dept", "sibling"]);
   const subscribed = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: [], subscribed_source_ids: ["src-ig"], limit: 20 });
   assert.equal(subscribed.data.some((item) => item.id === "global-ig"), false);
   const mediumPreview = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: [], subscribed_source_ids: [], filters: { medium: ["instagram"] }, limit: 20 });

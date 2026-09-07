@@ -66,8 +66,19 @@ export interface Organization {
   campuses?: Campus[];
   campus_id?: string | null;
   has_children: boolean;
-  /** 이 조직에 붙은 수집 게시판 수. 0이면 아직 볼 공지가 없다. */
+  /** 이 조직에 붙은 공개 게시판 수. 폐쇄·대기까지 센 값이라 "볼 공지가 있다"는 뜻은 아니다. */
   source_count?: number;
+  /**
+   * 지금 실제로 공지가 들어올 수 있는 게시판 수(폐쇄·대기·운영 중지 제외).
+   * 화면에서 조직을 감출지 판정할 때는 source_count 가 아니라 이 값을 본다.
+   * 예전 공개 파일에는 없으므로 없으면 source_count 로 갈음한다.
+   */
+  active_source_count?: number;
+  /**
+   * true면 이 조직은 parent_id 조직의 다른 이름이다(예: 미디어학과 = 언론정보학과).
+   * 트리에는 그리지 않고, 게시판 수·공지 수를 부모 줄에 합쳐 보여 준다.
+   */
+  is_alias?: boolean;
 }
 
 /* ---------- notice ---------- */

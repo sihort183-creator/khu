@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Organization, OrgType } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
+import { drawnOrgIds } from "@/lib/orgTree";
 import { campusOptions } from "@/lib/campus";
 import { IconSearch } from "./icons";
 
@@ -18,11 +19,33 @@ export function Onboarding() {
   return <OnboardingDialog />;
 }
 
-/** 게시판이 붙은 곳을 위로. 아무 공지도 오지 않는 이름만 늘어놓으면 고를 수가 없다. */
-function byUsefulness(list: Organization[], type: OrgType) {
+/** 폐쇄·대기를 뺀 게시판 수. 폐쇄된 게시판을 "게시판 4"로 보여 주면 거짓말이 된다. */
+function liveBoards(o: Organization) {
+  return o.active_source_count ?? o.source_count ?? 0;
+}
+
+/**
+ * 조직별로 화면에 적을 게시판 수. 별칭 조직(같은 곳의 다른 이름)의 것은 본체에 합친다.
+ * 목록에는 본체 한 줄만 나오므로, 합치지 않으면 게시판이 있는 학과가 "0"으로 보인다.
+ */
+function boardsByOrg(orgs: Organization[]): Map<string, number> {
+  const drawn = drawnOrgIds(orgs, new Map(orgs.map((o) => [o.id, o])));
+  const out = new Map<string, number>();
+  for (const org of orgs) {
+    const id = drawn.get(org.id) ?? org.id;
+    out.set(id, (out.get(id) ?? 0) + liveBoards(org));
+  }
+  return out;
+}
+
+/**
+ * 게시판이 붙은 곳을 위로. 아무 공지도 오지 않는 이름만 늘어놓으면 고를 수가 없다.
+ * 별칭 조직은 빼서 같은 학과가 두 번 나오지 않게 한다.
+ */
+function byUsefulness(list: Organization[], type: OrgType, boards: Map<string, number>) {
   return list
-    .filter((o) => o.type.code === type)
-    .sort((a, b) => (b.source_count ?? 0) - (a.source_count ?? 0) || a.name.localeCompare(b.name, "ko"));
+    .filter((o) => o.type.code === type && !o.is_alias)
+    .sort((a, b) => (boards.get(b.id) ?? 0) - (boards.get(a.id) ?? 0) || a.name.localeCompare(b.name, "ko"));
 }
 
 function OnboardingDialog() {
@@ -41,8 +64,9 @@ function OnboardingDialog() {
     };
   }, []);
 
-  const colleges = useMemo(() => byUsefulness(orgs, "college"), [orgs]);
-  const departments = useMemo(() => byUsefulness(orgs, "department"), [orgs]);
+  const boards = useMemo(() => boardsByOrg(orgs), [orgs]);
+  const colleges = useMemo(() => byUsefulness(orgs, "college", boards), [orgs, boards]);
+  const departments = useMemo(() => byUsefulness(orgs, "department", boards), [orgs, boards]);
   const loaded = !!catalog && orgs.length > 0;
 
   const keyword = q.trim().toLowerCase();
@@ -113,7 +137,7 @@ function OnboardingDialog() {
           visible(colleges).map((c) => (
             <Opt
               key={c.id}
-              sub={c.source_count ? `게시판 ${c.source_count}` : ""}
+              sub={boards.get(c.id) ? `게시판 ${boards.get(c.id)}` : ""}
               onClick={() => {
                 setCollege(c.id);
                 setQ("");
@@ -127,7 +151,7 @@ function OnboardingDialog() {
         {loaded &&
           step === 2 &&
           visible(departments).map((d) => (
-            <Opt key={d.id} sub={d.source_count ? `게시판 ${d.source_count}` : ""} onClick={() => finish(d.id)}>
+            <Opt key={d.id} sub={boards.get(d.id) ? `게시판 ${boards.get(d.id)}` : ""} onClick={() => finish(d.id)}>
               {d.name}
             </Opt>
           ))}

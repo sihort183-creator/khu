@@ -56,6 +56,7 @@ const O = (
   parent_id: string | null,
   campus_id: string | null,
   has_children = false,
+  is_alias = false,
 ): Organization => ({
   id,
   name,
@@ -63,6 +64,7 @@ const O = (
   parent_id,
   campus_id,
   has_children,
+  is_alias,
 });
 
 export const organizations: Organization[] = [
@@ -81,7 +83,10 @@ export const organizations: Organization[] = [
   O("org-econ", "경제학과", "department", "org-sma", "campus-seoul"),
   O("org-soc", "사회학과", "department", "org-sma", "campus-seoul"),
   O("org-trade", "무역학과", "department", "org-sma", "campus-seoul"),
-  O("org-media", "미디어학과", "department", "org-sma", "campus-seoul"),
+  O("org-media", "미디어학과", "department", "org-sma", "campus-seoul", true),
+  // 별칭: 같은 학과가 옛 이름으로 한 번 더 등록된 것. 트리에 줄을 만들지 않고
+  // 게시판 수·공지 수를 미디어학과 줄에 합쳐 보여 준다.
+  O("org-media-old", "언론정보학과", "department", "org-media", "campus-seoul", false, true),
   O("org-biz-ba", "경영학과", "department", "org-biz", "campus-seoul"),
   O("org-hum-kor", "국어국문학과", "department", "org-hum", "campus-seoul"),
   // 서울 기관
@@ -164,7 +169,19 @@ export const sources: Source[] = [
   S("src-me-web", "기계공학과 홈페이지", "org-me", WEB, ["paused", "운영 중지"], "2026-08-20T00:45:00Z", {
     status_message: "게시판 구조 변경으로 어댑터를 점검 중입니다.",
   }),
+  // 별칭 조직에 달린 게시판. 화면에는 미디어학과 줄 하나로만 나와야 한다.
+  S("src-media-old-web", "언론정보학과 홈페이지", "org-media-old", WEB, ACTIVE, "2026-09-06T00:45:00Z"),
 ];
+
+// 게시판 수는 등록부에서 세어 온 값이다. 공개 파일이 주는 것과 같은 방식으로 채워
+// 화면 판정(감출지 말지)이 가상 자료에서도 실제와 같게 돌게 한다.
+// 폐쇄·대기·운영 중지는 active 에서 뺀다. 접근 제한은 받아 둔 공지가 남아 있으므로 넣는다.
+const LIVE_STATUS = new Set(["active", "delayed", "blocked"]);
+for (const org of organizations) {
+  const own = sources.filter((s) => s.organization.id === org.id);
+  org.source_count = own.length;
+  org.active_source_count = own.filter((s) => LIVE_STATUS.has(s.status.code)).length;
+}
 const SRC = Object.fromEntries(sources.map((s) => [s.id, s]));
 
 /* ---------- notices ---------- */
@@ -459,6 +476,18 @@ const seeds: Seed[] = [
     date: "2026-08-20",
     visible: "2026-08-20T01:00:00Z",
     body: "9/25 공학관 대강당",
+  },
+  {
+    // 별칭 조직이 대상인 공지. 트리에서는 미디어학과 줄에 얹혀야 하고,
+    // 미디어학과를 고르면 홈에도 나와야 한다.
+    id: "n-023",
+    title: "언론정보학과 졸업논문 제출 안내",
+    cat: "academic",
+    aud: [{ type: "organization", id: "org-media-old", name: "언론정보학과" }],
+    src: "src-media-old-web",
+    date: "2026-09-02",
+    visible: "2026-09-02T02:00:00Z",
+    body: "제출기한: 2026.10.15(수) 17:00\n제출처: 학과 사무실",
   },
 ];
 

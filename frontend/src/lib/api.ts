@@ -447,9 +447,29 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
     ? await staticOrganizations(pointer)
     : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
-  // 맞춤 목록은 선택 조직 자체와 그 상위 조직만 포함한다. 상위 조직을
-  // 선택했다고 자식 조직 전체를 자동 구독시키면 범위가 과도하게 넓어진다.
+  // 고른 조직 + 그 아래 조직 전부 + 그 위 조직.
+  //
+  // 아래(자손): 사용자 결정 2026-09-07. "상위 조직을 고르면 그 하위 조직 공지가 전부
+  // 보인다." 단과대를 골랐는데 홈이 비어 있던 원인이 이것이었다 — 공지 대부분은
+  // 단과대가 아니라 학과 게시판에서 온다. 전체 목록(/all)은 이미 그렇게 돌고 있었다.
+  // 별칭 조직도 parent_id 로 이어져 있어 이 확장에 함께 딸려 온다.
+  //
+  // 위(조상): 그대로 둔다. 학과를 고른 사람에게 그 단과대·대학 공지가 보이는 것은
+  // 사용자가 원래 원하던 동작이고, 학사·장학 같은 굵직한 공지가 대개 위에서 나온다.
+  //
+  // 순서가 중요하다. 자손을 먼저 넓히고 그다음에 조상을 얹는다. 뒤집으면 조상의
+  // 자손까지 딸려 들어와, 행정학과를 고른 사람에게 정경대학 전 학과가 쏟아진다.
   const organizationIds = new Set(body.organization_ids);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const organization of organizations) {
+      if (organization.parent_id && organizationIds.has(organization.parent_id) && !organizationIds.has(organization.id)) {
+        organizationIds.add(organization.id);
+        grew = true;
+      }
+    }
+  }
   for (const selectedId of body.organization_ids) {
     let current = organizationMap.get(selectedId);
     const seen = new Set<string>();
@@ -702,15 +722,14 @@ export async function getNotice(id: string): Promise<ItemResponse<NoticeDetail>>
   return { data: d, meta: meta() };
 }
 
-/** 비회원 맞춤 조회: 선택 캠퍼스 + 소속 조직(상위 포함) + 구독 출처 */
+/** 비회원 맞춤 조회: 선택 캠퍼스 + 소속 조직(하위·상위 포함) + 구독 출처 */
 export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<Notice>> {
   if (!useMock) return staticPreview(body);
   await delay(140);
+  // staticPreview 와 같은 규칙: 자손 전부 + 고른 것의 조상. 조상의 자손은 넣지 않는다.
   const orgScope = new Set<string>();
-  for (const id of body.organization_ids) {
-    orgScope.add(id);
-    ancestorIds(id).forEach((x) => orgScope.add(x));
-  }
+  for (const id of body.organization_ids) descendantIds(id).forEach((x) => orgScope.add(x));
+  for (const id of body.organization_ids) ancestorIds(id).forEach((x) => orgScope.add(x));
   const subs = new Set(body.subscribed_source_ids);
   let list = M.notices.filter((n) => {
     if (!matchesCampus(n, body.campus_id ? [body.campus_id] : [])) return false;

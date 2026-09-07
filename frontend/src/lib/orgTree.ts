@@ -26,8 +26,16 @@ export interface OrgNode {
   /** 경희대학교가 0. 화면 들여쓰기에 그대로 쓴다. */
   depth: number;
   organization: Organization | null;
+  /** 이 줄에 합쳐진 공개 게시판 수. 자기 것 + 그리지 않은 별칭 조직 것. */
+  sourceCount: number;
+  /** 그중 지금 공지가 들어올 수 있는 것(폐쇄·대기 제외). 감출지 판정은 이 값으로 한다. */
+  activeSourceCount: number;
   children: OrgNode[];
 }
+
+const sourceCountOf = (org: Organization) => org.source_count ?? 0;
+/** 옛 공개 파일에는 active_source_count 가 없다. 없으면 전체 수로 갈음한다(감추지 않는 쪽). */
+const activeSourceCountOf = (org: Organization) => org.active_source_count ?? org.source_count ?? 0;
 
 /** 같은 단계에서는 단과대를 위로. 목업의 세로 순서(단과대 → 학과 → 그 밖)와 같다. */
 const TYPE_RANK: Record<string, number> = { college: 0, department: 1, council: 2, office: 3, institute: 4 };
@@ -45,9 +53,40 @@ function inCycle(org: Organization, byId: Map<string, Organization>): boolean {
   return false;
 }
 
-function parentKeyOf(org: Organization, byId: Map<string, Organization>, campusIds: Set<string>): string {
+/**
+ * 조직 id → 화면에 실제로 그려지는 조직 id.
+ *
+ * 별칭(`is_alias`)은 같은 조직이 두 이름으로 등록된 것이라 트리에 두 줄로 나오면 안 된다.
+ * 그래서 별칭은 자기 부모(=본체)로 접어 넣는다. 별칭이 겹쳐 있으면 본체를 만날 때까지
+ * 올라간다. 부모를 명부에서 못 찾으면 접을 곳이 없으므로 **그 줄은 그대로 그린다** —
+ * 접을 데가 없다는 이유로 조직을 통째로 잃는 것이 더 나쁘다.
+ */
+export function drawnOrgIds(orgs: Organization[], byId: Map<string, Organization>): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const org of orgs) {
+    let current: Organization = org;
+    const seen = new Set<string>([org.id]);
+    while (current.is_alias && current.parent_id && !seen.has(current.parent_id)) {
+      const parent = byId.get(current.parent_id);
+      if (!parent) break;
+      seen.add(parent.id);
+      current = parent;
+    }
+    out.set(org.id, current.id);
+  }
+  return out;
+}
+
+function parentKeyOf(
+  org: Organization,
+  byId: Map<string, Organization>,
+  campusIds: Set<string>,
+  drawn: Map<string, string>,
+): string {
   if (org.parent_id && org.parent_id !== org.id && byId.has(org.parent_id) && !inCycle(org, byId)) {
-    return orgKey(org.parent_id);
+    // 부모가 별칭이면 본체 줄에 붙인다. 별칭 줄은 그려지지 않으므로 그대로 두면 고아가 된다.
+    const parentId = drawn.get(org.parent_id) ?? org.parent_id;
+    if (parentId !== org.id) return orgKey(parentId);
   }
   const campuses = org.campuses ?? (org.campus_id ? [{ id: org.campus_id, name: "" }] : []);
   // 캠퍼스가 정확히 하나일 때만 그 밑으로 내린다. 없거나 둘 다면 대학 바로 밑이다.
@@ -76,22 +115,31 @@ export function campusList(orgs: Organization[], campuses: Campus[] | undefined)
 
 export function buildOrgTree(orgs: Organization[], campuses: Campus[] | undefined): OrgNode {
   const byId = new Map(orgs.map((o) => [o.id, o]));
+  const drawn = drawnOrgIds(orgs, byId);
   const campusRows = campusList(orgs, campuses);
   const campusIds = new Set(campusRows.map((c) => c.id));
 
-  const root: OrgNode = { key: ROOT_KEY, kind: "root", id: null, name: ROOT_NAME, depth: 0, organization: null, children: [] };
+  const root: OrgNode = { key: ROOT_KEY, kind: "root", id: null, name: ROOT_NAME, depth: 0, organization: null, sourceCount: 0, activeSourceCount: 0, children: [] };
   const nodes = new Map<string, OrgNode>([[ROOT_KEY, root]]);
   const campusNodes = campusRows.map((campus) => {
-    const node: OrgNode = { key: campusKey(campus.id), kind: "campus", id: null, name: campus.name || campus.id, depth: 1, organization: null, children: [] };
+    const node: OrgNode = { key: campusKey(campus.id), kind: "campus", id: null, name: campus.name || campus.id, depth: 1, organization: null, sourceCount: 0, activeSourceCount: 0, children: [] };
     nodes.set(node.key, node);
     return node;
   });
+  // 별칭은 줄을 만들지 않는다. 대신 게시판 수를 본체 줄에 얹는다(아래 합산).
+  const drawnOrgs = orgs.filter((org) => drawn.get(org.id) === org.id);
+  for (const org of drawnOrgs) {
+    nodes.set(orgKey(org.id), { key: orgKey(org.id), kind: "org", id: org.id, name: org.name, depth: 0, organization: org, sourceCount: 0, activeSourceCount: 0, children: [] });
+  }
   for (const org of orgs) {
-    nodes.set(orgKey(org.id), { key: orgKey(org.id), kind: "org", id: org.id, name: org.name, depth: 0, organization: org, children: [] });
+    const node = nodes.get(orgKey(drawn.get(org.id) ?? org.id));
+    if (!node) continue;
+    node.sourceCount += sourceCountOf(org);
+    node.activeSourceCount += activeSourceCountOf(org);
   }
 
-  for (const org of orgs) {
-    const parent = nodes.get(parentKeyOf(org, byId, campusIds)) ?? root;
+  for (const org of drawnOrgs) {
+    const parent = nodes.get(parentKeyOf(org, byId, campusIds, drawn)) ?? root;
     parent.children.push(nodes.get(orgKey(org.id))!);
   }
   // 깊이를 매기기 전에 캠퍼스도 대학의 자식으로 붙여 둔다. 빠뜨리면 캠퍼스 밑의
@@ -103,7 +151,7 @@ export function buildOrgTree(orgs: Organization[], campuses: Campus[] | undefine
     node.children.sort(
       (a, b) =>
         rankOf(a.organization) - rankOf(b.organization)
-        || (b.organization?.source_count ?? 0) - (a.organization?.source_count ?? 0)
+        || b.sourceCount - a.sourceCount
         || a.name.localeCompare(b.name, "ko"),
     );
     for (const child of node.children) sortChildren(child, depth + 1);
@@ -121,16 +169,18 @@ export function buildOrgTree(orgs: Organization[], campuses: Campus[] | undefine
  */
 export function nodeKeyChains(orgs: Organization[], campuses: Campus[] | undefined): Map<string, string[]> {
   const byId = new Map(orgs.map((o) => [o.id, o]));
+  const drawn = drawnOrgIds(orgs, byId);
   const campusIds = new Set(campusList(orgs, campuses).map((c) => c.id));
   const chains = new Map<string, string[]>();
   for (const org of orgs) {
     const keys: string[] = [];
     const seen = new Set<string>();
-    let current: Organization | undefined = org;
+    // 별칭 조직의 공지는 본체 줄에 얹힌다. 별칭 줄은 트리에 없기 때문이다.
+    let current: Organization | undefined = byId.get(drawn.get(org.id) ?? org.id) ?? org;
     while (current && !seen.has(current.id)) {
       seen.add(current.id);
       keys.push(orgKey(current.id));
-      const parent = parentKeyOf(current, byId, campusIds);
+      const parent = parentKeyOf(current, byId, campusIds, drawn);
       if (parent === ROOT_KEY) break;
       if (parent.startsWith("campus:")) {
         keys.push(parent);

@@ -33,6 +33,13 @@ function matches(node: OrgNode, keyword: string) {
   return node.name.toLowerCase().includes(keyword);
 }
 
+/** 트리에 실제로 줄이 생기는 조직 수. 별칭은 줄이 없으므로 여기서도 세지 않는다. */
+function countOrgNodes(node: OrgNode): number {
+  let n = node.kind === "org" ? 1 : 0;
+  for (const child of node.children) n += countOrgNodes(child);
+  return n;
+}
+
 export function OrganizationPicker({ selected, onToggle, onClear, dense = false }: Props) {
   const orgs = useOrganizations();
   const catalog = useCatalog();
@@ -73,8 +80,14 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
       if (node.kind !== "org" || !node.id) return false;
       if (keyword) return matches(node, keyword);
       if (selected.has(node.id)) return true;
+      // 단과대는 게시판도 공지도 없을 때조차 늘 보인다(사용자 결정 2026-09-07).
+      // "단과대는 공지가 아예 안 올라와도 목록에는 있어야 한다"는 요구다. 지금 화면에서
+      // 사라지던 단과대가 13곳이었다(docs/단과대_학과_수집_전수조사.md 6절).
+      if (node.organization?.type.code === "college") return true;
       if (showEmpty) return true;
-      return (node.organization?.source_count ?? 0) > 0 || (counts?.byKey.get(node.key) ?? 0) > 0;
+      // 폐쇄·대기 게시판은 세지 않는다. 정경대학은 게시판 4개가 전부 폐쇄인데도
+      // source_count 로는 4라서 목록에 남았고, 골라 보면 0건이었다.
+      return node.activeSourceCount > 0 || (counts?.byKey.get(node.key) ?? 0) > 0;
     };
     const walk = (node: OrgNode): OrgNode | null => {
       const children = node.children.map(walk).filter((child): child is OrgNode => child !== null);
@@ -129,16 +142,11 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
 
   const selectedOrgs = orgs.filter((o) => selected.has(o.id));
   // 접혀 있는 것은 숨긴 것이 아니다. 남긴 가지에 든 조직 수로 센다.
-  const keptOrgs = useMemo(() => {
-    let n = 0;
-    const walk = (node: OrgNode) => {
-      if (node.kind === "org") n += 1;
-      for (const child of node.children) walk(child);
-    };
-    walk(pruned);
-    return n;
-  }, [pruned]);
-  const hiddenOrgs = orgs.length - keptOrgs;
+  // 별칭 조직은 애초에 트리에 줄이 없다. orgs.length 로 빼면 "숨은 곳"이 부풀어
+  // 눌러도 나오지 않는 곳이 생긴다. 그래서 자르기 전 트리의 줄 수로 센다.
+  const totalOrgs = useMemo(() => countOrgNodes(tree), [tree]);
+  const keptOrgs = useMemo(() => countOrgNodes(pruned), [pruned]);
+  const hiddenOrgs = totalOrgs - keptOrgs;
 
   // 촘촘한 좌측 열(220px)에서는 들여쓰기와 여백을 줄여야 이름이 덜 접힌다.
   const step = dense ? 9 : 12;
@@ -251,7 +259,8 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
                 );
               }
 
-              const boards = node.organization?.source_count ?? 0;
+              // 별칭 조직 것까지 합친 수. 폐쇄·대기만 남은 조직은 0이 되어 "준비 중"이 붙는다.
+              const boards = node.activeSourceCount;
               return (
                 <li key={node.key}>
                   <div className={`flex items-center ${padX} ${rowMin} ${dense ? "py-1" : "py-1.5"} ${on ? "bg-[#FBF0F0]" : "hover:bg-bg"}`}>
