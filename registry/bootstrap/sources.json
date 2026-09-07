@@ -11815,6 +11815,30 @@
    ],
    "official_evidence_url": "https://smartfarmsci.khu.ac.kr/smartfarm/user/bbs/BMSR00040/list.do?menuNo=9400021",
    "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "ce25-BMSR00040-21600020",
+   "name": "컴퓨터공학부 취업정보/홍보",
+   "organization": "org-ce25",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://ce.khu.ac.kr",
+    "prefix": "ce25",
+    "board_code": "BMSR00040",
+    "menu_no": "21600020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-ce25"
+    }
+   ],
+   "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600020",
+   "notes": "2026-09-07 전수조사 5-2: 원문 10건 정상(최근 2026-09-04). 옛 등록부에서 빠져 폐쇄됐던 것을 되살린다."
   }
  ]
 }

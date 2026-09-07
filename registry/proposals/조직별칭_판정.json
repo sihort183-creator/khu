@@ -281,6 +281,20 @@
    "child_key": "org-che",
    "child_name": "경희대학교 생활과학대학",
    "evidence": "2-1절 표 '생활과학대학 | office | 0 | 중복. 실체는 경희대학교 생활과학대학(college, 6)'"
+  },
+  {
+   "parent_key": "orgc-992a1acb07ed",
+   "parent_name": "전자공학",
+   "child_key": "org-ee25",
+   "child_name": "전자공학부",
+   "evidence": "3절 표 '전자정보대학 | 전자공학부 | 게시판은 있는데 이 조직에 안 붙어 있다'. 등록부가 ee.khu.ac.kr 게시판을 org-ee25(전자공학부)에 붙이므로 그 조직을 전화번호 명부 조직 전자공학의 별칭으로 둔다(2026-09-07 메인 세션)"
+  },
+  {
+   "parent_key": "orgc-18e30cc074ac",
+   "parent_name": "컴퓨터공학",
+   "child_key": "org-ce25",
+   "child_name": "컴퓨터공학부",
+   "evidence": "3절 표 '소프트웨어융합대학 | 컴퓨터공학부 | 게시판은 있는데 이 조직에 안 붙어 있다'. 등록부가 ce.khu.ac.kr 게시판을 org-ce25(컴퓨터공학부)에 붙이므로 전화번호 명부 조직 컴퓨터공학의 별칭으로 둔다(2026-09-07 메인 세션)"
   }
  ],
  "parent_fixes": [

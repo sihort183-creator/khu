@@ -237,13 +237,14 @@
    "key": "org-ce25",
    "name": "컴퓨터공학부",
    "type": "department",
-   "parent": "org-software25",
+   "parent": "orgc-18e30cc074ac",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://ce.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://"
+   "evidence_url": "https://",
+   "alias_of": "orgc-18e30cc074ac"
   },
   {
    "key": "org-che",
@@ -496,13 +497,14 @@
    "key": "org-ee25",
    "name": "전자공학부",
    "type": "department",
-   "parent": "org-eni25",
+   "parent": "orgc-992a1acb07ed",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://ee.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://"
+   "evidence_url": "https://",
+   "alias_of": "orgc-992a1acb07ed"
   },
   {
    "key": "org-eng_kor",
