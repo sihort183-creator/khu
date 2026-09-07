@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from app.domain import ids
 from app.domain.audiences import AudienceDecision, AudienceTarget
 from app.domain.categories import CategoryDecision
-from app.domain.dates import DeadlineGuess, ParsedDate, utcnow
+from app.domain.dates import DeadlineGuess, ParsedDate, parse_published, utcnow
 from app.domain.dedupe import content_hash as make_content_hash
 from app.ingestion.base import FetchedDetail, ListedItem
 from app.ingestion.sanitize import make_excerpt
@@ -424,7 +424,16 @@ def detail_is_due(
     if current.title != listed.title or bool(item.is_pinned) != bool(listed.is_pinned):
         return True
     if listed.published_raw and current.published_raw and listed.published_raw.strip() != current.published_raw.strip():
-        return True
+        # 목록과 상세가 같은 날짜를 다른 표기로 준다. 경희 공통 게시판(khu_board)의
+        # 목록은 "2026-07-14", 상세는 "2026-07-14 12:54:28.0" 을 준다. 저장된 값은
+        # 상세에서 온 것이므로 글자 그대로 비교하면 영원히 "발행일이 바뀌었다" 가 되어
+        # 이미 가진 글의 상세를 회차마다 다시 받는다. 2026-09-07 운영 실측으로
+        # 3시간 동안 기존 글 상세 재요청 2,859건이 났고 그중 내용이 실제로 달라진 것은
+        # 16건뿐이었다. 날짜가 같으면 표기 차이로 보고 다시 받지 않는다.
+        # 날짜를 읽지 못하는 표기는 예전처럼 변화로 본다(놓치는 쪽보다 더 받는 쪽).
+        listed_date = parse_published(listed.published_raw).date
+        if listed_date is None or current.published_date is None or listed_date != current.published_date:
+            return True
     if item.last_detail_checked_at is None:
         return True
     published = current.published_date

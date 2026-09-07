@@ -439,3 +439,92 @@ def test_board_read_to_the_end_finishes_even_if_details_never_open(
         run(db, source, settings, store, board, monkeypatch)
         assert all(row.last_detail_error is None for row in db.scalars(select(m.SourceItem)))
         assert health.backfill_complete is True
+
+
+class TimestampBoard(Board):
+    """목록은 날짜만, 상세는 시각까지 주는 게시판.
+
+    경희 공통 게시판(khu_board)이 실제로 이렇다. 목록 "2026-08-01",
+    상세 "2026-08-01 12:54:28.0".
+    """
+
+    async def detail(self, fetcher, config, listed):
+        detail = await super().detail(fetcher, config, listed)
+        raw = f"{listed.published_raw} 12:54:28.0" if listed.published_raw else None
+        return replace(detail, published_raw=raw)
+
+
+def test_list_date_only_notation_does_not_refetch_known_details(
+    session_factory, settings, store, monkeypatch
+):
+    """목록의 날짜 표기가 저장된 상세 표기와 달라도 같은 날짜면 다시 받지 않는다.
+
+    2026-09-07 운영 실측: khu_board 출처의 이력 12,742/13,863 건이 상세에서 온
+    "2026-07-14 12:54:28.0" 꼴을 들고 있고 목록은 "2026-07-14" 만 준다.
+    글자 그대로 비교하던 예전 판정은 이것을 매번 "발행일이 바뀌었다" 로 읽어
+    이미 가진 글의 상세를 회차마다 다시 받았다. 3시간 동안 기존 글 재요청 2,859건,
+    그중 내용이 실제로 달라진 것은 16건이었다.
+    """
+    settings = replace(settings, list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = TimestampBoard({1: [item(1), item(2)]})
+        run(db, source, settings, store, board, monkeypatch)
+        assert board.read_details == ["1", "2"]
+
+        board.read_details.clear()
+        run(db, source, settings, store, board, monkeypatch)
+        assert board.read_details == []
+        # 글은 그대로 남아 있다. 덜 받았다고 빠지지 않는다.
+        assert {i.external_id for i in db.scalars(select(m.SourceItem))} == {"1", "2"}
+
+
+def test_changed_publish_date_still_refetches(session_factory, settings, store, monkeypatch):
+    """진짜로 날짜가 바뀐 글은 예전대로 다시 받는다."""
+    settings = replace(settings, list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = TimestampBoard({1: [item(1, "2026-08-01")]})
+        run(db, source, settings, store, board, monkeypatch)
+        board.read_details.clear()
+        board.pages = {1: [item(1, "2026-08-02")]}
+        run(db, source, settings, store, board, monkeypatch)
+        assert board.read_details == ["1"]
+
+
+def test_unreadable_list_date_still_refetches(session_factory, settings, store, monkeypatch):
+    """날짜를 읽을 수 없는 표기는 예전대로 변화로 본다. 덜 받는 쪽으로 기울지 않는다."""
+    settings = replace(settings, list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = TimestampBoard({1: [item(1, "2026-08-01")]})
+        run(db, source, settings, store, board, monkeypatch)
+        board.read_details.clear()
+        board.pages = {1: [item(1, "어제")]}
+        run(db, source, settings, store, board, monkeypatch)
+        assert board.read_details == ["1"]
+
+
+def test_timestamped_board_backfills_without_skipping_any_item(
+    session_factory, settings, store, monkeypatch
+):
+    """상세가 시각을 주는 게시판도 예산 안에서 끝까지 읽고 한 글도 빠뜨리지 않는다.
+
+    2026-09-07 운영에서 이런 게시판 여섯 곳이 회차마다 시간 상한에 걸려 커서가
+    다섯 쪽에 못 박혀 있었다. 이미 가진 글의 상세를 다시 받느라 예산을 다 쓴 탓이다.
+    한 회차에 한 쪽만 넘길 수 있게 조여 두고 여러 회차를 돌려, 진행 위치가 앞으로만
+    가고 어느 글도 건너뛰지 않는지 고정한다.
+    """
+    settings = replace(settings, list_page_limit=1, initial_window_start=None)
+    with session_factory() as db:
+        source = _seed(db)
+        board = TimestampBoard({page: [item(page * 10 + n) for n in range(3)] for page in range(1, 7)})
+        expected = {str(page * 10 + n) for page in range(1, 7) for n in range(3)}
+        for _ in range(12):
+            result = run(db, source, settings, store, board, monkeypatch)
+            if result.backfill_complete:
+                break
+        assert result.backfill_complete
+        assert {i.external_id for i in db.scalars(select(m.SourceItem))} == expected
+        # 각 글의 상세는 딱 한 번씩만 받는다(고정 글·실패 글은 없다).
+        assert sorted(board.read_details) == sorted(expected)
