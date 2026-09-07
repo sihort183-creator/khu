@@ -728,6 +728,18 @@ def export_static(
                 .group_by(m.Source.organization_id)
             ).all()
         )
+        # 폐쇄·대기·운영 중지를 뺀 수. 화면은 이 값으로 "아직 볼 것이 없는 조직"을 가린다.
+        # (정경대학은 출처 4개가 전부 폐쇄인데 source_count 로는 4로 세어져 살아남았다.)
+        active_source_counts = dict(
+            session.execute(
+                select(m.Source.organization_id, func.count(m.Source.id))
+                .where(
+                    m.Source.is_public.is_(True),
+                    m.Source.status.in_(("active", "delayed", "blocked")),
+                )
+                .group_by(m.Source.organization_id)
+            ).all()
+        )
         org_campuses: dict[str, list[api.Campus]] = {}
         for org_id, campus_id, name in session.execute(
             select(m.OrganizationCampus.organization_id, m.Campus.id, m.Campus.name).join(
@@ -747,6 +759,8 @@ def export_static(
                 path=org_paths.get(o.id, [o.name]),
                 has_children=bool(child_counts.get(o.id)),
                 source_count=int(source_counts.get(o.id, 0)),
+                active_source_count=int(active_source_counts.get(o.id, 0)),
+                is_alias=bool(getattr(o, "is_alias", False)),
             )
             for o in session.execute(
                 select(m.Organization).where(m.Organization.is_active.is_(True)).order_by(m.Organization.name)

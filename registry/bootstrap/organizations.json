@@ -9,9 +9,10 @@
    "news.khu.ac.kr",
    "www.khu.ac.kr"
   ],
-  "note": "조직 이름은 학교가 공개한 사이트 명부(sites.json)의 사이트 이름에서 가져왔다. 명부에 없는 사이트는 페이지 제목을 썼고, 그마저 없으면 needs_review 로 두고 이름을 지어내지 않았다. parent 와 campus_codes 는 학교 공식 \"대학\" 목록표(menuNo=200105)와 공식 \"부서 소개\" 명부(menuNo=200355, 493행)로만 채웠다. 확인하지 못한 조직은 비워 두었다. 판정 근거는 registry/proposals/조직계층_판정.json 에 있다. 2026-09-07: 연락처 가져오기(app.ops.cli contacts import)가 만든 조직 343개를 등록부에 올리고 캠퍼스를 붙였다. 근거는 공식 '부서 소개' 명부(menuNo=200355, 493행)와 공식 '교내 전화번호 안내' 서울(200091)·국제(200092)이며, 조직마다 registry/proposals/조직캠퍼스_판정.json 에 남겼다. 상위 없이(parent=null) 올려 조직 식별자가 연락처 가져오기가 쓴 값과 같도록 했다(organizations 행이 늘지 않는다).",
+  "note": "조직 이름은 학교가 공개한 사이트 명부(sites.json)의 사이트 이름에서 가져왔다. 명부에 없는 사이트는 페이지 제목을 썼고, 그마저 없으면 needs_review 로 두고 이름을 지어내지 않았다. parent 와 campus_codes 는 학교 공식 \"대학\" 목록표(menuNo=200105)와 공식 \"부서 소개\" 명부(menuNo=200355, 493행)로만 채웠다. 확인하지 못한 조직은 비워 두었다. 판정 근거는 registry/proposals/조직계층_판정.json 에 있다. 2026-09-07: 연락처 가져오기(app.ops.cli contacts import)가 만든 조직 343개를 등록부에 올리고 캠퍼스를 붙였다. 근거는 공식 '부서 소개' 명부(menuNo=200355, 493행)와 공식 '교내 전화번호 안내' 서울(200091)·국제(200092)이며, 조직마다 registry/proposals/조직캠퍼스_판정.json 에 남겼다. 상위 없이(parent=null) 올려 조직 식별자가 연락처 가져오기가 쓴 값과 같도록 했다(organizations 행이 늘지 않는다). 2026-09-07: 같은 조직이 두 번 등록된 짝 40개를 alias_of 로 이었다. 전화번호 명부에서 온 조직(orgc-)이 부모, 게시판에서 온 조직(org-)이 자식이며 자식은 화면 트리에 그리지 않고 공지만 부모로 합쳐 보인다. 행은 지우지 않는다. 근거는 registry/proposals/조직별칭_판정.json 과 docs/단과대_학과_수집_전수조사.md 의 2·2-1·3·3-1절 표다. 2026-09-07: 같은 조직이 두 번 등록된 짝 40개를 alias_of 로 이었다. 전화번호 명부에서 온 조직(orgc-)이 부모, 게시판에서 온 조직(org-)이 자식이며 자식은 화면 트리에 그리지 않고 공지만 부모로 합쳐 보인다. 행은 지우지 않는다. 근거는 registry/proposals/조직별칭_판정.json 과 docs/단과대_학과_수집_전수조사.md 의 2·2-1·3·3-1절 표다.",
   "hierarchy_observed_at": "2026-09-07T12:00:00Z",
-  "campus_observed_at": "2026-09-07T12:00:00Z"
+  "campus_observed_at": "2026-09-07T12:00:00Z",
+  "alias_observed_at": "2026-09-07T16:30:00+09:00"
  },
  "campuses": [
   {
@@ -27,7 +28,7 @@
   {
    "key": "org-abeek",
    "name": "공학교육혁신센터",
-   "type": "office",
+   "type": "institute",
    "parent": null,
    "campus_codes": [
     "global"
@@ -76,13 +77,14 @@
    "key": "org-afd",
    "name": "아트퓨전디자인대학원",
    "type": "institute",
-   "parent": null,
+   "parent": "orgc-caa9fe4bd03c",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://afd.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://afd.khu.ac.kr/"
+   "evidence_url": "https://afd.khu.ac.kr/",
+   "alias_of": "orgc-caa9fe4bd03c"
   },
   {
    "key": "org-amie",
@@ -112,13 +114,14 @@
    "key": "org-applchem",
    "name": "응용화학과",
    "type": "department",
-   "parent": "org-applsci",
+   "parent": "orgc-2a2c1e7ec7b2",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://applchem.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://applchem.khu.ac.kr"
+   "evidence_url": "https://applchem.khu.ac.kr",
+   "alias_of": "orgc-2a2c1e7ec7b2"
   },
   {
    "key": "org-application",
@@ -146,25 +149,27 @@
    "key": "org-archi",
    "name": "건축학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-e525647b2318",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://archi.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://archi.khu.ac.kr"
+   "evidence_url": "https://archi.khu.ac.kr",
+   "alias_of": "orgc-e525647b2318"
   },
   {
    "key": "org-archieng",
    "name": "건축공학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-4a579b8a3d50",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://archieng.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://archieng.khu.ac.kr/"
+   "evidence_url": "https://archieng.khu.ac.kr/",
+   "alias_of": "orgc-4a579b8a3d50"
   },
   {
    "key": "org-archives",
@@ -206,25 +211,27 @@
    "key": "org-biz_kor",
    "name": "경영대학 (국문) 사이트",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-82e52e1c9169",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://globaleminence.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://kbiz.khu.ac.kr/"
+   "evidence_url": "https://kbiz.khu.ac.kr/",
+   "alias_of": "orgc-82e52e1c9169"
   },
   {
    "key": "org-bme25",
    "name": "경희대학교 생체의공학과",
    "type": "department",
-   "parent": "org-eni25",
+   "parent": "orgc-0c6ac8877eb1",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://bme.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://bme.khu.ac.kr"
+   "evidence_url": "https://bme.khu.ac.kr",
+   "alias_of": "orgc-0c6ac8877eb1"
   },
   {
    "key": "org-ce25",
@@ -242,13 +249,14 @@
    "key": "org-che",
    "name": "경희대학교 생활과학대학",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-afd530d064c0",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://che.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://che.khu.ac.kr"
+   "evidence_url": "https://che.khu.ac.kr",
+   "alias_of": "orgc-afd530d064c0"
   },
   {
    "key": "org-chem",
@@ -266,25 +274,27 @@
    "key": "org-chemeng",
    "name": "화학공학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-faa62fca4a81",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://chemeng.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://chemeng.khu.ac.kr"
+   "evidence_url": "https://chemeng.khu.ac.kr",
+   "alias_of": "orgc-faa62fca4a81"
   },
   {
    "key": "org-civileng",
    "name": "사회기반시스템공학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-44fe5e94b3a5",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://civileng.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://civileng.khu.ac.kr/"
+   "evidence_url": "https://civileng.khu.ac.kr/",
+   "alias_of": "orgc-44fe5e94b3a5"
   },
   {
    "key": "org-climates",
@@ -313,7 +323,7 @@
   {
    "key": "org-communication",
    "name": "미디어커뮤니케이션대학원",
-   "type": "institute",
+   "type": "college",
    "parent": null,
    "campus_codes": [
     "seoul"
@@ -350,13 +360,14 @@
    "key": "org-dc",
    "name": "디지털콘텐츠학과",
    "type": "department",
-   "parent": "org-and_kor",
+   "parent": "orgc-53ad6c406d40",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://dc.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://"
+   "evidence_url": "https://",
+   "alias_of": "orgc-53ad6c406d40"
   },
   {
    "key": "org-dental_kor",
@@ -386,81 +397,88 @@
    "key": "org-display",
    "name": "미래정보디스플레이학부",
    "type": "department",
-   "parent": "org-science_kor",
+   "parent": "orgc-a215b517403d",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://display.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://display.khu.ac.kr"
+   "evidence_url": "https://display.khu.ac.kr",
+   "alias_of": "orgc-a215b517403d"
   },
   {
    "key": "org-earlychildhood",
    "name": "교육대학원(유아교육전공)",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-dcdd3f04f625",
    "campus_codes": [],
    "homepage_url": "https://earlychildhood.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://earlychildhood.khu.ac.kr"
+   "evidence_url": "https://earlychildhood.khu.ac.kr",
+   "alias_of": "orgc-dcdd3f04f625"
   },
   {
    "key": "org-econ",
    "name": "경제학과",
    "type": "department",
-   "parent": "org-khsma",
+   "parent": "orgc-62e91b9c59ca",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://econ.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://econ.khu.ac.kr"
+   "evidence_url": "https://econ.khu.ac.kr",
+   "alias_of": "orgc-62e91b9c59ca"
   },
   {
    "key": "org-ecosystem",
    "name": "식물ㆍ환경신소재공학과",
    "type": "department",
-   "parent": "org-cls",
+   "parent": "orgc-cc4ce340524e",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://ecosystem.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://ecosystem.khu.ac.kr"
+   "evidence_url": "https://ecosystem.khu.ac.kr",
+   "alias_of": "orgc-cc4ce340524e"
   },
   {
    "key": "org-edu_global",
    "name": "교육대학원 국제 캠퍼스",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-dcdd3f04f625",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://eduglobal.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://eduglobal.khu.ac.kr"
+   "evidence_url": "https://eduglobal.khu.ac.kr",
+   "alias_of": "orgc-dcdd3f04f625"
   },
   {
    "key": "org-edu_seoul",
    "name": "교육대학원 서울 캠퍼스",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-dcdd3f04f625",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://deptofenglish.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://eduseoul.khu.ac.kr"
+   "evidence_url": "https://eduseoul.khu.ac.kr",
+   "alias_of": "orgc-dcdd3f04f625"
   },
   {
    "key": "org-eduart",
    "name": "교육대학원(미술교육전공)",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-dcdd3f04f625",
    "campus_codes": [],
    "homepage_url": "https://eduart.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://eduart.khu.ac.kr"
+   "evidence_url": "https://eduart.khu.ac.kr",
+   "alias_of": "orgc-dcdd3f04f625"
   },
   {
    "key": "org-education",
@@ -514,13 +532,14 @@
    "key": "org-env",
    "name": "환경학및환경공학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-fd8e7a3030f8",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://env.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://env.khu.ac.kr/"
+   "evidence_url": "https://env.khu.ac.kr/",
+   "alias_of": "orgc-fd8e7a3030f8"
   },
   {
    "key": "org-foreign_kor",
@@ -538,25 +557,27 @@
    "key": "org-france",
    "name": "프랑스어학과",
    "type": "department",
-   "parent": "org-foreign_kor",
+   "parent": "orgc-56f9c17b86f4",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://france.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://france.khu.ac.kr/"
+   "evidence_url": "https://france.khu.ac.kr/",
+   "alias_of": "orgc-56f9c17b86f4"
   },
   {
    "key": "org-fst",
    "name": "식품생명공학과",
    "type": "department",
-   "parent": "org-cls",
+   "parent": "orgc-b45b3af634bb",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://fst.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://fst.khu.ac.kr"
+   "evidence_url": "https://fst.khu.ac.kr",
+   "alias_of": "orgc-b45b3af634bb"
   },
   {
    "key": "org-gafc_kor",
@@ -574,25 +595,27 @@
    "key": "org-genetech",
    "name": "유전생명공학과",
    "type": "department",
-   "parent": "org-cls",
+   "parent": "orgc-a805bf88860f",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://genetech.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://genetech.khu.ac.kr"
+   "evidence_url": "https://genetech.khu.ac.kr",
+   "alias_of": "orgc-a805bf88860f"
   },
   {
    "key": "org-geo",
    "name": "지리학과",
    "type": "department",
-   "parent": "org-science_kor",
+   "parent": "orgc-a83661e355d7",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://geo.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://geo.khu.ac.kr"
+   "evidence_url": "https://geo.khu.ac.kr",
+   "alias_of": "orgc-a83661e355d7"
   },
   {
    "key": "org-gep",
@@ -673,7 +696,7 @@
   {
    "key": "org-globaleminence",
    "name": "자율전공학부",
-   "type": "department",
+   "type": "college",
    "parent": null,
    "campus_codes": [
     "seoul"
@@ -736,14 +759,15 @@
    "key": "org-gskh_kor",
    "name": "일반대학원",
    "type": "college",
-   "parent": null,
+   "parent": "orgc-8de64bf7563c",
    "campus_codes": [
     "global",
     "seoul"
    ],
    "homepage_url": "https://and.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://gskh.khu.ac.kr"
+   "evidence_url": "https://gskh.khu.ac.kr",
+   "alias_of": "orgc-8de64bf7563c"
   },
   {
    "key": "org-gsp",
@@ -871,25 +895,27 @@
    "key": "org-id",
    "name": "예술디자인대학 산업디자인학과",
    "type": "department",
-   "parent": "org-and_kor",
+   "parent": "orgc-781f6345b1c8",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://id.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://id.khu.ac.kr"
+   "evidence_url": "https://id.khu.ac.kr",
+   "alias_of": "orgc-781f6345b1c8"
   },
   {
    "key": "org-ie",
    "name": "산업경영공학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-c73432a629fe",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://ie.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://ie.khu.ac.kr/"
+   "evidence_url": "https://ie.khu.ac.kr/",
+   "alias_of": "orgc-c73432a629fe"
   },
   {
    "key": "org-igkh",
@@ -945,13 +971,14 @@
    "key": "org-japanese",
    "name": "일본어학과",
    "type": "department",
-   "parent": "org-foreign_kor",
+   "parent": "orgc-81b231b4dbb1",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://japanese.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://japanese.khu.ac.kr"
+   "evidence_url": "https://japanese.khu.ac.kr",
+   "alias_of": "orgc-81b231b4dbb1"
   },
   {
    "key": "org-kcsc_kor",
@@ -1006,13 +1033,14 @@
    "key": "org-khenglish",
    "name": "영어영문학과",
    "type": "department",
-   "parent": "org-human_kor",
+   "parent": "orgc-b67026d2d712",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://khenglish.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://khenglish.khu.ac.kr"
+   "evidence_url": "https://khenglish.khu.ac.kr",
+   "alias_of": "orgc-b67026d2d712"
   },
   {
    "key": "org-khmba_kor",
@@ -1066,13 +1094,14 @@
    "key": "org-khusm",
    "name": "의과대학·의학전문대학원",
    "type": "institute",
-   "parent": null,
+   "parent": "orgc-496fbb695e3f",
    "campus_codes": [
     "seoul"
    ],
    "homepage_url": "https://khusm.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://khusm.khu.ac.kr/"
+   "evidence_url": "https://khusm.khu.ac.kr/",
+   "alias_of": "orgc-496fbb695e3f"
   },
   {
    "key": "org-kic_kor",
@@ -1102,13 +1131,14 @@
    "key": "org-korean",
    "name": "한국어학과",
    "type": "department",
-   "parent": "org-foreign_kor",
+   "parent": "orgc-a8a30cee6468",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://korean.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://korean.khu.ac.kr/"
+   "evidence_url": "https://korean.khu.ac.kr/",
+   "alias_of": "orgc-a8a30cee6468"
   },
   {
    "key": "org-labanimal",
@@ -1125,7 +1155,7 @@
   {
    "key": "org-law",
    "name": "법학전문대학원",
-   "type": "institute",
+   "type": "college",
    "parent": null,
    "campus_codes": [
     "seoul"
@@ -1138,13 +1168,14 @@
    "key": "org-math",
    "name": "응용수학과",
    "type": "department",
-   "parent": "org-applsci",
+   "parent": "orgc-39a29f8af188",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://math.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://math.khu.ac.kr"
+   "evidence_url": "https://math.khu.ac.kr",
+   "alias_of": "orgc-39a29f8af188"
   },
   {
    "key": "org-maths",
@@ -1162,13 +1193,14 @@
    "key": "org-me",
    "name": "기계공학부",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-4f1a64750d54",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://me.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://me.khu.ac.kr/"
+   "evidence_url": "https://me.khu.ac.kr/",
+   "alias_of": "orgc-4f1a64750d54"
   },
   {
    "key": "org-media",
@@ -1187,13 +1219,14 @@
    "key": "org-ne",
    "name": "원자력공학과",
    "type": "department",
-   "parent": "org-eng_kor",
+   "parent": "orgc-e4b3fe0fd55c",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://ne.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://ne.khu.ac.kr/"
+   "evidence_url": "https://ne.khu.ac.kr/",
+   "alias_of": "orgc-e4b3fe0fd55c"
   },
   {
    "key": "org-news",
@@ -1271,13 +1304,14 @@
    "key": "org-ommp",
    "name": "한방생명공학과",
    "type": "department",
-   "parent": "org-cls",
+   "parent": "orgc-90bee97fe5fb",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://ommp.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://ommp.khu.ac.kr"
+   "evidence_url": "https://ommp.khu.ac.kr",
+   "alias_of": "orgc-90bee97fe5fb"
   },
   {
    "key": "org-pa",
@@ -1307,13 +1341,14 @@
    "key": "org-physics",
    "name": "응용물리학과",
    "type": "department",
-   "parent": "org-applsci",
+   "parent": "orgc-394e587a470f",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://physics.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://physics.khu.ac.kr"
+   "evidence_url": "https://physics.khu.ac.kr",
+   "alias_of": "orgc-394e587a470f"
   },
   {
    "key": "org-pnc",
@@ -1368,13 +1403,14 @@
    "key": "org-russia",
    "name": "러시아어학과",
    "type": "department",
-   "parent": "org-foreign_kor",
+   "parent": "orgc-0257234c120e",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://russia.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://russia.khu.ac.kr/"
+   "evidence_url": "https://russia.khu.ac.kr/",
+   "alias_of": "orgc-0257234c120e"
   },
   {
    "key": "org-science_kor",
@@ -1391,7 +1427,7 @@
   {
    "key": "org-sls_kor",
    "name": "자유전공학부",
-   "type": "department",
+   "type": "college",
    "parent": null,
    "campus_codes": [
     "global"
@@ -1440,25 +1476,27 @@
    "key": "org-space",
    "name": "우주과학과",
    "type": "department",
-   "parent": "org-applsci",
+   "parent": "orgc-d69fadb9431c",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://applsci.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://space.khu.ac.kr"
+   "evidence_url": "https://space.khu.ac.kr",
+   "alias_of": "orgc-d69fadb9431c"
   },
   {
    "key": "org-spanish",
    "name": "스페인어학과",
    "type": "department",
-   "parent": "org-foreign_kor",
+   "parent": "orgc-b6110389a234",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://spanish.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://spanish.khu.ac.kr/"
+   "evidence_url": "https://spanish.khu.ac.kr/",
+   "alias_of": "orgc-b6110389a234"
   },
   {
    "key": "org-srise",
@@ -1500,13 +1538,14 @@
    "key": "org-swcon",
    "name": "소프트웨어융합학과",
    "type": "department",
-   "parent": "org-software25",
+   "parent": "orgc-ccb2264d5b2e",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://swcon.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://"
+   "evidence_url": "https://",
+   "alias_of": "orgc-ccb2264d5b2e"
   },
   {
    "key": "org-tma",
@@ -1523,7 +1562,7 @@
   {
    "key": "org-tourism",
    "name": "관광대학원",
-   "type": "institute",
+   "type": "college",
    "parent": null,
    "campus_codes": [
     "seoul"
@@ -1548,13 +1587,14 @@
    "key": "org-vd",
    "name": "시각디자인학과",
    "type": "department",
-   "parent": "org-and_kor",
+   "parent": "orgc-1d5b745b19e9",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://vd.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://vd.khu.ac.kr/"
+   "evidence_url": "https://vd.khu.ac.kr/",
+   "alias_of": "orgc-1d5b745b19e9"
   },
   {
    "key": "org-www",
@@ -1570,13 +1610,14 @@
    "key": "org-zhongwen",
    "name": "중국어학과",
    "type": "department",
-   "parent": "org-foreign_kor",
+   "parent": "orgc-8987480a0630",
    "campus_codes": [
     "global"
    ],
    "homepage_url": "https://zhongwen.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://zhongwen.khu.ac.kr"
+   "evidence_url": "https://zhongwen.khu.ac.kr",
+   "alias_of": "orgc-8987480a0630"
   },
   {
    "key": "orgc-000d33950271",
@@ -3208,7 +3249,7 @@
    "key": "orgc-62e91b9c59ca",
    "name": "정경대학 경제학과",
    "type": "department",
-   "parent": null,
+   "parent": "org-khsma",
    "campus_codes": [
     "seoul"
    ],
@@ -4297,7 +4338,7 @@
    "key": "orgc-a83661e355d7",
    "name": "이과대학 지리학과",
    "type": "department",
-   "parent": null,
+   "parent": "org-science_kor",
    "campus_codes": [
     "seoul"
    ],
@@ -4428,7 +4469,7 @@
   {
    "key": "orgc-afd530d064c0",
    "name": "생활과학대학",
-   "type": "office",
+   "type": "college",
    "parent": null,
    "campus_codes": [
     "seoul"
@@ -6237,6 +6278,18 @@
    "needs_review": false,
    "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
    "campus_confidence": "medium"
+  },
+  {
+   "key": "org-smartfarm",
+   "name": "스마트팜과학과",
+   "type": "department",
+   "parent": "org-cls",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": "https://smartfarmsci.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://neoscholar.khu.ac.kr/guide/user/guide/doShowSiteList.json"
   }
  ]
 }

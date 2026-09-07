@@ -40,6 +40,13 @@ class OrganizationSpec:
     short_name: str | None = None
     homepage_url: str | None = None
     aliases: tuple[str, ...] = ()
+    alias_of: str | None = None
+    """같은 조직이 두 번 등록된 경우, 이 조직이 어느 조직의 별칭인지.
+
+    별칭 조직은 행을 지우지 않고 남긴다(공지와 출처가 달려 있다). 화면 트리에는
+    그리지 않고, 공지·연락처만 부모 쪽으로 합쳐 보인다. 별칭이면 parent_key 는
+    반드시 alias_of 와 같아야 한다(트리에서 부모 아래에 놓여 합산에 들어간다).
+    """
 
 
 @dataclass(frozen=True)
@@ -137,12 +144,27 @@ def load_registry(directory: Path | None = None) -> Registry:
                 short_name=row.get("short_name"),
                 homepage_url=row.get("homepage_url"),
                 aliases=tuple(str(a) for a in row.get("aliases", [])),
+                alias_of=(str(row["alias_of"]) if row.get("alias_of") else None),
             )
         )
 
+    by_key = {org.key: org for org in organizations}
     for org in organizations:
         if org.parent_key and org.parent_key not in seen_keys:
             raise RegistryError(f"{org.key}: 없는 상위 조직 {org.parent_key}")
+        if org.alias_of is None:
+            continue
+        if org.alias_of not in seen_keys:
+            raise RegistryError(f"{org.key}: 없는 별칭 부모 {org.alias_of}")
+        if org.alias_of == org.key:
+            raise RegistryError(f"{org.key}: 자기 자신의 별칭일 수 없습니다")
+        if org.parent_key != org.alias_of:
+            raise RegistryError(
+                f"{org.key}: 별칭 조직의 parent 는 alias_of 와 같아야 합니다"
+                f"(parent={org.parent_key}, alias_of={org.alias_of})"
+            )
+        if by_key[org.alias_of].alias_of is not None:
+            raise RegistryError(f"{org.key}: 별칭 부모({org.alias_of})가 다시 별칭입니다")
 
     sources: list[SourceSpec] = []
     source_keys: set[str] = set()

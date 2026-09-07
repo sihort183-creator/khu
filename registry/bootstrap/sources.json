@@ -1,7 +1,7 @@
 {
  "meta": {
   "observed_at": "2026-09-06T04:12:16Z",
-  "total": 479,
+  "total": 496,
   "merged_mirrors": 394,
   "status_counts": {
    "active": 432,
@@ -11,6 +11,10 @@
   "board_batch_2026_09_07": {
    "추가": 16,
    "근거": "registry/proposals/클로드_게시판_판정.json 의 제안 16개를 2026-09-07 다시 1페이지씩 받아 확인했다. 16개 모두 HTTP 200 이고 기존 어댑터가 목록을 인식했다."
+  },
+  "board_batch_2026_09_07_pm": {
+   "추가": 17,
+   "근거": "docs/단과대_학과_수집_전수조사.md 5-1. 2026-09-07 KST 어댑터로 목록 1쪽을 다시 받아 17개 모두 정상 파싱을 확인했다. 이 가운데 정경대학 학사·장학·취업 3개는 DB 에 이미 retired 로 있어 sync 가 아니라 promote 로 되살린다. sports·gradsport 는 https 가 열리지 않아 http 로 넣는다."
   }
  },
  "sources": [
@@ -11419,6 +11423,398 @@
    ],
    "official_evidence_url": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200214",
    "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-08-25, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 0건), 최신 2026-08-25, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "khsma-BMSR00040-500019",
+   "name": "정경대학 일반 공지",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500019"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500019",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "khsma-BMSR00040-500020",
+   "name": "정경대학 학사 안내",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500020"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500020",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "khsma-BMSR00040-500021",
+   "name": "정경대학 장학 안내",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500021"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500021",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "khsma-BMSR00040-500022",
+   "name": "정경대학 취업정보",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500022"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500022",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "khsma-BMSR00040-500025",
+   "name": "정경대학 Knowledge Commons",
+   "organization": "org-khsma",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://khsma.khu.ac.kr",
+    "prefix": "khsma",
+    "board_code": "BMSR00040",
+    "menu_no": "500025"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-khsma"
+    }
+   ],
+   "official_evidence_url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/list.do?menuNo=500025",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "sports-05_01",
+   "name": "체육대학 학사 공지",
+   "organization": "orgc-3ddeb9160c20",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://sports.khu.ac.kr",
+    "bo_table": "05_01"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-3ddeb9160c20"
+    }
+   ],
+   "official_evidence_url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=05_01",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "sports-05_02",
+   "name": "체육대학 일반안내",
+   "organization": "orgc-3ddeb9160c20",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://sports.khu.ac.kr",
+    "bo_table": "05_02"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-3ddeb9160c20"
+    }
+   ],
+   "official_evidence_url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=05_02",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "sports-05_03",
+   "name": "체육대학 취업안내",
+   "organization": "orgc-3ddeb9160c20",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://sports.khu.ac.kr",
+    "bo_table": "05_03"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-3ddeb9160c20"
+    }
+   ],
+   "official_evidence_url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=05_03",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "sports-05_06_01",
+   "name": "체육대학 장학안내",
+   "organization": "orgc-3ddeb9160c20",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://sports.khu.ac.kr",
+    "bo_table": "05_06_01"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-3ddeb9160c20"
+    }
+   ],
+   "official_evidence_url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=05_06_01",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "sports-03_01",
+   "name": "체육대학 학사정보",
+   "organization": "orgc-3ddeb9160c20",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://sports.khu.ac.kr",
+    "bo_table": "03_01"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-3ddeb9160c20"
+    }
+   ],
+   "official_evidence_url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=03_01",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "gradsport-07_01",
+   "name": "체육대학원 공지사항",
+   "organization": "orgc-89838030d63c",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://gradsport.khu.ac.kr",
+    "bo_table": "07_01"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-89838030d63c"
+    }
+   ],
+   "official_evidence_url": "http://gradsport.khu.ac.kr/bbs/board.php?bo_table=07_01",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "gradsport-07_02",
+   "name": "체육대학원 일반공지",
+   "organization": "orgc-89838030d63c",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://gradsport.khu.ac.kr",
+    "bo_table": "07_02"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-89838030d63c"
+    }
+   ],
+   "official_evidence_url": "http://gradsport.khu.ac.kr/bbs/board.php?bo_table=07_02",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "gradsport-07_04",
+   "name": "체육대학원 규정",
+   "organization": "orgc-89838030d63c",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "http://gradsport.khu.ac.kr",
+    "bo_table": "07_04"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-89838030d63c"
+    }
+   ],
+   "official_evidence_url": "http://gradsport.khu.ac.kr/bbs/board.php?bo_table=07_04",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다. https 로는 열리지 않아 http 로 받는다."
+  },
+  {
+   "key": "mediacom-BMSR00040-4600044",
+   "name": "언론정보학과 학사 공지",
+   "organization": "orgc-267e0be0e2ae",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://mediacom.khu.ac.kr",
+    "prefix": "media",
+    "board_code": "BMSR00040",
+    "menu_no": "4600044"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-267e0be0e2ae"
+    }
+   ],
+   "official_evidence_url": "https://mediacom.khu.ac.kr/media/user/bbs/BMSR00040/list.do?menuNo=4600044",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "mediacom-BMSR00040-4600045",
+   "name": "언론정보학과 취업·대외",
+   "organization": "orgc-267e0be0e2ae",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://mediacom.khu.ac.kr",
+    "prefix": "media",
+    "board_code": "BMSR00040",
+    "menu_no": "4600045"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-267e0be0e2ae"
+    }
+   ],
+   "official_evidence_url": "https://mediacom.khu.ac.kr/media/user/bbs/BMSR00040/list.do?menuNo=4600045",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "mediacom-BMSR00040-4600047",
+   "name": "언론정보학과 수강 증원 공지",
+   "organization": "orgc-267e0be0e2ae",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://mediacom.khu.ac.kr",
+    "prefix": "media",
+    "board_code": "BMSR00040",
+    "menu_no": "4600047"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "orgc-267e0be0e2ae"
+    }
+   ],
+   "official_evidence_url": "https://mediacom.khu.ac.kr/media/user/bbs/BMSR00040/list.do?menuNo=4600047",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
+  },
+  {
+   "key": "smartfarm-BMSR00040-9400021",
+   "name": "스마트팜과학과 공지사항",
+   "organization": "org-smartfarm",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://smartfarmsci.khu.ac.kr",
+    "prefix": "smartfarm",
+    "board_code": "BMSR00040",
+    "menu_no": "9400021"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-smartfarm"
+    }
+   ],
+   "official_evidence_url": "https://smartfarmsci.khu.ac.kr/smartfarm/user/bbs/BMSR00040/list.do?menuNo=9400021",
+   "notes": "2026-09-07 KST 조사(docs/단과대_학과_수집_전수조사.md 5-1): 어댑터로 목록 1쪽을 받아 정상 파싱을 확인했다."
   }
  ]
 }

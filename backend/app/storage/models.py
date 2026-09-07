@@ -86,11 +86,18 @@ class Organization(Base):
     aliases = mapped_column(JSON, nullable=False, default=list)
     homepage_url = mapped_column(Text, nullable=True)
     is_active = mapped_column(Boolean, nullable=False, default=True)
+    # 같은 조직이 두 번 등록돼 하나로 합친 쪽. 행은 지우지 않고(공지·출처가 달려 있다)
+    # 화면 트리에서만 감춘다. 공지 합산에는 그대로 쓰인다.
+    is_alias = mapped_column(Boolean, nullable=False, default=False)
+    # 등록부 열쇠. 조직 식별자는 이름 경로의 해시라 상위가 바뀌면 값이 달라진다.
+    # 이 열이 등록부 열쇠와 행을 묶어 두므로 경로가 바뀌어도 같은 행을 계속 찾는다.
+    registry_key = mapped_column(String(64), nullable=True)
     created_at = _now()
     __table_args__ = (
         CheckConstraint("id <> parent_id", name="no_self_parent"),
         Index("ix_organizations_parent", "parent_id"),
         Index("ix_organizations_type", "org_type"),
+        Index("uq_organizations_registry_key", "registry_key", unique=True),
     )
 
 

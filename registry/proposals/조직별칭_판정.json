@@ -1,0 +1,371 @@
+{
+ "observed_at": "2026-09-07T16:30:00+09:00",
+ "note": "같은 조직이 두 번 등록된 짝의 판정. 부모는 전화번호 명부에서 온 조직(orgc-, 계층이 있다), 자식은 게시판에서 온 조직(org-, 출처가 달려 있다). 자식은 alias_of 로 부모에 이어 화면 트리에서 감추고 공지·연락처만 부모로 합쳐 보인다. 행은 지우지 않는다(484행 유지). 근거 문서는 docs/단과대_학과_수집_전수조사.md 다.",
+ "pairs": [
+  {
+   "parent_key": "orgc-4a579b8a3d50",
+   "parent_name": "건축공학",
+   "child_key": "org-archieng",
+   "child_name": "건축공학과",
+   "evidence": "3절 표 '공과대학 | 건축공학 | → 건축공학과(수집 중 5)'"
+  },
+  {
+   "parent_key": "orgc-e525647b2318",
+   "parent_name": "건축학",
+   "child_key": "org-archi",
+   "child_name": "건축학과",
+   "evidence": "3절 표 '공과대학 | 건축학 | → 건축학과(6)'"
+  },
+  {
+   "parent_key": "orgc-4f1a64750d54",
+   "parent_name": "기계공학",
+   "child_key": "org-me",
+   "child_name": "기계공학부",
+   "evidence": "3절 표 '공과대학 | 기계공학 | → 기계공학부(3)'"
+  },
+  {
+   "parent_key": "orgc-44fe5e94b3a5",
+   "parent_name": "사회기반시스템공학",
+   "child_key": "org-civileng",
+   "child_name": "사회기반시스템공학과",
+   "evidence": "3절 표 '공과대학 | 사회기반시스템공학 | → 사회기반시스템공학과(5)'"
+  },
+  {
+   "parent_key": "orgc-c73432a629fe",
+   "parent_name": "산업경영공학",
+   "child_key": "org-ie",
+   "child_name": "산업경영공학과",
+   "evidence": "3절 표 '공과대학 | 산업경영공학 | → 산업경영공학과(5)'"
+  },
+  {
+   "parent_key": "orgc-e4b3fe0fd55c",
+   "parent_name": "원자력공학",
+   "child_key": "org-ne",
+   "child_name": "원자력공학과",
+   "evidence": "3절 표 '공과대학 | 원자력공학 | → 원자력공학과(5)'"
+  },
+  {
+   "parent_key": "orgc-faa62fca4a81",
+   "parent_name": "화학공학",
+   "child_key": "org-chemeng",
+   "child_name": "화학공학과",
+   "evidence": "3절 표 '공과대학 | 화학공학 | → 화학공학과(2)'"
+  },
+  {
+   "parent_key": "orgc-fd8e7a3030f8",
+   "parent_name": "환경학및환경공학",
+   "child_key": "org-env",
+   "child_name": "환경학및환경공학과",
+   "evidence": "3절 표 '공과대학 | 환경학및환경공학 | → 환경학및환경공학과(3)'"
+  },
+  {
+   "parent_key": "orgc-b67026d2d712",
+   "parent_name": "영어학부",
+   "child_key": "org-khenglish",
+   "child_name": "영어영문학과",
+   "evidence": "3절 표 '문과대학 | 영어학부 | → 영어영문학과(3)'"
+  },
+  {
+   "parent_key": "orgc-cc4ce340524e",
+   "parent_name": "식물·환경신소재공학",
+   "child_key": "org-ecosystem",
+   "child_name": "식물ㆍ환경신소재공학과",
+   "evidence": "3절 표 '생명과학대학 | 식물·환경신소재공학 | → 식물ㆍ환경신소재공학과(1)'"
+  },
+  {
+   "parent_key": "orgc-b45b3af634bb",
+   "parent_name": "식품생명공학",
+   "child_key": "org-fst",
+   "child_name": "식품생명공학과",
+   "evidence": "3절 표 '생명과학대학 | 식품생명공학 | → 식품생명공학과(2)'"
+  },
+  {
+   "parent_key": "orgc-a805bf88860f",
+   "parent_name": "유전공학",
+   "child_key": "org-genetech",
+   "child_name": "유전생명공학과",
+   "evidence": "3절 표 '생명과학대학 | 유전공학 | → 유전생명공학과(3)'"
+  },
+  {
+   "parent_key": "orgc-90bee97fe5fb",
+   "parent_name": "한방재료가공학",
+   "child_key": "org-ommp",
+   "child_name": "한방생명공학과",
+   "evidence": "3절 표 '생명과학대학 | 한방재료가공학 | → 한방생명공학과(1)'"
+  },
+  {
+   "parent_key": "orgc-ccb2264d5b2e",
+   "parent_name": "소프트웨어융합학",
+   "child_key": "org-swcon",
+   "child_name": "소프트웨어융합학과",
+   "evidence": "3절 표 '소프트웨어융합대학 | 소프트웨어융합학 | → 소프트웨어융합학과(1, 대기 4)'"
+  },
+  {
+   "parent_key": "orgc-53ad6c406d40",
+   "parent_name": "디지털콘텐츠학",
+   "child_key": "org-dc",
+   "child_name": "디지털콘텐츠학과",
+   "evidence": "3절 표 '예술디자인대학 | 디지털콘텐츠학 | → 디지털콘텐츠학과(대기 1)'"
+  },
+  {
+   "parent_key": "orgc-781f6345b1c8",
+   "parent_name": "산업디자인학",
+   "child_key": "org-id",
+   "child_name": "예술디자인대학 산업디자인학과",
+   "evidence": "3절 표 '예술디자인대학 | 산업디자인학 | → 예술디자인대학 산업디자인학과(2)'"
+  },
+  {
+   "parent_key": "orgc-1d5b745b19e9",
+   "parent_name": "시각정보디자인학",
+   "child_key": "org-vd",
+   "child_name": "시각디자인학과",
+   "evidence": "3절 표 '예술디자인대학 | 시각정보디자인학 | → 시각디자인학과(6)'"
+  },
+  {
+   "parent_key": "orgc-0257234c120e",
+   "parent_name": "러시아어학",
+   "child_key": "org-russia",
+   "child_name": "러시아어학과",
+   "evidence": "3절 표 '외국어대학 | 러시아어학 | → 러시아어학과(3)'"
+  },
+  {
+   "parent_key": "orgc-b6110389a234",
+   "parent_name": "스페인어학",
+   "child_key": "org-spanish",
+   "child_name": "스페인어학과",
+   "evidence": "3절 표 '외국어대학 | 스페인어학 | → 스페인어학과(3)'"
+  },
+  {
+   "parent_key": "orgc-81b231b4dbb1",
+   "parent_name": "일본어학",
+   "child_key": "org-japanese",
+   "child_name": "일본어학과",
+   "evidence": "3절 표 '외국어대학 | 일본어학 | → 일본어학과(5)'"
+  },
+  {
+   "parent_key": "orgc-8987480a0630",
+   "parent_name": "중국어학",
+   "child_key": "org-zhongwen",
+   "child_name": "중국어학과",
+   "evidence": "3절 표 '외국어대학 | 중국어학 | → 중국어학과(2)'"
+  },
+  {
+   "parent_key": "orgc-56f9c17b86f4",
+   "parent_name": "프랑스어학",
+   "child_key": "org-france",
+   "child_name": "프랑스어학과",
+   "evidence": "3절 표 '외국어대학 | 프랑스어학 | → 프랑스어학과(3)'"
+  },
+  {
+   "parent_key": "orgc-a8a30cee6468",
+   "parent_name": "한국어학",
+   "child_key": "org-korean",
+   "child_name": "한국어학과",
+   "evidence": "3절 표 '외국어대학 | 한국어학 | → 한국어학과(4)'"
+  },
+  {
+   "parent_key": "orgc-d69fadb9431c",
+   "parent_name": "우주과학",
+   "child_key": "org-space",
+   "child_name": "우주과학과",
+   "evidence": "3절 표 '응용과학대학 | 우주과학 | → 우주과학과(2)'"
+  },
+  {
+   "parent_key": "orgc-394e587a470f",
+   "parent_name": "응용물리학",
+   "child_key": "org-physics",
+   "child_name": "응용물리학과",
+   "evidence": "3절 표 '응용과학대학 | 응용물리학 | → 응용물리학과(대기 4)'"
+  },
+  {
+   "parent_key": "orgc-39a29f8af188",
+   "parent_name": "응용수학",
+   "child_key": "org-math",
+   "child_name": "응용수학과",
+   "evidence": "3절 표 '응용과학대학 | 응용수학 | → 응용수학과(1)'"
+  },
+  {
+   "parent_key": "orgc-2a2c1e7ec7b2",
+   "parent_name": "응용화학",
+   "child_key": "org-applchem",
+   "child_name": "응용화학과",
+   "evidence": "3절 표 '응용과학대학 | 응용화학 | → 응용화학과(1)'"
+  },
+  {
+   "parent_key": "orgc-a215b517403d",
+   "parent_name": "정보디스플레이학과",
+   "child_key": "org-display",
+   "child_name": "미래정보디스플레이학부",
+   "evidence": "3절 표 '이과대학 | 정보디스플레이학과 | → 미래정보디스플레이학부(2)'"
+  },
+  {
+   "parent_key": "orgc-0c6ac8877eb1",
+   "parent_name": "생체의공학",
+   "child_key": "org-bme25",
+   "child_name": "경희대학교 생체의공학과",
+   "evidence": "3절 표 '전자정보대학 | 생체의공학 | → 경희대학교 생체의공학과(4)'"
+  },
+  {
+   "parent_key": "orgc-a83661e355d7",
+   "parent_name": "이과대학 지리학과",
+   "child_key": "org-geo",
+   "child_name": "지리학과",
+   "evidence": "3-1절 '이과대학 지리학과(대기 4)' 와 '지리학과'(수집 중)는 같은 사이트 geo.khu.ac.kr"
+  },
+  {
+   "parent_key": "orgc-62e91b9c59ca",
+   "parent_name": "정경대학 경제학과",
+   "child_key": "org-econ",
+   "child_name": "경제학과",
+   "evidence": "3-1절 '정경대학 경제학과(대기 1·폐쇄 1)' 와 '경제학과'(수집 중)는 같은 사이트 econ.khu.ac.kr"
+  },
+  {
+   "parent_key": "orgc-82e52e1c9169",
+   "parent_name": "경영대학",
+   "child_key": "org-biz_kor",
+   "child_name": "경영대학 (국문) 사이트",
+   "evidence": "2절 표 '경영대학 | 0 | 전화번호 명부 조직. 실체는 경영대학 (국문) 사이트'"
+  },
+  {
+   "parent_key": "orgc-dcdd3f04f625",
+   "parent_name": "교육대학원",
+   "child_key": "org-edu_seoul",
+   "child_name": "교육대학원 서울 캠퍼스",
+   "evidence": "2절 표 '교육대학원 | 0 | 실체는 서울·국제·미술·유아 캠퍼스별 조직'"
+  },
+  {
+   "parent_key": "orgc-dcdd3f04f625",
+   "parent_name": "교육대학원",
+   "child_key": "org-edu_global",
+   "child_name": "교육대학원 국제 캠퍼스",
+   "evidence": "2절 표 '교육대학원 | 0 | 실체는 서울·국제·미술·유아 캠퍼스별 조직'"
+  },
+  {
+   "parent_key": "orgc-dcdd3f04f625",
+   "parent_name": "교육대학원",
+   "child_key": "org-eduart",
+   "child_name": "교육대학원(미술교육전공)",
+   "evidence": "2절 표 '교육대학원 | 0 | 실체는 서울·국제·미술·유아 캠퍼스별 조직'"
+  },
+  {
+   "parent_key": "orgc-dcdd3f04f625",
+   "parent_name": "교육대학원",
+   "child_key": "org-earlychildhood",
+   "child_name": "교육대학원(유아교육전공)",
+   "evidence": "2절 표 '교육대학원 | 0 | 실체는 서울·국제·미술·유아 캠퍼스별 조직'"
+  },
+  {
+   "parent_key": "orgc-8de64bf7563c",
+   "parent_name": "대 학 원",
+   "child_key": "org-gskh_kor",
+   "child_name": "일반대학원",
+   "evidence": "2절 표 '대 학 원 | 0 | 전화번호 명부 조직. 실체는 일반대학원'"
+  },
+  {
+   "parent_key": "orgc-caa9fe4bd03c",
+   "parent_name": "아트·퓨전디자인대학원",
+   "child_key": "org-afd",
+   "child_name": "아트퓨전디자인대학원",
+   "evidence": "2절 표 '아트·퓨전디자인대학원 | 0 | 실체는 아트퓨전디자인대학원(수집 중 3)'"
+  },
+  {
+   "parent_key": "orgc-496fbb695e3f",
+   "parent_name": "의과대학",
+   "child_key": "org-khusm",
+   "child_name": "의과대학·의학전문대학원",
+   "evidence": "2절 표 '의과대학 | 0 | 실체는 의과대학·의학전문대학원(수집 중 2)'"
+  },
+  {
+   "parent_key": "orgc-afd530d064c0",
+   "parent_name": "생활과학대학",
+   "child_key": "org-che",
+   "child_name": "경희대학교 생활과학대학",
+   "evidence": "2-1절 표 '생활과학대학 | office | 0 | 중복. 실체는 경희대학교 생활과학대학(college, 6)'"
+  }
+ ],
+ "parent_fixes": [
+  {
+   "key": "orgc-a83661e355d7",
+   "parent": "org-science_kor",
+   "parent_name": "이과대학",
+   "reason": "3-1절: 이름이 '이과대학 지리학과'다. 자식 지리학과가 이과대학 아래에 남아야 한다"
+  },
+  {
+   "key": "orgc-62e91b9c59ca",
+   "parent": "org-khsma",
+   "parent_name": "정경대학",
+   "reason": "3-1절: 이름이 '정경대학 경제학과'다. 자식 경제학과가 정경대학 아래에 남아야 한다"
+  }
+ ],
+ "type_fixes": [
+  {
+   "key": "orgc-afd530d064c0",
+   "type": "college",
+   "reason": "2-1절 표: 생활과학대학은 단과대인데 office 로 분류돼 있다. 별칭 부모로 화면에 서는 자리라 단과대로 바로잡는다"
+  },
+  {
+   "key": "org-law",
+   "type": "college",
+   "reason": "2절 표 '법학전문대학원 | 13 | 정상' — 단과대 48곳 명단에 있다(운영 DB org_type=college)"
+  },
+  {
+   "key": "org-tourism",
+   "type": "college",
+   "reason": "2절 표 '관광대학원 | 3 | 정상' — 단과대 48곳 명단에 있다(운영 DB org_type=college)"
+  },
+  {
+   "key": "org-communication",
+   "type": "college",
+   "reason": "2절 표 '미디어커뮤니케이션대학원 | 3 | 정상' — 단과대 48곳 명단에 있다(운영 DB org_type=college)"
+  },
+  {
+   "key": "org-sls_kor",
+   "type": "college",
+   "reason": "2절 표 '자유전공학부 | 7 | 정상' — 단과대 48곳 명단에 있다(운영 DB org_type=college)"
+  },
+  {
+   "key": "org-globaleminence",
+   "type": "college",
+   "reason": "2절 표 '자율전공학부 | 7 | 정상' — 단과대 48곳 명단에 있다(운영 DB org_type=college)"
+  },
+  {
+   "key": "org-abeek",
+   "type": "institute",
+   "reason": "운영 DB org_type=institute. 센터를 office 로 낮추지 않는다"
+  }
+ ],
+ "needs_decision": [
+  {
+   "candidate": "미술학부(orgc-2bb1583fc285) ← 미술대학(org-khuart)",
+   "reason": "3절 표는 '미술학부 → 미술대학(5)' 이라고 적었으나, 미술학부의 상위가 이미 미술대학이다. 그대로 이으면 단과대가 제 학부의 자식이 되어 순환이다. 사람이 정해야 한다."
+  },
+  {
+   "candidate": "의학전문대학원(orgc-baa095d9d2c1)",
+   "reason": "2절 표에서 실체가 '의과대학·의학전문대학원'인데 그 조직은 이미 의과대학의 별칭이다. 한 조직에 부모는 하나뿐이라 이 조직은 짝 없이 남는다."
+  },
+  {
+   "candidate": "치의학전문대학원(orgc-af5ff554fbd7) ← 치과대학(org-dental_kor)",
+   "reason": "2절 표 '치과대학으로 통합. 공지는 치과대학(수집 중 5)이 담당'. 방향이 반대다 — 살아 있는 단과대(치과대학)를 폐지된 이름의 자식으로 감추게 된다."
+  },
+  {
+   "candidate": "법과대학(orgc-f8bcadc6b6cd)·법무대학원(orgc-b25022b60a2c) ← 법학전문대학원(org-law)",
+   "reason": "2절 표는 공지가 법학전문대학원 게시판으로 들어온다고 적었다. 그러나 법학전문대학원은 별개의 살아 있는 대학원이라 자식으로 감출 수 없다."
+  },
+  {
+   "candidate": "호텔관광대학 학과 9곳(관광학과·관광학부·문화관광콘텐츠학과·외식경영학과·조리·서비스경영학과·인턴십/장학·컨벤션경영학과·호스피탈리티경영학부·호텔경영학과)",
+   "reason": "3절 표가 가리키는 '호텔관광대학 관광학과' 등은 조직이 아니라 출처(게시판) 이름이다. 등록부에 짝이 될 조직이 없다. 게다가 관광학과·관광학부가 한 곳을, 외식경영학과·조리·서비스경영학과가 한 곳을, 호텔경영학과·호스피탈리티경영학부가 한 곳을 가리켜 부모가 겹친다."
+  },
+  {
+   "candidate": "생활과학대학 학과 4곳(식품영양학과·아동가족학과·의상학과·주거환경학과)",
+   "reason": "3절 표의 '경희대학교 생활과학대학 공지사항(식영)' 등은 조직이 아니라 출처 이름이다. 짝이 될 조직이 없다."
+  },
+  {
+   "candidate": "컴퓨터공학·컴퓨터공학부(orgc) / 전자공학·전자공학부(orgc)",
+   "reason": "짝인 '[확인 필요] ce.khu.ac.kr'·'[확인 필요] ee.khu.ac.kr' 조직은 등록부에서 이미 빠졌다. 출처 이관(--move-organization)으로 풀린다."
+  },
+  {
+   "candidate": "경영대학 대학원 3개 학과·경영대학원 계약학과·인공지능학·Post Modern 음악학·도예학·의류디자인학·전공기초사무실·환경조경디자인학·원예생명공학·물리학과·연극영화학·교육학과·나노의약생명과학과",
+   "reason": "3절 표가 '짝 없음' 또는 '미확인'으로 적었거나 자체 사이트가 휴면이다. 이을 조직이 없다."
+  }
+ ]
+}

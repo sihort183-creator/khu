@@ -5,6 +5,9 @@
 모든 변경 명령은 audit_logs 에 사유·실행자를 남긴다.
 
     python -m app.ops.cli sources sync          등록부의 새 출처를 데이터베이스에 넣는다
+        --dry-run              아무것도 쓰지 않고 무엇이 바뀌는지만 센다
+        --apply-status         등록부 active · 데이터베이스 pending 인 출처만 올린다
+        --move-organization    등록부가 가리키는 조직으로 출처를 옮긴다
     python -m app.ops.cli sources list          출처와 상태를 본다
     python -m app.ops.cli sources promote KEY   pending 출처를 active 로 올린다
     python -m app.ops.cli sources pause KEY --reason ...
@@ -29,6 +32,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from sqlalchemy import func, select
+from sqlalchemy import inspect as sa_inspect
 
 from app.config import REPO_ROOT, settings
 from app.domain import ids
@@ -76,76 +80,337 @@ def _audit(
 # ------------------------------------------------------------------ 출처 동기화
 
 
+def _organization_columns(session) -> set[str]:
+    """organizations 에 실제로 있는 열 이름.
+
+    모의 실행은 마이그레이션 전 데이터베이스에서도 돌아야 한다. 새 열(is_alias,
+    registry_key)이 없으면 그 부분만 건너뛰고 나머지를 센다.
+    """
+    try:
+        return {c["name"] for c in sa_inspect(session.get_bind()).get_columns("organizations")}
+    except Exception:  # noqa: BLE001 - 열 목록을 못 읽으면 새 열이 없다고 본다
+        return {"id", "name", "parent_id", "org_type"}
+
+
+class _OrgResolution:
+    """등록부 조직 하나가 어느 데이터베이스 행에 앉는지."""
+
+    __slots__ = ("key", "name", "org_id", "how", "row")
+
+    def __init__(self, key: str, name: str, org_id: str, how: str, row: dict | None) -> None:
+        self.key = key
+        self.name = name
+        self.org_id = org_id
+        self.how = how  # registry_key | path | flat | name | shared | new
+        self.row = row
+
+
+def _resolve_organizations(session, registry, *, columns: set[str]) -> tuple[dict[str, _OrgResolution], dict[str, dict]]:
+    """등록부 조직을 기존 데이터베이스 행에 맞춘다.
+
+    조직 식별자는 이름 경로의 해시다(`ids.organization_id`). 상위를 바꾸면 경로가
+    바뀌어 식별자도 바뀌므로, 아무 장치 없이 반영하면 공지가 달린 행을 버리고 빈
+    행을 새로 만든다. 그래서 네 단계로 찾는다.
+
+      1) registry_key   — 지난 반영이 행에 적어 둔 등록부 열쇠. 가장 확실하다
+      2) 새 경로 해시   — 계층이 그대로인 조직
+      3) flat 해시      — 상위 없이 만들어졌던 예전 식별자
+      4) 같은 이름 행   — 이미 상위가 있던 조직의 상위를 바꾼 경우. 이름이 등록부와
+                          데이터베이스 양쪽에서 하나뿐일 때만 쓴다
+      5) 같은 경로를 쓰는 등록부 조직이 둘이면(거울) 같은 행을 함께 쓴다
+
+    넷 다 실패하면 새 행이다. 그 경우 같은 이름의 행이 이미 있으면 식별자 충돌로
+    알린다(모의 실행이 목록으로 찍는다).
+    """
+    has_registry_key = "registry_key" in columns
+    has_alias = "is_alias" in columns
+
+    select_cols = [
+        m.Organization.id,
+        m.Organization.name,
+        m.Organization.parent_id,
+        m.Organization.org_type,
+    ]
+    if has_registry_key:
+        select_cols.append(m.Organization.registry_key)
+    if has_alias:
+        select_cols.append(m.Organization.is_alias)
+
+    rows: dict[str, dict] = {}
+    for record in session.execute(select(*select_cols)).all():
+        item = {
+            "id": record[0],
+            "name": record[1],
+            "parent_id": record[2],
+            "org_type": record[3],
+            "registry_key": record[4] if has_registry_key else None,
+            "is_alias": bool(record[-1]) if has_alias else False,
+        }
+        rows[item["id"]] = item
+
+    by_registry_key = {r["registry_key"]: r for r in rows.values() if r["registry_key"]}
+    by_name: dict[str, list[dict]] = {}
+    for row in rows.values():
+        by_name.setdefault(row["name"], []).append(row)
+
+    registry_name_counts: dict[str, int] = {}
+    for org in registry.organizations:
+        registry_name_counts[org.name] = registry_name_counts.get(org.name, 0) + 1
+
+    resolutions: dict[str, _OrgResolution] = {}
+    claimed: set[str] = set()
+    pending: list = []
+
+    # 1차: 확실한 열쇠부터. 이름으로 찾는 일은 이 뒤에 한다. 순서를 섞으면
+    # 경로가 맞는 다른 조직의 행을 이름이 먼저 가져가 버린다.
+    for org in registry.organizations:
+        row = by_registry_key.get(org.key)
+        how = "registry_key"
+        if row is None or row["id"] in claimed:
+            path_id = ids.organization_id(UNIVERSITY_CODE, registry.org_path(org.key))
+            row, how = rows.get(path_id), "path"
+            if row is None or row["id"] in claimed:
+                flat = ids.organization_id(UNIVERSITY_CODE, (UNIVERSITY_NAME, org.name))
+                row, how = rows.get(flat), "flat"
+        if row is None or row["id"] in claimed:
+            pending.append(org)
+            continue
+        claimed.add(row["id"])
+        resolutions[org.key] = _OrgResolution(org.key, org.name, row["id"], how, row)
+
+    # 2차: 이름으로 자리를 지킨다. 이미 상위가 있던 조직의 상위를 바꾸면 경로 해시도
+    # flat 해시도 맞지 않는다. 이름이 양쪽에서 하나뿐일 때만 같은 조직으로 본다.
+    for org in pending:
+        candidates = [r for r in by_name.get(org.name, []) if r["id"] not in claimed]
+        if len(candidates) == 1 and registry_name_counts.get(org.name, 0) == 1:
+            row = candidates[0]
+            claimed.add(row["id"])
+            resolutions[org.key] = _OrgResolution(org.key, org.name, row["id"], "name", row)
+            continue
+        new_id = ids.organization_id(UNIVERSITY_CODE, registry.org_path(org.key))
+        shared = rows.get(new_id)
+        if shared is not None:
+            # 등록부에 이름도 경로도 같은 조직이 둘 있는 경우다(거울로 들어온 사이트).
+            # 식별자가 같으니 새 행이 아니라 같은 행을 함께 쓴다.
+            resolutions[org.key] = _OrgResolution(org.key, org.name, new_id, "shared", shared)
+            continue
+        resolutions[org.key] = _OrgResolution(org.key, org.name, new_id, "new", None)
+
+    return resolutions, rows
+
+
 def sources_sync(args: argparse.Namespace) -> int:
     """등록부의 조직·출처를 데이터베이스에 반영한다.
 
-    새 항목만 추가하고 기존 운영 설정은 덮어쓰지 않는다(3절).
-    설정을 바꾸려면 --update-config 를 명시해야 하며 그때 새 설정 버전을 만든다.
+    기본은 예전과 같다. 새 것만 넣고 기존 운영값은 덮어쓰지 않는다(3절).
+    기존 행을 고치는 일은 깃발을 줄 때만 한다.
+
+      --dry-run            아무것도 쓰지 않고 무엇이 바뀌는지 센다
+      --apply-status       등록부가 active 인데 데이터베이스가 pending 인 출처만 올린다
+                           (retired·paused·delayed 는 건드리지 않는다)
+      --move-organization  등록부가 가리키는 조직으로 출처를 옮긴다(대상 범위도 함께)
+      --update-config      기존 출처 설정을 새 버전으로 갱신
+      --retire-missing     등록부에 없는 출처를 폐쇄로 돌린다
     """
     registry = load_registry()
+    dry_run = bool(getattr(args, "dry_run", False))
+    apply_status = bool(getattr(args, "apply_status", False))
+    move_org = bool(getattr(args, "move_organization", False))
+
     added_org = added_src = updated_cfg = retired = 0
-    linked_org = 0
+    linked_org = typed_org = aliased_org = keyed_org = 0
+    status_changed = moved_src = 0
+    conflicts: list[str] = []
+    moves: list[str] = []
+    status_moves: list[str] = []
+    type_moves: list[str] = []
 
     with session_scope() as session:
+        columns = _organization_columns(session)
+        has_alias = "is_alias" in columns
+        has_registry_key = "registry_key" in columns
+        resolutions, existing_rows = _resolve_organizations(session, registry, columns=columns)
+        org_ids = {key: res.org_id for key, res in resolutions.items()}
+        name_index: dict[str, int] = {}
+        for row in existing_rows.values():
+            name_index[row["name"]] = name_index.get(row["name"], 0) + 1
+
         university_id = ids.university_id(UNIVERSITY_CODE)
+        campus_ids = {
+            campus.code: ids.campus_id(UNIVERSITY_CODE, campus.code) for campus in registry.campuses
+        }
+
+        # ---------------------------------------------------------------- 계획
+        for org in registry.organizations:
+            res = resolutions[org.key]
+            want_parent = org_ids.get(org.parent_key) if org.parent_key else None
+            want_alias = org.alias_of is not None
+            if res.how == "new":
+                added_org += 1
+                if name_index.get(org.name):
+                    conflicts.append(
+                        f"{org.key} {org.name}: 같은 이름의 조직 행이 이미 있는데 새 행을 만들게 된다"
+                    )
+                continue
+            row = res.row or {}
+            if row.get("parent_id") != want_parent:
+                linked_org += 1
+            if row.get("org_type") != org.org_type:
+                typed_org += 1
+                type_moves.append(f"{org.key} {org.name}: {row.get('org_type')} -> {org.org_type}")
+            if has_alias and bool(row.get("is_alias")) != want_alias:
+                aliased_org += 1
+            if has_registry_key and row.get("registry_key") != org.key:
+                keyed_org += 1
+
+        source_rows = {row.id: row for row in session.execute(select(m.Source)).scalars()}
+        for spec in registry.sources:
+            sid = ids.source_id(spec.adapter, spec.list_url)
+            row = source_rows.get(sid)
+            want_org = org_ids[spec.organization_key]
+            if row is None:
+                added_src += 1
+                continue
+            if apply_status and spec.status == "active" and row.status == "pending":
+                status_changed += 1
+                status_moves.append(f"{spec.key} {spec.name}")
+            if move_org and row.organization_id != want_org:
+                moved_src += 1
+                moves.append(f"{spec.key} {spec.name}: {row.organization_id} -> {want_org}")
+
+        if args.update_config:
+            active_configs = {
+                row.source_id: row
+                for row in session.execute(
+                    select(m.SourceConfigVersion).where(m.SourceConfigVersion.is_active.is_(True))
+                ).scalars()
+            }
+            for spec in registry.sources:
+                sid = ids.source_id(spec.adapter, spec.list_url)
+                active = active_configs.get(sid)
+                if active is not None and dict(active.config) != spec.config:
+                    updated_cfg += 1
+
+        if args.retire_missing:
+            known = {ids.source_id(spec.adapter, spec.list_url) for spec in registry.sources}
+            retired = sum(
+                1 for row in source_rows.values() if row.id not in known and row.status != "retired"
+            )
+
+        if dry_run:
+            expected = len(existing_rows) + added_org
+            print(
+                f"[모의 실행] 조직 추가 {added_org} / 상위 변경 {linked_org} / 유형 변경 {typed_org}"
+                f" / 별칭 표시 변경 {aliased_org} / 등록부 열쇠 기록 {keyed_org}"
+            )
+            print(
+                f"[모의 실행] 출처 추가 {added_src} / 상태 변경 {status_changed}"
+                f" / 조직 이관 {moved_src} / 설정 갱신 {updated_cfg} / 폐쇄 {retired}"
+            )
+            print(f"[모의 실행] organizations 행 수: 지금 {len(existing_rows)} -> 반영 후 예상 {expected}")
+            if not has_alias or not has_registry_key:
+                missing = [
+                    name
+                    for name, present in (("is_alias", has_alias), ("registry_key", has_registry_key))
+                    if not present
+                ]
+                print(f"[모의 실행] 이 데이터베이스에 없는 열: {', '.join(missing)} (그 부분은 세지 않았다)")
+            if conflicts:
+                print(f"[모의 실행] 식별자 충돌 {len(conflicts)}건:")
+                for line in conflicts:
+                    print(f"  - {line}")
+            else:
+                print("[모의 실행] 식별자 충돌 없음")
+            for line in type_moves:
+                print(f"  유형 변경: {line}")
+            for line in status_moves:
+                print(f"  상태 pending -> active: {line}")
+            for line in moves:
+                print(f"  조직 이관: {line}")
+            session.rollback()
+            print("모의 실행입니다. 아무것도 저장하지 않았습니다.")
+            return 0
+
+        # ---------------------------------------------------------------- 반영
         if session.get(m.University, university_id) is None:
             session.add(m.University(id=university_id, code=UNIVERSITY_CODE, name=UNIVERSITY_NAME))
             session.flush()
 
-        campus_ids: dict[str, str] = {}
         for campus in registry.campuses:
-            cid = ids.campus_id(UNIVERSITY_CODE, campus.code)
-            campus_ids[campus.code] = cid
+            cid = campus_ids[campus.code]
             if session.get(m.Campus, cid) is None:
                 session.add(
                     m.Campus(id=cid, university_id=university_id, code=campus.code, name=campus.name)
                 )
         session.flush()
 
-        org_ids: dict[str, str] = {}
+        created_ids: set[str] = set()
         for org in registry.organizations:
-            path = registry.org_path(org.key)
-            oid = ids.organization_id(UNIVERSITY_CODE, path)
+            res = resolutions[org.key]
+            oid = res.org_id
             row = session.get(m.Organization, oid)
-            if row is None and org.parent_key:
-                # 조직 식별자는 경로의 해시다. 상위를 뒤늦게 채우면 경로가 길어져 식별자가
-                # 바뀌고, 그대로 두면 공지가 이미 달린 행을 버리고 빈 행을 새로 만들게 된다.
-                # 상위 없이 만들어졌던 예전 식별자로 그 행을 찾아 자리를 지킨 채 상위만 채운다.
-                flat = ids.organization_id(UNIVERSITY_CODE, (UNIVERSITY_NAME, org.name))
-                existing = session.get(m.Organization, flat)
-                if existing is not None:
-                    row, oid = existing, flat
-            org_ids[org.key] = oid
             if row is None:
+                created_ids.add(oid)
                 session.add(
                     m.Organization(
                         id=oid,
                         university_id=university_id,
-                        parent_id=org_ids.get(org.parent_key) if org.parent_key else None,
+                        parent_id=None,
                         org_type=org.org_type,
                         name=org.name,
                         short_name=org.short_name,
                         aliases=list(org.aliases),
                         homepage_url=org.homepage_url,
+                        is_alias=org.alias_of is not None,
+                        registry_key=org.key,
                     )
                 )
-                added_org += 1
+            else:
+                if row.org_type != org.org_type:
+                    _audit(
+                        session,
+                        action="organization.retype",
+                        target_kind="organization",
+                        target_id=oid,
+                        reason=f"등록부 동기화: {org.key}",
+                        before={"org_type": row.org_type},
+                        after={"org_type": org.org_type},
+                    )
+                    row.org_type = org.org_type
+                if bool(row.is_alias) != (org.alias_of is not None):
+                    row.is_alias = org.alias_of is not None
+                if row.registry_key != org.key:
+                    row.registry_key = org.key
             for code in org.campus_codes:
-                link = session.get(m.OrganizationCampus, {"organization_id": oid, "campus_id": campus_ids[code]})
+                link = session.get(
+                    m.OrganizationCampus,
+                    {"organization_id": oid, "campus_id": campus_ids[code]},
+                )
                 if link is None:
-                    session.add(m.OrganizationCampus(organization_id=oid, campus_id=campus_ids[code]))
+                    session.add(
+                        m.OrganizationCampus(organization_id=oid, campus_id=campus_ids[code])
+                    )
         session.flush()
 
         # 상위 연결은 모든 조직의 식별자를 안 뒤에 한다. 한 번에 하면 등록부에서 자식이
         # 부모보다 먼저 나온 경우 부모를 못 찾아 연결이 조용히 빠진다.
         for org in registry.organizations:
-            if not org.parent_key:
-                continue
             row = session.get(m.Organization, org_ids[org.key])
-            parent = org_ids.get(org.parent_key)
-            if row is not None and parent and row.parent_id != parent:
+            parent = org_ids.get(org.parent_key) if org.parent_key else None
+            if row is not None and row.parent_id != parent:
+                before = row.parent_id
                 row.parent_id = parent
-                linked_org += 1
+                if row.id in created_ids:
+                    continue
+                _audit(
+                    session,
+                    action="organization.reparent",
+                    target_kind="organization",
+                    target_id=row.id,
+                    reason=f"등록부 동기화: {org.key}",
+                    before={"parent_id": before},
+                    after={"parent_id": parent},
+                )
         session.flush()
 
         _rebuild_closure(session)
@@ -189,7 +454,6 @@ def sources_sync(args: argparse.Namespace) -> int:
                             organization_id=org_ids.get(aud.get("organization", "")),
                         )
                     )
-                added_src += 1
                 _audit(
                     session,
                     action="source.create",
@@ -198,10 +462,54 @@ def sources_sync(args: argparse.Namespace) -> int:
                     reason=f"등록부 동기화: {spec.key}",
                     after={"name": spec.name, "list_url": spec.list_url},
                 )
-            elif args.update_config:
+                continue
+
+            # 등록부가 active 라고 말하는데 데이터베이스가 pending 인 경우만 올린다.
+            # retired·paused·delayed 는 운영 판단이 들어간 값이라 등록부가 덮지 않는다.
+            if apply_status and spec.status == "active" and row.status == "pending":
+                row.status = "active"
+                row.status_message = None
+                _audit(
+                    session,
+                    action="source.active",
+                    target_kind="source",
+                    target_id=sid,
+                    reason=f"등록부 동기화(--apply-status): {spec.key}",
+                    before={"status": "pending"},
+                    after={"status": "active"},
+                )
+
+            # 조직 이관. 출처의 기본 대상 범위(organization 형)도 같이 옮긴다.
+            # 이미 쌓인 공지의 대상(notice_audiences)은 건드리지 않는다.
+            # 그쪽은 `notice reaudience` 가 출처 기본값에서 다시 계산한다.
+            want_org = org_ids[spec.organization_key]
+            if move_org and row.organization_id != want_org:
+                before_org = row.organization_id
+                row.organization_id = want_org
+                for aud in session.execute(
+                    select(m.SourceAudience).where(
+                        m.SourceAudience.source_id == sid,
+                        m.SourceAudience.audience_type == "organization",
+                        m.SourceAudience.organization_id == before_org,
+                    )
+                ).scalars():
+                    aud.organization_id = want_org
+                _audit(
+                    session,
+                    action="source.move_organization",
+                    target_kind="source",
+                    target_id=sid,
+                    reason=f"등록부 동기화(--move-organization): {spec.key}",
+                    before={"organization_id": before_org},
+                    after={"organization_id": want_org},
+                )
+
+            if args.update_config:
                 active = session.execute(
-                    select(m.SourceConfigVersion)
-                    .where(m.SourceConfigVersion.source_id == sid, m.SourceConfigVersion.is_active.is_(True))
+                    select(m.SourceConfigVersion).where(
+                        m.SourceConfigVersion.source_id == sid,
+                        m.SourceConfigVersion.is_active.is_(True),
+                    )
                 ).scalar_one_or_none()
                 if active is not None and dict(active.config) != spec.config:
                     active.is_active = False
@@ -215,7 +523,6 @@ def sources_sync(args: argparse.Namespace) -> int:
                             is_active=True,
                         )
                     )
-                    updated_cfg += 1
                     _audit(
                         session,
                         action="source.config_update",
@@ -230,15 +537,18 @@ def sources_sync(args: argparse.Namespace) -> int:
         # 이미 모은 공지와 그 근거를 잃지 않아야 한다(3절).
         if args.retire_missing:
             known = {ids.source_id(spec.adapter, spec.list_url) for spec in registry.sources}
-            stale = session.execute(
-                select(m.Source).where(
-                    m.Source.id.not_in(known), m.Source.status.not_in(("retired",))
+            stale = (
+                session.execute(
+                    select(m.Source).where(
+                        m.Source.id.not_in(known), m.Source.status.not_in(("retired",))
+                    )
                 )
-            ).scalars().all()
+                .scalars()
+                .all()
+            )
             for row in stale:
                 before = row.status
                 row.status = "retired"
-                retired += 1
                 _audit(
                     session,
                     action="source.retire",
@@ -250,13 +560,27 @@ def sources_sync(args: argparse.Namespace) -> int:
                 )
 
     print(
-        f"조직 추가 {added_org} / 상위 연결 {linked_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}"
-        f" / 폐쇄 {retired}"
+        f"조직 추가 {added_org} / 상위 변경 {linked_org} / 유형 변경 {typed_org}"
+        f" / 별칭 표시 변경 {aliased_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}"
+        f" / 상태 변경 {status_changed} / 조직 이관 {moved_src} / 폐쇄 {retired}"
     )
+    if conflicts:
+        print(f"주의: 같은 이름의 조직 행을 새로 만들었습니다 {len(conflicts)}건")
+        for line in conflicts:
+            print(f"  - {line}")
     if not args.update_config:
         print("기존 출처 설정은 그대로 두었습니다. 바꾸려면 --update-config 를 쓰세요.")
     if not args.retire_missing:
         print("등록부에서 빠진 출처는 그대로 두었습니다. 정리하려면 --retire-missing 을 쓰세요.")
+    if not apply_status:
+        print("등록부와 어긋난 출처 상태는 그대로 두었습니다. 맞추려면 --apply-status 를 쓰세요.")
+    if not move_org:
+        print("출처의 소속 조직은 그대로 두었습니다. 옮기려면 --move-organization 을 쓰세요.")
+    if moved_src:
+        print(
+            "출처를 옮겼습니다. 이미 쌓인 공지의 대상 범위는 그대로이므로 "
+            "`notice reaudience` 를 이어서 실행해야 합니다."
+        )
     return 0
 
 
@@ -718,6 +1042,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--retire-missing",
         action="store_true",
         help="등록부에 없는 출처를 폐쇄로 돌린다(지우지 않는다)",
+    )
+    sync.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="아무것도 쓰지 않고 무엇이 바뀌는지만 센다",
+    )
+    sync.add_argument(
+        "--apply-status",
+        action="store_true",
+        help="등록부가 active 인데 데이터베이스가 pending 인 출처만 active 로 올린다",
+    )
+    sync.add_argument(
+        "--move-organization",
+        action="store_true",
+        help="등록부가 가리키는 조직으로 출처를 옮긴다(출처 기본 대상도 함께)",
     )
     sync.set_defaults(func=sources_sync)
 

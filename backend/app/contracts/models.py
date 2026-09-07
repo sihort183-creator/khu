@@ -85,6 +85,14 @@ class Organization(Strict):
     path: list[str] = Field(default_factory=list)
     has_children: bool = False
     source_count: int = 0
+    # 같은 조직이 두 번 등록돼 하나로 합친 쪽. 화면 트리에는 그리지 않고
+    # 공지 합산에는 쓴다. 행을 지우지 않으므로 여기 그대로 나온다.
+    is_alias: bool = False
+    # 지금 실제로 공지가 들어올 수 있는 게시판 수. 폐쇄(retired)·연결 대기(pending)·
+    # 운영 중지(paused)는 빼고 센다. 접근 제한(blocked)은 원문만 막혔을 뿐 이미 받아 둔
+    # 공지가 남아 있으므로 넣는다. 화면이 "아직 볼 것이 없는 조직"을 가리는 판정에 쓴다
+    # — source_count 는 폐쇄된 게시판까지 세어서, 골라도 0건인 조직을 살려 두었다.
+    active_source_count: int = 0
 
 
 class SourceRef(Strict):
