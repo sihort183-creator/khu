@@ -40,6 +40,13 @@ class OrganizationSpec:
     short_name: str | None = None
     homepage_url: str | None = None
     aliases: tuple[str, ...] = ()
+    legacy_id: str | None = None
+    """이 조직이 예전에 쓰던 데이터베이스 행 식별자.
+
+    이름을 고쳐 앉히는 옛 조직에만 쓴다. 이름 경로 해시도 `registry_key` 도 맞지
+    않는 행(등록부에 없던 시절에 만들어진 행)을 새 행을 만들지 않고 이어받는다.
+    """
+
     alias_of: str | None = None
     """같은 조직이 두 번 등록된 경우, 이 조직이 어느 조직의 별칭인지.
 
@@ -145,6 +152,7 @@ def load_registry(directory: Path | None = None) -> Registry:
                 homepage_url=row.get("homepage_url"),
                 aliases=tuple(str(a) for a in row.get("aliases", [])),
                 alias_of=(str(row["alias_of"]) if row.get("alias_of") else None),
+                legacy_id=(str(row["legacy_id"]) if row.get("legacy_id") else None),
             )
         )
 

@@ -404,3 +404,119 @@ def test_org_type_is_corrected_on_existing_rows(session_factory, registry_dir):
             select(m.AuditLog).where(m.AuditLog.action == "organization.retype")
         ).scalar_one()
         assert log.after["org_type"] == "college"
+
+
+# ------------------------------------------------------------------ 이름 갱신
+
+
+def test_name_is_updated_on_existing_rows(session_factory, registry_dir):
+    """등록부에서 이름을 고치면 기존 행의 이름도 따라 바뀐다(행은 그대로)."""
+    registry_dir([_org("o-dept", "전자공학")], [_source("s-1", "o-dept")])
+    ops.sources_sync(_args())
+    with session_factory() as session:
+        before = session.execute(select(m.Organization)).scalar_one().id
+
+    registry_dir([_org("o-dept", "전자공학부")], [_source("s-1", "o-dept")])
+    ops.sources_sync(_args())
+
+    assert _org_count(session_factory) == 1
+    with session_factory() as session:
+        row = session.execute(select(m.Organization)).scalar_one()
+        assert row.id == before
+        assert row.name == "전자공학부"
+        log = session.execute(
+            select(m.AuditLog).where(m.AuditLog.action == "organization.rename")
+        ).scalar_one()
+        assert log.before["name"] == "전자공학"
+        assert log.after["name"] == "전자공학부"
+
+
+def test_dry_run_lists_renames_without_applying_them(session_factory, registry_dir, capsys):
+    registry_dir([_org("o-dept", "러시아어학")], [])
+    ops.sources_sync(_args())
+    capsys.readouterr()
+
+    registry_dir([_org("o-dept", "러시아어학과")], [])
+    ops.sources_sync(_args(dry_run=True))
+
+    out = capsys.readouterr().out
+    assert "이름 변경 1" in out
+    assert "이름 변경: o-dept: 러시아어학 -> 러시아어학과" in out
+    with session_factory() as session:
+        assert session.execute(select(m.Organization)).scalar_one().name == "러시아어학"
+
+
+def test_rename_leaves_contacts_attached(session_factory, registry_dir):
+    """연락처는 조직 식별자로 붙어 있어 이름을 바꿔도 그대로 남는다."""
+    registry_dir([_org("o-dept", "건축공학")], [])
+    ops.sources_sync(_args())
+    with session_factory() as session:
+        oid = session.execute(select(m.Organization)).scalar_one().id
+        session.add(
+            m.ContactEntry(id="con-1", organization_id=oid, service_name="학과 사무실")
+        )
+        session.commit()
+
+    registry_dir([_org("o-dept", "건축공학과")], [])
+    ops.sources_sync(_args())
+
+    with session_factory() as session:
+        row = session.execute(select(m.ContactEntry)).scalar_one()
+        assert row.organization_id == oid
+        assert session.get(m.Organization, oid).name == "건축공학과"
+
+
+def test_legacy_id_takes_over_an_old_row_instead_of_making_a_new_one(session_factory, registry_dir):
+    """등록부에 없던 옛 행을 legacy_id 로 이어받는다. 새 행을 만들지 않는다."""
+    registry_dir([_org("o-old", "[확인 필요] cs.khu.ac.kr", "institute")], [])
+    ops.sources_sync(_args())
+    with session_factory() as session:
+        old_id = session.execute(select(m.Organization)).scalar_one().id
+        session.execute(
+            m.Organization.__table__.update().values(registry_key=None)
+        )
+        session.commit()
+
+    registry_dir(
+        [_org("o-new", "고객지원", "institute", legacy_id=old_id)],
+        [],
+    )
+    ops.sources_sync(_args(dry_run=True))
+    ops.sources_sync(_args())
+
+    assert _org_count(session_factory) == 1
+    with session_factory() as session:
+        row = session.execute(select(m.Organization)).scalar_one()
+        assert row.id == old_id
+        assert row.name == "고객지원"
+        assert row.registry_key == "o-new"
+
+
+def test_old_name_is_kept_as_an_alias(session_factory, registry_dir):
+    """이름을 고쳐도 옛 이름을 aliases 에 더한다(연락처 명부가 옛 이름으로 찾는다)."""
+    registry_dir([_org("o-dept", "전자공학")], [])
+    ops.sources_sync(_args())
+
+    registry_dir([_org("o-dept", "전자공학부", aliases=["전자공학"])], [])
+    ops.sources_sync(_args())
+
+    with session_factory() as session:
+        row = session.execute(select(m.Organization)).scalar_one()
+        assert row.name == "전자공학부"
+        assert "전자공학" in row.aliases
+
+
+def test_existing_aliases_are_never_dropped(session_factory, registry_dir):
+    registry_dir([_org("o-dept", "전자공학부", aliases=["전자공학"])], [])
+    ops.sources_sync(_args())
+    with session_factory() as session:
+        row = session.execute(select(m.Organization)).scalar_one()
+        row.aliases = list(row.aliases) + ["운영자가 손으로 넣은 별칭"]
+        session.commit()
+
+    registry_dir([_org("o-dept", "전자공학부", aliases=["전자공학"])], [])
+    ops.sources_sync(_args())
+
+    with session_factory() as session:
+        row = session.execute(select(m.Organization)).scalar_one()
+        assert sorted(row.aliases) == sorted(["전자공학", "운영자가 손으로 넣은 별칭"])

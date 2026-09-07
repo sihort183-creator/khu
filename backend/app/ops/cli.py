@@ -113,6 +113,7 @@ def _resolve_organizations(session, registry, *, columns: set[str]) -> tuple[dic
     행을 새로 만든다. 그래서 네 단계로 찾는다.
 
       1) registry_key   — 지난 반영이 행에 적어 둔 등록부 열쇠. 가장 확실하다
+      1-5) legacy_id    — 등록부에 없던 시절에 만들어진 행을 이름만 고쳐 이어받는 경우
       2) 새 경로 해시   — 계층이 그대로인 조직
       3) flat 해시      — 상위 없이 만들어졌던 예전 식별자
       4) 같은 이름 행   — 이미 상위가 있던 조직의 상위를 바꾼 경우. 이름이 등록부와
@@ -172,6 +173,8 @@ def _resolve_organizations(session, registry, *, columns: set[str]) -> tuple[dic
             if row is None or row["id"] in claimed:
                 flat = ids.organization_id(UNIVERSITY_CODE, (UNIVERSITY_NAME, org.name))
                 row, how = rows.get(flat), "flat"
+            if (row is None or row["id"] in claimed) and org.legacy_id:
+                row, how = rows.get(org.legacy_id), "legacy_id"
         if row is None or row["id"] in claimed:
             pending.append(org)
             continue
@@ -218,9 +221,10 @@ def sources_sync(args: argparse.Namespace) -> int:
     move_org = bool(getattr(args, "move_organization", False))
 
     added_org = added_src = updated_cfg = retired = 0
-    linked_org = typed_org = aliased_org = keyed_org = 0
+    linked_org = typed_org = aliased_org = keyed_org = renamed_org = 0
     status_changed = moved_src = 0
     conflicts: list[str] = []
+    renames: list[str] = []
     moves: list[str] = []
     status_moves: list[str] = []
     type_moves: list[str] = []
@@ -255,6 +259,9 @@ def sources_sync(args: argparse.Namespace) -> int:
             row = res.row or {}
             if row.get("parent_id") != want_parent:
                 linked_org += 1
+            if row.get("name") != org.name:
+                renamed_org += 1
+                renames.append(f"{org.key}: {row.get('name')} -> {org.name}")
             if row.get("org_type") != org.org_type:
                 typed_org += 1
                 type_moves.append(f"{org.key} {org.name}: {row.get('org_type')} -> {org.org_type}")
@@ -300,7 +307,8 @@ def sources_sync(args: argparse.Namespace) -> int:
         if dry_run:
             expected = len(existing_rows) + added_org
             print(
-                f"[모의 실행] 조직 추가 {added_org} / 상위 변경 {linked_org} / 유형 변경 {typed_org}"
+                f"[모의 실행] 조직 추가 {added_org} / 이름 변경 {renamed_org}"
+                f" / 상위 변경 {linked_org} / 유형 변경 {typed_org}"
                 f" / 별칭 표시 변경 {aliased_org} / 등록부 열쇠 기록 {keyed_org}"
             )
             print(
@@ -321,6 +329,8 @@ def sources_sync(args: argparse.Namespace) -> int:
                     print(f"  - {line}")
             else:
                 print("[모의 실행] 식별자 충돌 없음")
+            for line in renames:
+                print(f"  이름 변경: {line}")
             for line in type_moves:
                 print(f"  유형 변경: {line}")
             for line in status_moves:
@@ -366,6 +376,25 @@ def sources_sync(args: argparse.Namespace) -> int:
                     )
                 )
             else:
+                if row.name != org.name:
+                    _audit(
+                        session,
+                        action="organization.rename",
+                        target_kind="organization",
+                        target_id=oid,
+                        reason=f"등록부 동기화: {org.key}",
+                        before={"name": row.name},
+                        after={"name": org.name},
+                    )
+                    row.name = org.name
+                merged = list(row.aliases or ())
+                for alias in org.aliases:
+                    if alias not in merged:
+                        merged.append(alias)
+                if merged != list(row.aliases or ()):
+                    row.aliases = merged
+                if org.short_name and not row.short_name:
+                    row.short_name = org.short_name
                 if row.org_type != org.org_type:
                     _audit(
                         session,
@@ -719,7 +748,15 @@ def contacts_import(args: argparse.Namespace) -> int:
                 campus_by_name[name] = cid
         session.flush()
 
-        org_by_name = {o.name: o.id for o in session.execute(select(m.Organization)).scalars()}
+        # 이름으로 찾는다. 이름을 고친 조직(전화번호 명부의 "전자공학" -> "전자공학부")은
+        # 옛 이름이 aliases 에 남아 있으므로 그것으로도 찾는다. 그러지 않으면 명부를
+        # 다시 들일 때마다 같은 조직의 빈 행이 새로 생긴다.
+        org_by_name: dict[str, str] = {}
+        for o in session.execute(select(m.Organization)).scalars():
+            for alias in o.aliases or ():
+                org_by_name.setdefault(str(alias), o.id)
+        for o in session.execute(select(m.Organization)).scalars():
+            org_by_name[o.name] = o.id
 
         for row in entries:
             org_name = (row.get("organization") or {}).get("name") or "미상 기관"

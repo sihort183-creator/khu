@@ -57,10 +57,22 @@ def test_all_sources_are_khu_domains(registry):
 
 
 def test_organization_paths_have_no_cycles(registry):
+    """경로에 순환이 없다.
+
+    이름이 겹치는 것은 순환이 아니다. 별칭 자식은 부모와 이름이 같을 수 있다
+    (전화번호 명부의 "전자공학" 을 게시판 쪽 "전자공학부" 로 맞춘 뒤가 그렇다).
+    순환은 `org_path` 가 직접 막으므로 여기서는 열쇠로 확인한다.
+    """
+    by_key = {org.key: org for org in registry.organizations}
     for org in registry.organizations:
         path = registry.org_path(org.key)
         assert path[0] == "경희대학교"
-        assert len(path) == len(set(path))
+        keys: list[str] = []
+        current = org.key
+        while current:
+            assert current not in keys
+            keys.append(current)
+            current = by_key[current].parent_key
 
 
 def test_sources_start_as_pending_not_active(registry):
