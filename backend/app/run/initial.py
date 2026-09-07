@@ -52,6 +52,20 @@ def initial_inventory(cfg: Settings) -> dict[str, int]:
         }
 
 
+def should_continue(inventory: dict[str, int], deadline: datetime | None, now: datetime,
+                    reserve_seconds: int) -> bool:
+    """다음 회차를 이어받을지. 남은 백필과 마감, 둘 다 있어야 이어받는다.
+
+    두 조건 중 하나라도 무너지면 멈춘다. 끝난 백필을 계속 띄우면 헛돌고,
+    마감을 넘긴 뒤 띄우면 유지 수집 한 번으로 끝나 회차만 버린다.
+    마감이 뒤로 늘어나 다시 이어받아야 하는 경우는 실행 중인 잡이 알 수 없다.
+    저장소 변수를 새로 읽는 감시자(app.ops.watchdog)가 그 자리를 맡는다.
+    """
+    if not inventory["remaining"] or deadline is None:
+        return False
+    return now < deadline - timedelta(seconds=reserve_seconds)
+
+
 def publish(cfg: Settings, run_id: str | None) -> str:
     # 수집 작업 사이에만 실행하여 동시 공개와 동일 세션 공유를 피한다.
     with session_scope(cfg) as session:
@@ -92,7 +106,7 @@ async def supervise(
         raise RuntimeError("초기 수집 대상이 없습니다. 완료로 처리하지 않습니다")
     if inventory["remaining"] == 0:
         outcome = await run_collection(cfg)
-        return {"mode": "maintenance", "continue_initial": False, "result": outcome.result}
+        return {"mode": "maintenance", **inventory, "continue_initial": False, "result": outcome.result}
     # 마지막 공개 뒤로 새로 모은 회차 수. 취소될 때 내보낼 것이 있는지 이것으로 안다.
     unpublished_rounds = 0
     try:
@@ -133,7 +147,7 @@ async def supervise(
     return {
         "mode": "initial", **inventory, "rounds": rounds, "new_items": new_items,
         "revision": revision,
-        "continue_initial": bool(inventory["remaining"] and datetime.now(UTC) < deadline - timedelta(seconds=reserve_seconds)),
+        "continue_initial": should_continue(inventory, deadline, datetime.now(UTC), reserve_seconds),
         "result": "complete" if inventory["remaining"] == 0 else "partial",
     }
 

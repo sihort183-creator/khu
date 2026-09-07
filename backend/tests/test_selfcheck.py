@@ -1,4 +1,4 @@
-"""자체 점검 7개 항목이 실제 저장 상태에서 무엇을 이상으로 부르는지."""
+"""자체 점검 8개 항목이 실제 저장 상태에서 무엇을 이상으로 부르는지."""
 
 import asyncio
 import json
@@ -201,6 +201,7 @@ def test_full_report_fills_every_check_and_reports_the_worst_status(session_fact
         "access_failures",
         "zombie_runs",
         "publish_delay",
+        "backfill_stall",
     ]
     assert report["status"] == selfcheck.ALERT
 
@@ -216,6 +217,10 @@ def test_full_report_fills_every_check_and_reports_the_worst_status(session_fact
     assert checks["zombie_runs"]["runs"][0]["run_id"] == "run-zombie"
     assert checks["publish_delay"]["status"] == selfcheck.ALERT
     assert checks["publish_delay"]["last_revision"] == "r-old"
+    # 8 백필 정체: 남은 백필이 있는데 마감이 비어 있어 아무도 이어받지 않는다.
+    # 막힌 출처는 늘 남으므로 이상이 아니라 주의로 부른다.
+    assert checks["backfill_stall"]["status"] == selfcheck.WARN
+    assert checks["backfill_stall"]["remaining"] == 1
 
     text = selfcheck.render(report)
     assert "자체 점검 — 이상" in text
@@ -253,3 +258,49 @@ def test_window_shortfall_carries_the_previous_round_so_a_trend_is_visible(sessi
     # 공개 개정이 마지막 수집 종료와 같은 회차면 지연이 아니다.
     assert report["checks"]["publish_delay"]["status"] == selfcheck.OK
     assert report["status"] != selfcheck.ALERT
+
+
+def test_backfill_stall_names_the_passed_deadline_and_stays_quiet_while_it_runs(
+    session_factory, settings
+):
+    """2026-09-07 백필 30곳이 남은 채 마감이 지나 45분간 아무 회차도 뜨지 않았다.
+
+    수집은 매번 성공으로 끝났으므로 다른 항목에는 걸리지 않았다. 이 항목이 그 자리를
+    말로 남긴다. 되살리는 것은 app.ops.watchdog 이 한다.
+    """
+    cfg = replace(settings, initial_window_start=date(2026, 3, 1))
+    now = datetime(2026, 9, 7, 11, 0, tzinfo=KST).astimezone(UTC)
+    with session_factory() as db:
+        source = _seed(db)
+        db.add(
+            m.Run(
+                id="run-last",
+                kind="collect",
+                started_at=now - timedelta(minutes=49),
+                finished_at=now - timedelta(minutes=45),
+                result="success",
+                revision="r-1",
+            )
+        )
+        db.commit()
+        assert db.get(m.SourceHealth, source.id) is not None
+
+    # 마감이 지났으면 이어받지 않는 것이 정상 동작이다. 상태만 말로 남긴다.
+    passed = datetime(2026, 9, 7, 10, 0, tzinfo=KST).astimezone(UTC)
+    stalled = selfcheck.run_check(cfg=cfg, fetch=False, now=now, deadline=passed)["checks"]["backfill_stall"]
+    assert stalled["status"] == selfcheck.WARN
+    assert stalled["idle_minutes"] == 49.0
+    assert "마감" in stalled["summary"]
+
+    # 마감이 아직 남았는데 49분째 회차가 없으면 그것이 이상이다.
+    extended = datetime(2026, 9, 7, 18, 0, tzinfo=KST).astimezone(UTC)
+    idle = selfcheck.run_check(cfg=cfg, fetch=False, now=now, deadline=extended)["checks"]["backfill_stall"]
+    assert idle["status"] == selfcheck.ALERT
+    assert "되살려야" in idle["summary"]
+
+    # 방금 회차가 돌았으면 정체가 아니다.
+    with session_factory() as db:
+        db.add(m.Run(id="run-now", kind="collect", started_at=now - timedelta(minutes=2)))
+        db.commit()
+    running = selfcheck.run_check(cfg=cfg, fetch=False, now=now, deadline=extended)["checks"]["backfill_stall"]
+    assert running["status"] == selfcheck.OK

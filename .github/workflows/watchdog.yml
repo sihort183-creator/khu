@@ -1,0 +1,106 @@
+name: 수집 감시
+
+# 초기 백필이 남아 있는 동안 수집이 멈춰 있지 않게 지킨다.
+#
+# 2026-09-07 백필이 45분간 통째로 멈췄다. 마감(KHU_INITIAL_UNTIL)이 지난 회차가
+# 유지 모드로 빠지면서 이어받기 사슬이 끊겼고, 사람이 마감을 늘렸지만 초기 모드로
+# 되돌릴 방아쇠가 없었다. 남은 것은 매시 17분 예약뿐인데 그날 그 예약은 43분 늦게 왔다.
+#
+# 이 흐름은 사슬이 끊긴 자리를 메운다. 실행 중인 잡이 붙잡고 있는 값이 아니라
+# 지금 저장소 변수에 들어 있는 마감을 매번 새로 읽는다. 그래서 마감을 늘리면
+# 다음 점검(최대 15분 뒤)에 초기 수집이 저절로 되살아난다.
+#
+# 백필이 끝났거나 마감이 지났으면 아무것도 띄우지 않는다. 그때는 마감 확인 단계에서
+# 곧바로 끝나 의존성 설치조차 하지 않는다.
+on:
+  schedule:
+    # 매시 예약 하나에 기대지 않는다. 15분마다 확인해 지연·누락의 영향을 줄인다.
+    - cron: "3,18,33,48 * * * *"
+  # 수집이 끝나면(성공이든 실패든 취소든) 곧바로 확인한다. 예약을 기다리지 않고
+  # 이어받기가 없었던 경우를 바로 잡는다.
+  workflow_run:
+    workflows: ["공지 수집"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: khu-watchdog
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KHU_ENV: production
+      KHU_DATABASE_URL: ${{ secrets.KHU_DATABASE_URL }}
+      KHU_INITIAL_UNTIL: ${{ vars.KHU_INITIAL_UNTIL }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 마감이 없거나 이미 지났으면 되살릴 일이 없다. 여기서 끝내면 백필이 끝난 뒤
+      # 남는 점검이 몇 초짜리가 된다.
+      - name: 마감 확인
+        id: until
+        run: |
+          set -euo pipefail
+          if [ -z "${KHU_INITIAL_UNTIL:-}" ]; then
+            echo "초기 마감이 비어 있습니다. 되살릴 백필이 없습니다." >> "$GITHUB_STEP_SUMMARY"
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          deadline=$(date -u -d "$KHU_INITIAL_UNTIL" +%s 2>/dev/null || echo 0)
+          if [ "$deadline" -eq 0 ]; then
+            echo "::warning::초기 마감 '$KHU_INITIAL_UNTIL' 을 읽지 못했습니다."
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # app.ops.watchdog 의 여유(RESERVE_SECONDS)와 같은 15분을 쓴다.
+          if [ "$deadline" -le "$(( $(date -u +%s) + 900 ))" ]; then
+            echo "초기 마감 $KHU_INITIAL_UNTIL 이 지났습니다. 유지 수집 예약에 맡깁니다." >> "$GITHUB_STEP_SUMMARY"
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "active=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        if: steps.until.outputs.active == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: 의존성 설치
+        if: steps.until.outputs.active == 'true'
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: 판단
+        id: decide
+        if: steps.until.outputs.active == 'true'
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          mkdir -p .localstore
+          # 진행 중인 수집이 있는지, 최근에 몇 번 띄웠는지, 연속 실패했는지는
+          # 데이터베이스가 모른다. GitHub 쪽 사실을 받아 함께 판단한다.
+          gh run list --workflow collect.yml --limit 20 \
+            --json databaseId,createdAt,status,conclusion > .localstore/collect-runs.json
+          python -m app.ops.watchdog --runs-file .localstore/collect-runs.json \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+          # 판단 근거가 한글이라 인코딩을 못 박아 둔다. 여기서 터지면 되살리지 못한다.
+          dispatch=$(python -c "import json; print(str(json.load(open('.localstore/watchdog.json', encoding='utf-8'))['dispatch']).lower())")
+          echo "dispatch=$dispatch" >> "$GITHUB_OUTPUT"
+
+      - name: 수집 되살리기
+        if: steps.decide.outputs.dispatch == 'true'
+        run: gh workflow run collect.yml --ref main

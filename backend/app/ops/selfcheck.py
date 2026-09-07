@@ -3,7 +3,7 @@
 수집 회차 뒤에 규칙만으로 이상을 찾는다. 판단에 사람이나 모형을 쓰지 않는다.
 운영 자료를 바꾸지 않는다. 읽기와 원문 조회만 한다.
 
-    python -m app.ops.selfcheck                    7개 항목을 모두 점검한다
+    python -m app.ops.selfcheck                    8개 항목을 모두 점검한다
     python -m app.ops.selfcheck --no-fetch         원문 요청 없이 데이터베이스만 본다
     python -m app.ops.selfcheck --probe-limit 30   조용한 0건 확인 상한(회차당)
 
@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -28,6 +29,7 @@ from app.config import settings as default_settings
 from app.domain.dates import KST, as_utc, parse_published, utcnow
 from app.ingestion import get_adapter
 from app.ingestion.http import Fetcher, FetchError
+from app.run.initial import parse_deadline
 from app.storage import models as m
 from app.storage.db import session_scope
 
@@ -45,6 +47,8 @@ PROBE_FAILED = "확인실패"
 
 ANCIENT_BEFORE = date(1990, 1, 1)
 ZOMBIE_AFTER_HOURS = 6
+# 백필이 남았는데 이만큼 새 회차가 없으면 정체로 본다. 회차 하나가 5분이다.
+BACKFILL_IDLE_MINUTES = 30
 STUCK_FAILURES = 3
 PUBLISH_LAG_HOURS = 3
 DETAIL_SAMPLE_LIMIT = 5000
@@ -425,7 +429,69 @@ def check_publish_delay(session, *, now: datetime, lag_hours: int) -> dict:
     }
 
 
+# ---------------------------------------------------------------- 8 백필 정체
+
+
+def check_backfill_stall(
+    session, *, window_start: date | None, now: datetime, deadline: datetime | None, idle_minutes: int
+) -> dict:
+    """초기 백필이 남았는데 아무도 그것을 진행시키지 않는 상태를 잡는다.
+
+    2026-09-07 초기 마감이 지난 채 30곳이 남아 45분간 아무 회차도 뜨지 않았다.
+    수집은 매번 성공으로 끝났으므로 다른 어떤 항목에도 걸리지 않았다.
+    점검은 알려줄 뿐이고 되살리는 것은 app.ops.watchdog 이 한다.
+    """
+    rows = session.execute(
+        select(m.SourceHealth.backfill_complete, m.SourceHealth.initial_window_start)
+        .select_from(m.Source)
+        .outerjoin(m.SourceHealth, m.SourceHealth.source_id == m.Source.id)
+        .where(m.Source.status.in_(("active", "delayed", "blocked")))
+    ).all()
+    total = len(rows)
+    complete = sum(bool(done and start == window_start) for done, start in rows)
+    remaining = total - complete
+    last_activity = session.execute(
+        select(func.max(m.Run.started_at)).where(m.Run.kind == "collect")
+    ).scalar()
+    last_activity = as_utc(last_activity)
+    idle = None if last_activity is None else round((now - last_activity).total_seconds() / 60, 1)
+
+    # 막힌 출처는 영원히 남으므로 '남았다'는 사실만으로 이상이라 부르지 않는다.
+    # 마감이 살아 있는데 아무도 수집하지 않는 상태만 이상이다.
+    status, note = OK, "진행 중이거나 완료"
+    if remaining and window_start is not None:
+        if deadline is None:
+            status, note = WARN, "초기 마감(KHU_INITIAL_UNTIL)이 비어 있어 이어받지 않습니다"
+        elif now >= deadline:
+            status, note = WARN, f"초기 마감 {deadline.isoformat()} 이 지나 이어받지 않습니다"
+        elif idle is None or idle >= idle_minutes:
+            status = ALERT
+            note = (
+                f"마감이 남았는데 마지막 수집 시작이 {idle if idle is not None else '기록 없음'}분 전입니다"
+                f" (기준 {idle_minutes}분). 감시(app.ops.watchdog)가 되살려야 합니다"
+            )
+    return {
+        "name": "백필 정체",
+        "status": status,
+        "summary": f"남은 백필 {remaining}곳 / 전체 {total}곳 · {note}",
+        "remaining": remaining,
+        "total": total,
+        "idle_minutes": idle,
+        "deadline": _iso(deadline),
+        "last_collect_started_at": _iso(last_activity),
+        "threshold_minutes": idle_minutes,
+    }
+
+
 # ------------------------------------------------------------------- 점검 실행
+
+
+def _deadline(value: str) -> datetime | None:
+    """마감 문자열이 망가져 있어도 나머지 일곱 항목은 점검한다."""
+    try:
+        return parse_deadline(value)
+    except ValueError:
+        return None
 
 
 def load_previous(path: Path) -> dict | None:
@@ -443,6 +509,8 @@ def run_check(
     concurrency: int = 3,
     zombie_hours: int = ZOMBIE_AFTER_HOURS,
     lag_hours: int = PUBLISH_LAG_HOURS,
+    backfill_idle_minutes: int = BACKFILL_IDLE_MINUTES,
+    deadline: datetime | None = None,
     previous: dict | None = None,
     now: datetime | None = None,
 ) -> dict:
@@ -461,6 +529,13 @@ def run_check(
             "access_failures": check_access_failures(session),
             "zombie_runs": check_zombie_runs(session, now=now, hours=zombie_hours),
             "publish_delay": check_publish_delay(session, now=now, lag_hours=lag_hours),
+            "backfill_stall": check_backfill_stall(
+                session,
+                window_start=window_start,
+                now=now,
+                deadline=deadline,
+                idle_minutes=backfill_idle_minutes,
+            ),
         }
 
     cursor = (previous or {}).get("checks", {}).get("silent_zero", {}).get("cursor")
@@ -535,7 +610,7 @@ def render(report: dict) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="khu-selfcheck", description="수집 결과 자체 점검(7개 항목)"
+        prog="khu-selfcheck", description="수집 결과 자체 점검(8개 항목)"
     )
     parser.add_argument("--output", default=DEFAULT_OUTPUT, help="기계 판독용 결과 파일")
     parser.add_argument("--probe-limit", type=int, default=30, help="회차당 원문 확인 상한")
@@ -543,6 +618,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-fetch", action="store_true", help="원문 요청 없이 데이터베이스만 본다")
     parser.add_argument("--zombie-hours", type=int, default=ZOMBIE_AFTER_HOURS)
     parser.add_argument("--publish-lag-hours", type=int, default=PUBLISH_LAG_HOURS)
+    parser.add_argument("--backfill-idle-minutes", type=int, default=BACKFILL_IDLE_MINUTES)
+    parser.add_argument(
+        "--initial-until",
+        default=os.getenv("KHU_INITIAL_UNTIL", ""),
+        help="초기 수집 마감. 백필 정체 판정에 쓴다",
+    )
     parser.add_argument(
         "--fail-on-alert",
         action="store_true",
@@ -557,6 +638,8 @@ def main(argv: list[str] | None = None) -> int:
         concurrency=args.concurrency,
         zombie_hours=args.zombie_hours,
         lag_hours=args.publish_lag_hours,
+        backfill_idle_minutes=args.backfill_idle_minutes,
+        deadline=_deadline(args.initial_until),
         previous=load_previous(output),
     )
     output.parent.mkdir(parents=True, exist_ok=True)

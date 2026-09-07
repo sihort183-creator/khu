@@ -151,16 +151,27 @@ jobs:
             python -m app.run.initial
           fi
 
+      # 이어받기는 백필의 본줄기다. 다만 이 잡이 붙잡고 있는 마감은 잡이 시작할 때
+      # 읽은 값이라, 도중에 마감이 늘어난 것을 알지 못한다. 사슬이 끊기는 경우
+      # (마감을 넘김·수집 단계 실패·잡 취소)는 watchdog.yml 이 저장소 변수를 새로
+      # 읽어 되살린다. 여기서는 왜 이어받지 않았는지만 요약에 남긴다.
       - name: 초기 작업 이어받기
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if [ -f .localstore/initial-result.json ]; then
-            continuation=$(python -c "import json; print(str(json.load(open('.localstore/initial-result.json'))['continue_initial']).lower())")
-            if [ "$continuation" = "true" ]; then
-              gh workflow run collect.yml --ref main
-            fi
+          if [ ! -f .localstore/initial-result.json ]; then
+            echo "초기 실행기 결과가 없습니다. 다음 회차는 감시(수집 감시)가 판단합니다." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          continuation=$(python -c "import json; print(str(json.load(open('.localstore/initial-result.json'))['continue_initial']).lower())")
+          if [ "$continuation" = "true" ]; then
+            gh workflow run collect.yml --ref main
+            echo "다음 초기 회차를 띄웠습니다." >> "$GITHUB_STEP_SUMMARY"
+          else
+            remaining=$(python -c "import json; print(json.load(open('.localstore/initial-result.json')).get('remaining', '?'))")
+            echo "이어받지 않습니다(남은 백필 $remaining). 백필이 남았는데 여기서 멈췄다면 마감(KHU_INITIAL_UNTIL)이 지난 것이고, 감시(수집 감시)가 늘어난 마감을 보고 되살립니다." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       # 순환 대상과 범위 미달 추세를 알려면 지난 회차 결과가 필요하다.
