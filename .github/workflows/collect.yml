@@ -71,6 +71,12 @@ jobs:
       # 11 을 넘기지 않는다. Supabase 풀러가 세션 모드에서 사용자당 연결 15개로 막는다.
       # 이 값 + 4 가 실제 연결 수다. 넘기면 수집이 통째로 죽는다(app/storage/db.py 참조).
       KHU_SOURCE_CONCURRENCY: ${{ vars.KHU_SOURCE_CONCURRENCY || '10' }}
+      # 출처 하나에 주는 시간. 기본 120초로는 큰 게시판이 다섯 쪽을 다 읽기 전에 잘려
+      # 진행 위치를 저장하지 못하고, 다음 회차가 같은 자리를 다시 읽는다. 실제로 2026-09-07
+      # 열한 곳이 한 시간에 열한 번 착수하고도 커서가 5쪽에 그대로 있었다.
+      KHU_SOURCE_BUDGET_SECONDS: ${{ vars.KHU_SOURCE_BUDGET_SECONDS || '120' }}
+      # 한 회차에 한 출처에서 넘길 목록 쪽 수. 백필이 끝나면 되돌린다.
+      KHU_LIST_PAGE_LIMIT: ${{ vars.KHU_LIST_PAGE_LIMIT || '5' }}
       # 남은 예산이 이보다 적으면 새 출처를 시작하지 않는다. 조각으로 착수하면
       # 저장은 0건인데 대기열 순번만 잃어 그 출처가 계속 꼬리에 갇힌다.
       KHU_SOURCE_MIN_BUDGET_SECONDS: ${{ vars.KHU_SOURCE_MIN_BUDGET_SECONDS || '30' }}
