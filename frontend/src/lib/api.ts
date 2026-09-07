@@ -237,13 +237,88 @@ function audienceMatchesCampus(
   return false;
 }
 
+/**
+ * 두 탭이 함께 쓰는 조직 범위. 여기 말고 다른 곳에서 조직을 거르지 않는다.
+ *
+ * 2026-09-08 사용자 결정: '전체 공지'와 '내 공지'는 같은 조직 범위를 쓴다. 그전에는
+ * 규칙이 두 벌이었고, '내 공지'만 전교(university) 대상 공지를 조직 선택과 무관하게
+ * 통과시켰다. 외국어대학·국제교류팀만 고른 사람의 목록에 한의과대학·경영대학원 글이
+ * 섞인 원인이 이것이다. 이제 두 경로 모두 이 함수 하나를 통과한다.
+ * (차이는 '내 공지'가 구독한 게시판을 따로 얹는 것뿐이다.)
+ */
+export type OrganizationScope = {
+  /** 조직을 하나라도 골랐는가. 안 골랐으면 아무것도 거르지 않는다. */
+  picked: boolean;
+  ids: Set<string>;
+};
+
+/**
+ * 고른 조직 + 그 아래 조직 전부 + 고른 것의 위 조직.
+ *
+ * 아래(자손): 사용자 결정 2026-09-07. "상위 조직을 고르면 그 하위 조직 공지가 전부
+ * 보인다." 단과대를 골랐는데 목록이 비어 있던 원인이 이것이었다 — 공지 대부분은
+ * 단과대가 아니라 학과 게시판에서 온다. 별칭 조직도 parent_id 로 이어져 함께 딸려 온다.
+ *
+ * 위(조상): 학과를 고른 사람에게 그 단과대·대학 공지가 보이는 것은 사용자가 원래
+ * 원하던 동작이고, 학사·장학 같은 굵직한 공지가 대개 위에서 나온다.
+ *
+ * 순서가 중요하다. 자손을 먼저 넓히고 그다음에 조상을 얹는다. 뒤집으면 조상의
+ * 자손까지 딸려 들어와, 행정학과를 고른 사람에게 정경대학 전 학과가 쏟아진다.
+ *
+ * `expand` 가 false 면 고른 조직만 본다(계약의 include_descendants 가 꺼진 경우).
+ * 화면의 두 탭은 둘 다 켠 채로 부르므로 같은 범위가 나온다.
+ */
+export function organizationScope(
+  organizations: Organization[],
+  selected: readonly string[],
+  expand: boolean,
+): OrganizationScope {
+  const picked = new Set(selected);
+  if (!expand) return { picked: picked.size > 0, ids: picked };
+
+  const ids = new Set(picked);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const organization of organizations) {
+      if (organization.parent_id && ids.has(organization.parent_id) && !ids.has(organization.id)) {
+        ids.add(organization.id);
+        grew = true;
+      }
+    }
+  }
+  const byId = new Map(organizations.map((organization) => [organization.id, organization]));
+  for (const selectedId of picked) {
+    let current = byId.get(selectedId);
+    const seen = new Set<string>();
+    while (current?.parent_id && !seen.has(current.parent_id)) {
+      seen.add(current.parent_id);
+      ids.add(current.parent_id);
+      current = byId.get(current.parent_id);
+    }
+  }
+  return { picked: picked.size > 0, ids };
+}
+
+/**
+ * 공지 하나가 그 범위 안인가.
+ *
+ * 조직을 고른 사람에게는 그 범위 대상 공지만 보인다. `university`·`campus:*`·
+ * `undetermined` 처럼 조직이 붙지 않은 대상은 조직을 고르지 않았을 때만 통과한다.
+ * 캠퍼스 대상만 해도 1,483건이라 통과시키면 필터가 없는 것과 같아진다.
+ */
+export function audiencesInOrganizationScope(audiences: string[], scope: OrganizationScope): boolean {
+  if (!scope.picked) return true;
+  return audiences.some((audience) => audience.startsWith("org:") && scope.ids.has(audience.slice(4)));
+}
+
 type NoticeMatchContext = {
-  organizationIds: Set<string>;
   campusIds?: Set<string>;
   organizations?: Map<string, Organization>;
   sourceMedia?: Map<string, string>;
 };
 
+/** 조직 범위를 뺀 나머지 필터(검색어·주제·출처·매체·캠퍼스). 조직은 위 두 함수가 맡는다. */
 function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, context: NoticeMatchContext) {
   if (query.q) {
     const words = query.q.toLowerCase().split(/\s+/).filter(Boolean);
@@ -258,10 +333,6 @@ function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, contex
   if (context.campusIds?.size) {
     const organizations = context.organizations ?? new Map<string, Organization>();
     if (!entry.a.some((audience) => audienceMatchesCampus(audience, context.campusIds!, organizations))) return false;
-  }
-  if (query.organization_id?.length) {
-    const wanted = query.include_descendants ? context.organizationIds : new Set(query.organization_id);
-    if (!entry.a.some((audience) => audience.startsWith("org:") && wanted.has(audience.slice(4)))) return false;
   }
   return true;
 }
@@ -410,21 +481,8 @@ async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> 
   const organizations = needsOrganizations ? await staticOrganizations(pointer) : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
   const sourceMedia = query.medium?.length ? await staticSourceMedia(pointer) : undefined;
-  const organizationIds = new Set(query.organization_id ?? []);
-  if (query.include_descendants) {
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const org of organizations) {
-        if (org.parent_id && organizationIds.has(org.parent_id) && !organizationIds.has(org.id)) {
-          organizationIds.add(org.id);
-          changed = true;
-        }
-      }
-    }
-  }
-  let entries = (index.entries ?? []).filter((entry) => staticNoticeMatches(entry, query, {
-    organizationIds,
+  const scope = organizationScope(organizations, query.organization_id ?? [], !!query.include_descendants);
+  let entries = (index.entries ?? []).filter((entry) => audiencesInOrganizationScope(entry.a, scope) && staticNoticeMatches(entry, query, {
     campusIds: query.campus_id?.length ? new Set(query.campus_id) : undefined,
     organizations: organizationMap,
     sourceMedia,
@@ -447,57 +505,17 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
     ? await staticOrganizations(pointer)
     : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
-  // 고른 조직 + 그 아래 조직 전부 + 그 위 조직.
-  //
-  // 아래(자손): 사용자 결정 2026-09-07. "상위 조직을 고르면 그 하위 조직 공지가 전부
-  // 보인다." 단과대를 골랐는데 홈이 비어 있던 원인이 이것이었다 — 공지 대부분은
-  // 단과대가 아니라 학과 게시판에서 온다. 전체 목록(/all)은 이미 그렇게 돌고 있었다.
-  // 별칭 조직도 parent_id 로 이어져 있어 이 확장에 함께 딸려 온다.
-  //
-  // 위(조상): 그대로 둔다. 학과를 고른 사람에게 그 단과대·대학 공지가 보이는 것은
-  // 사용자가 원래 원하던 동작이고, 학사·장학 같은 굵직한 공지가 대개 위에서 나온다.
-  //
-  // 순서가 중요하다. 자손을 먼저 넓히고 그다음에 조상을 얹는다. 뒤집으면 조상의
-  // 자손까지 딸려 들어와, 행정학과를 고른 사람에게 정경대학 전 학과가 쏟아진다.
-  const organizationIds = new Set(body.organization_ids);
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const organization of organizations) {
-      if (organization.parent_id && organizationIds.has(organization.parent_id) && !organizationIds.has(organization.id)) {
-        organizationIds.add(organization.id);
-        grew = true;
-      }
-    }
-  }
-  for (const selectedId of body.organization_ids) {
-    let current = organizationMap.get(selectedId);
-    const seen = new Set<string>();
-    while (current?.parent_id && !seen.has(current.parent_id)) {
-      seen.add(current.parent_id);
-      organizationIds.add(current.parent_id);
-      current = organizationMap.get(current.parent_id);
-    }
-  }
+  // 조직 범위는 '전체 공지'와 똑같은 함수를 쓴다. 내 공지만의 차이는 아래에서
+  // 구독한 게시판을 따로 얹는 것 하나뿐이다.
+  const scope = organizationScope(organizations, body.organization_ids, true);
   const subscribed = new Set(body.subscribed_source_ids);
   const filters = body.filters ?? {};
   const sourceMedia = filters.medium?.length ? await staticSourceMedia(pointer) : undefined;
   const selected = (index.entries ?? []).filter((entry) => {
     const campusIds = body.campus_id ? new Set([body.campus_id]) : new Set<string>();
     const inCampus = !campusIds.size || entry.a.some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap));
-    const inOrganization = entry.a.some((audience) => audience.startsWith("org:") && organizationIds.has(audience.slice(4)));
-    // 조직을 하나라도 고른 사람에게는 그 조직 대상 공지와 전교 공지만 보인다.
-    // 예전에는 대상이 캠퍼스이기만 하면 조직 선택과 무관하게 통과시켜, 스페인어학과를
-    // 고른 사람에게 국어국문학과 공지가 떴다. 캠퍼스 대상 공지가 1,483 건이라 사실상
-    // 필터가 없는 것과 같았다. 캠퍼스 대상은 조직을 고르지 않았을 때만 넣는다.
-    const picked = organizationIds.size > 0;
-    const universityWide = entry.a.some((audience) => audience === "university");
-    const campusWide = entry.a.some((audience) => audience.startsWith("campus:") || audience === "undetermined");
-    const inScope = inCampus && (
-      subscribed.has(entry.s) || inOrganization || universityWide || (!picked && campusWide)
-    );
+    const inScope = inCampus && (subscribed.has(entry.s) || audiencesInOrganizationScope(entry.a, scope));
     return inScope && staticNoticeMatches(entry, filters, {
-      organizationIds,
       campusIds: undefined,
       organizations: organizationMap,
       sourceMedia,
@@ -545,29 +563,20 @@ function paginate<T>(items: T[], limit = 20, cursor?: string | null): ListRespon
 }
 
 /* ---------- 조직 관계 (mock 전용) ---------- */
-export function descendantIds(orgId: string): Set<string> {
-  const out = new Set<string>([orgId]);
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const o of M.organizations) {
-      if (o.parent_id && out.has(o.parent_id) && !out.has(o.id)) {
-        out.add(o.id);
-        grew = true;
-      }
-    }
-  }
-  return out;
-}
-export function ancestorIds(orgId: string): string[] {
-  const out: string[] = [];
-  let cur = M.organizations.find((o) => o.id === orgId);
-  while (cur?.parent_id) {
-    out.push(cur.parent_id);
-    cur = M.organizations.find((o) => o.id === cur!.parent_id);
-  }
-  return out;
-}
+/**
+ * 가상 데이터의 대상을 색인과 같은 글자로 바꾼다.
+ *
+ * 가상 데이터는 `{ type: "organization", id }` 꼴이고 색인은 `"org:<id>"` 꼴이다.
+ * 두 경로가 같은 범위 함수(organizationScope / audiencesInOrganizationScope)를 쓰려면
+ * 여기서 형태를 맞춰야 한다. 맞추지 않으면 가상 데이터로 도는 화면만 규칙이 달라진다.
+ */
+const mockAudienceKeys = (notice: Notice): string[] =>
+  notice.audiences.map((audience) => {
+    if (audience.type === "organization") return `org:${audience.id}`;
+    if (audience.type === "campus") return `campus:${audience.id}`;
+    if (audience.type === "university") return "university";
+    return "undetermined";
+  });
 
 const matchesCampus = (n: Notice, campusIds: string[]) => {
   if (!campusIds.length) return true;
@@ -702,11 +711,8 @@ export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse
   if (query.category_code?.length) list = list.filter((n) => query.category_code!.includes(n.primary_category.code));
   if (query.medium?.length) list = list.filter((n) => query.medium!.includes(n.primary_source.medium.code));
   if (query.source_id?.length) list = list.filter((n) => query.source_id!.includes(n.primary_source.id));
-  if (query.organization_id?.length) {
-    const ids = new Set<string>();
-    for (const id of query.organization_id) (query.include_descendants ? descendantIds(id) : new Set([id])).forEach((x) => ids.add(x));
-    list = list.filter((n) => n.audiences.some((a) => a.type === "organization" && ids.has(a.id!)));
-  }
+  const scope = organizationScope(M.organizations, query.organization_id ?? [], !!query.include_descendants);
+  list = list.filter((n) => audiencesInOrganizationScope(mockAudienceKeys(n), scope));
   list = list.filter((n) => textMatch(n, query.q));
   return paginate(sortNotices(list), query.limit ?? 20, query.cursor);
 }
@@ -726,16 +732,13 @@ export async function getNotice(id: string): Promise<ItemResponse<NoticeDetail>>
 export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<Notice>> {
   if (!useMock) return staticPreview(body);
   await delay(140);
-  // staticPreview 와 같은 규칙: 자손 전부 + 고른 것의 조상. 조상의 자손은 넣지 않는다.
-  const orgScope = new Set<string>();
-  for (const id of body.organization_ids) descendantIds(id).forEach((x) => orgScope.add(x));
-  for (const id of body.organization_ids) ancestorIds(id).forEach((x) => orgScope.add(x));
+  // staticPreview 와 같은 규칙을 같은 함수로 적용한다. 예전에는 여기서 university·campus
+  // 대상을 조직 선택과 무관하게 통과시켜, 가상 데이터로 도는 화면만 규칙이 달랐다.
+  const scope = organizationScope(M.organizations, body.organization_ids, true);
   const subs = new Set(body.subscribed_source_ids);
   let list = M.notices.filter((n) => {
     if (!matchesCampus(n, body.campus_id ? [body.campus_id] : [])) return false;
-    const inOrg = n.audiences.some((a) => a.type === "university" || a.type === "campus" || (a.type === "organization" && orgScope.has(a.id!)));
-    const inSub = subs.has(n.primary_source.id);
-    return inOrg || inSub;
+    return subs.has(n.primary_source.id) || audiencesInOrganizationScope(mockAudienceKeys(n), scope);
   });
   const f = body.filters ?? {};
   if (f.category_code?.length) list = list.filter((n) => f.category_code!.includes(n.primary_category.code));

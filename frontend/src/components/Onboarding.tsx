@@ -4,6 +4,7 @@
 // 그래서 종류별 전체 목록 + 검색으로 고르게 하고, 건너뛰어도 화면이 비지 않도록
 // 이후 조직 선택은 목록 쪽 체크(OrganizationPicker)에 맡긴다.
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Organization, OrgType } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
@@ -58,6 +59,7 @@ function byName(list: Organization[], type: OrgType, campusId: string | null) {
 
 function OnboardingDialog() {
   const { settings, update } = useSettings();
+  const router = useRouter();
   const catalog = useCatalog();
   const orgs = useOrganizations();
   const [step, setStep] = useState(0);
@@ -81,14 +83,16 @@ function OnboardingDialog() {
   const visible = (list: Organization[]) => (keyword ? list.filter((o) => o.name.toLowerCase().includes(keyword)) : list);
 
   // campus 는 '공통'이 null 이라 ?? 로 예전 값을 덧대면 공통을 고를 수가 없다. 고른 값을 그대로 쓴다.
-  const finish = (dept: string | null) =>
-    update({
-      campus_id: campus,
-      college_id: college,
-      department_id: dept,
-      organization_ids: [college, dept].filter((id): id is string => !!id),
-      onboarded: true,
-    });
+  //
+  // 소속을 고른 사람은 '내 공지'로 데려간다. 위 문구가 "선택한 곳의 공지가 '내 공지'에
+  // 모입니다"라고 약속했는데, 2026-09-08 첫 화면이 '전체 공지'로 바뀌면서 그대로 두면
+  // 방금 고른 결과를 아무 데서도 보지 못한 채 창만 닫히기 때문이다. 건너뛴 사람은
+  // 고른 것이 없으니 보고 있던 화면에 그대로 둔다.
+  const finish = (dept: string | null) => {
+    const organization_ids = [college, dept].filter((id): id is string => !!id);
+    update({ campus_id: campus, college_id: college, department_id: dept, organization_ids, onboarded: true });
+    if (organization_ids.length) router.push("/mine");
+  };
   // 캠퍼스만 고르고 다음 단계에서 건너뛰면 고른 캠퍼스가 저장되지 않았다.
   // '공통'을 고른 사람이 그대로 예전 캠퍼스에 머무르게 되므로 고른 값은 남긴다.
   const skip = () => update({ campus_id: campus, onboarded: true });

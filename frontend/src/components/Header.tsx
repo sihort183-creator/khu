@@ -6,9 +6,12 @@ import { useCatalog } from "@/lib/queries";
 import { campusOptions } from "@/lib/campus";
 import { IconSearch, IconUser } from "./icons";
 
+// 2026-09-08 사용자 지시: "전체 공지를 기본으로, 가장 좌측으로 밀고." 그래서 전체 공지가
+// '/'(첫 화면)이고 맨 왼쪽이다. 공지 상세(/notices/...)는 어느 탭에서 들어가든 같은 글이라
+// 기본 탭인 전체 공지에 걸어 둔다.
 const TABS = [
-  { href: "/", label: "내 공지" },
-  { href: "/all", label: "전체 공지" },
+  { href: "/", label: "전체 공지" },
+  { href: "/mine", label: "내 공지" },
   { href: "/sources", label: "출처" },
   { href: "/contacts", label: "연락처" },
 ];
@@ -54,7 +57,7 @@ export function Header() {
             );
           })}
         </div>
-        <button className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 hover:bg-bg" title="검색" onClick={() => router.push("/all?focus=q")}>
+        <button className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 hover:bg-bg" title="검색" onClick={() => router.push("/?focus=q")}>
           <IconSearch width={19} height={19} />
         </button>
         <button className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 hover:bg-bg" title="내 학과 설정" onClick={() => update({ onboarded: false })}>

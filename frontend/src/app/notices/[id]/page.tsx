@@ -31,7 +31,7 @@ export default function NoticePage() {
                 다시 시도
               </button>
               <Link href="/" className="rounded-lg border border-line px-4 py-2 text-ink-2 hover:bg-bg">
-                내 공지로 이동
+                전체 공지로 이동
               </Link>
             </div>
           </div>

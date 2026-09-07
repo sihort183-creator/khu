@@ -7,7 +7,7 @@ export default function NotFound() {
       주소가 바뀌었거나 삭제된 페이지입니다.
       <div className="mt-4">
         <Link href="/" className="inline-block rounded-lg border border-line bg-white px-4 py-2 text-ink-2 hover:bg-bg">
-          내 공지로 이동
+          전체 공지로 이동
         </Link>
       </div>
     </div>

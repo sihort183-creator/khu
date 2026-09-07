@@ -241,6 +241,60 @@ test("캠퍼스·매체 필터와 상위 조직 범위를 실제 색인 계약�
   assert.deepEqual(Array.from(mediumPreview.data, (item) => item.id), ["campus-ig"]);
 });
 
+test("전체 공지와 내 공지는 같은 조직 범위 규칙을 쓴다", async () => {
+  // 2026-09-08 사용자 실측: 외국어대학 + 국제처 국제교류팀만 골랐는데 '내 공지'에만
+  // 한의과대학·경영대학원 글이 섞였다. '내 공지'가 전교(university) 대상 공지를
+  // 조직 선택과 무관하게 통과시켰기 때문이다. 아래 셋을 못으로 박는다.
+  const entries = [
+    { id: "univ", t: "전교 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["university"] },
+    { id: "campus", t: "캠퍼스 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["campus:campus-seoul"] },
+    { id: "college", t: "단과대 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-college"] },
+    { id: "dept", t: "학과 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-dept"] },
+    { id: "child", t: "하위 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-child"] },
+    { id: "sibling", t: "형제 학과 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-sibling"] },
+    // 고른 곳과 아무 상관 없는 단과대. 사용자가 본 '한의과대학' 자리다.
+    { id: "other", t: "남의 단과대 공지", c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["org:org-other"] },
+  ];
+  const campuses = [{ id: "campus-seoul", name: "서울" }];
+  const organizations = page([
+    { id: "org-college", name: "단과대", type: coded("college", "단과대"), parent_id: null, campuses, has_children: true },
+    { id: "org-dept", name: "학과", type: coded("department", "학과"), parent_id: "org-college", campuses, has_children: true },
+    { id: "org-child", name: "세부 조직", type: coded("office", "부서"), parent_id: "org-dept", campuses, has_children: false },
+    { id: "org-sibling", name: "형제 학과", type: coded("department", "학과"), parent_id: "org-college", campuses, has_children: false },
+    { id: "org-other", name: "남의 단과대", type: coded("college", "단과대"), parent_id: null, campuses, has_children: false },
+  ]);
+  const fetchImpl = async (url) => {
+    const path = staticPath(url);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => organizations };
+    const entry = entries.find((one) => path.endsWith(`/notices/${one.id}.json`));
+    if (entry) return { ok: true, json: async () => ({ data: backendDetail(notice(entry.id)), meta: {} }) };
+    throw new Error(`Unexpected path ${path}`);
+  };
+  const api = await loadApi(fetchImpl);
+  const mine = (organization_ids) => api.previewFeed({ campus_id: "campus-seoul", organization_ids, subscribed_source_ids: [], limit: 20 });
+  const all = (organization_id) => api.listNotices({ campus_id: ["campus-seoul"], organization_id, include_descendants: true, limit: 20 });
+
+  // (가) 조직을 고르면 전교 대상 공지는 '내 공지'에서 빠진다. 남의 단과대도 마찬가지다.
+  const picked = await mine(["org-dept"]);
+  const pickedIds = Array.from(picked.data, (item) => item.id);
+  assert.equal(pickedIds.includes("univ"), false);
+  assert.equal(pickedIds.includes("campus"), false);
+  assert.equal(pickedIds.includes("other"), false);
+  assert.deepEqual([...pickedIds].sort(), ["child", "college", "dept"]);
+
+  // (나) 조직을 하나도 안 고르면 전교·캠퍼스 대상 공지가 들어온다.
+  const open = await mine([]);
+  const openIds = Array.from(open.data, (item) => item.id);
+  assert.equal(openIds.includes("univ"), true);
+  assert.equal(openIds.includes("campus"), true);
+
+  // (다) 같은 선택에는 두 탭이 같은 집합을 낸다.
+  assert.deepEqual(pickedIds, Array.from((await all(["org-dept"])).data, (item) => item.id));
+  assert.deepEqual(openIds, Array.from((await all([])).data, (item) => item.id));
+});
+
 test("entries가 없는 색인은 모든 조각을 합치고 개정·건수 불일치를 거부한다", async () => {
   const baseOne = notice("shard-1");
   const baseTwo = notice("shard-2");
