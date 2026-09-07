@@ -9,12 +9,14 @@ on:
       - "backend/**"
       - "registry/**"
       - "worker/**"
+      - "frontend/**"
       - ".github/workflows/**"
   pull_request:
     paths:
       - "backend/**"
       - "registry/**"
       - "worker/**"
+      - "frontend/**"
       - ".github/workflows/**"
 
 permissions:
@@ -62,6 +64,29 @@ jobs:
 
       - name: 등록부 형식 확인
         run: python -c "from app.ingestion.registry import load_registry; r = load_registry(); print(f'조직 {len(r.organizations)} / 출처 {len(r.sources)}')"
+
+  # 화면 검사는 어디서도 돌지 않아, 조직 거르기를 고치며 깨뜨린 검사를 아무도 잡지 못했다.
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: 의존성 설치
+        run: npm ci
+      - name: 형식·규칙 확인
+        run: |
+          npx tsc --noEmit
+          npm run lint
+      - name: 조회 계약 검사
+        run: node --experimental-vm-modules --test tests/*.test.mjs
 
   worker:
     runs-on: ubuntu-latest

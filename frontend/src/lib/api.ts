@@ -14,6 +14,7 @@ import type {
   Organization,
   Source,
 } from "./types";
+import { countNoticesByNode, type NodeCounts } from "./orgTree";
 import * as M from "@/mocks/data";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
@@ -645,6 +646,33 @@ export async function listOrganizations(params: { campus_id?: string; parent_id?
   if (params.campus_id) list = list.filter((o) => o.campus_id === params.campus_id || o.campus_id === null);
   if (params.parent_id !== undefined) list = list.filter((o) => o.parent_id === params.parent_id);
   return paginate(list, 100);
+}
+
+/**
+ * 조직 트리의 칸마다 붙일 공지 건수.
+ *
+ * 공지 색인(약 600KB)을 통째로 읽어야 나오는 값이라 조직 선택기가 실제로 화면에
+ * 보일 때만 부른다. 세지 못하면 화면에는 아무 수치도 내보내지 않는다 — 빈 숫자나
+ * 어림수를 대신 넣지 않는다.
+ */
+export async function listOrganizationNoticeCounts(): Promise<NodeCounts> {
+  if (!useMock) {
+    const pointer = await staticLatest();
+    const [index, organizations, catalog] = await Promise.all([
+      staticIndex(pointer),
+      staticOrganizations(pointer),
+      staticGet<ItemResponse<Catalog>>("catalog.json", pointer),
+    ]);
+    return countNoticesByNode(organizations, catalog.data.campuses, (index.entries ?? []).map((entry) => entry.a));
+  }
+  await delay(60);
+  // 가상 데이터의 audience.type 은 "organization"이고 색인 쪽 접두사는 "org"다.
+  const audiences = M.notices.map((notice) =>
+    notice.audiences
+      .filter((audience) => !!audience.id && (audience.type === "organization" || audience.type === "campus"))
+      .map((audience) => `${audience.type === "organization" ? "org" : "campus"}:${audience.id}`),
+  );
+  return countNoticesByNode(M.organizations, M.catalog.campuses, audiences);
 }
 
 export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse<Notice>> {

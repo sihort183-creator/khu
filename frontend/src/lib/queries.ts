@@ -1,8 +1,9 @@
 "use client";
 // 단건·목록 조회용 SWR 훅. 실제 서버가 붙어도 훅 시그니처는 그대로 둔다.
 import useSWR from "swr";
-import { getCatalog, getNotice, listContacts, listOrganizations, listSources } from "./api";
+import { getCatalog, getNotice, listContacts, listOrganizationNoticeCounts, listOrganizations, listSources } from "./api";
 import type { ApiError } from "./types";
+import type { NodeCounts } from "./orgTree";
 
 const opts = {
   revalidateOnFocus: true,
@@ -18,6 +19,20 @@ export function useCatalog() {
 export function useOrganizations() {
   const { data } = useSWR("organizations", () => listOrganizations().then((r) => r.data), { ...opts, revalidateIfStale: false });
   return data ?? [];
+}
+
+/**
+ * 조직 트리에 붙일 공지 건수. 색인 전체(약 600KB)를 읽어야 하므로 선택기가 실제로
+ * 눈에 보일 때만(enabled) 부르고, 한 번 읽으면 다시 읽지 않는다.
+ */
+export function useOrganizationNoticeCounts(enabled: boolean): NodeCounts | null {
+  const { data } = useSWR(enabled ? "organization-notice-counts" : null, listOrganizationNoticeCounts, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    refreshInterval: 0,
+  });
+  return data ?? null;
 }
 
 export function useNotice(id: string) {

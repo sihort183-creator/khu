@@ -217,9 +217,14 @@ test("캠퍼스·매체 필터와 상위 조직 범위를 실제 색인 계약�
   const api = await loadApi(fetchImpl);
   const filtered = await api.listNotices({ campus_id: ["campus-seoul"], medium: ["instagram"], limit: 20 });
   assert.deepEqual(filtered.data.map((item) => item.id), ["campus-ig"]);
+  // 조직을 고른 사람에게는 그 조직과 상위 조직 대상 공지만 보인다. 캠퍼스 전체 공지는
+  // 빼는데, 그것이 실제로는 학과 공지인 경우가 많기 때문이다 - 2026-09-07 운영 기준
+  // 캠퍼스 대상 1,546건 중 916건이 학과·단과대 게시판 글이었다. 캠퍼스 전체 공지는
+  // '전체 공지'에서 본다. 대상 분류가 정리되면 이 결정을 다시 볼 수 있다.
   const preview = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: ["org-dept"], subscribed_source_ids: [], limit: 20 });
-  assert.deepEqual(Array.from(preview.data, (item) => item.id).sort(), ["campus-ig", "campus-web", "college", "dept"]);
+  assert.deepEqual(Array.from(preview.data, (item) => item.id).sort(), ["college", "dept"]);
   assert.equal(preview.data.some((item) => item.id === "child"), false);
+  assert.equal(preview.data.some((item) => item.id === "campus-web"), false);
   const subscribed = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: [], subscribed_source_ids: ["src-ig"], limit: 20 });
   assert.equal(subscribed.data.some((item) => item.id === "global-ig"), false);
   const mediumPreview = await api.previewFeed({ campus_id: "campus-seoul", organization_ids: [], subscribed_source_ids: [], filters: { medium: ["instagram"] }, limit: 20 });
