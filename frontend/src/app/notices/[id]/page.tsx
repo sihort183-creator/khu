@@ -86,11 +86,17 @@ export default function NoticePage() {
             </div>
             {n.audience_note && <p className="mt-2 rounded-lg bg-cream px-3 py-2 text-xs text-ink-2">{n.audience_note}</p>}
 
-            {n.original_status.code !== "available" && (
+            {/* 로그인해야 볼 수 있는 글은 본문을 아예 못 가져온다. 저장된 내용을 보여준다고
+                하면 거짓말이 되므로 왜 없는지 그대로 말한다. */}
+            {n.original_status.code === "restricted" ? (
+              <p className="mt-3 rounded-lg border border-[#EAD9A6] bg-[#FBF6E8] px-3 py-2 text-xs text-ink-2">
+                원문 {n.original_status.label}: 학교 계정으로 로그인해야 볼 수 있는 글입니다. 제목과 날짜만 모았습니다. 내용은 원문에서 확인하세요.
+              </p>
+            ) : n.original_status.code !== "available" ? (
               <p className="mt-3 rounded-lg border border-[#EAD9A6] bg-[#FBF6E8] px-3 py-2 text-xs text-ink-2">
                 원문 {n.original_status.label}: 원문 사이트에 접근할 수 없어 저장된 내용을 보여줍니다. 최신 내용은 원문에서 확인하세요.
               </p>
-            )}
+            ) : null}
 
             <div className="my-4 border-y border-line-2 py-3.5 text-sm leading-[1.7] text-ink-2">
               {/* body_html 은 서버에서 허용 목록으로 다시 지은 것이다. 그림 주소도 중계 주소로

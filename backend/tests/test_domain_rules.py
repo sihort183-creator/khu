@@ -242,3 +242,19 @@ def test_primary_prefers_source_rank_then_body():
     weak = _candidate("a", "s2", "제목", "")
     strong = _candidate("b", "s1", "제목", LONG_BODY)
     assert dd.pick_primary([weak, strong], source_rank={"s1": 1, "s2": 9}).item_id == "b"
+
+
+def test_campus_mention_does_not_erase_the_department():
+    """본문이 캠퍼스를 언급해도 게시판 주인 학과와의 연결을 지우지 않는다.
+
+    지우면 영어영문학과 게시판 글이 "국제캠퍼스 전체" 공지가 되어, 학과를 고른 사람에게는
+    사라지고 엉뚱한 사람에게 뜬다. 2026-09-07 사용자가 이 상태를 지적했다.
+    """
+    department = (aud.AudienceTarget(type="organization", id="org-eng", name="영어영문학과"),)
+    decision = aud.decide(
+        "슬기로운 경희생활 시리즈 특강", "국제캠퍼스 청운관에서 진행합니다",
+        source_defaults=department, campus_lookup=_campus_map(),
+    )
+    kinds = {(t.type, t.id) for t in decision.targets}
+    assert ("organization", "org-eng") in kinds
+    assert any(kind == "campus" for kind, _ in kinds)

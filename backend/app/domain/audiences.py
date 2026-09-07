@@ -84,8 +84,14 @@ def decide(
         )
 
     if explicit_campus:
-        # 게시물이 캠퍼스를 명시하면 그 캠퍼스로 좁힌다.
-        return AudienceDecision(targets=tuple(explicit_campus), note=note, narrowed=True)
+        # 게시물이 캠퍼스를 명시하면 그 캠퍼스를 대상에 더한다. 다만 출처 조직을 지우지는
+        # 않는다. 지우면 영어영문학과 게시판 글이 본문에 "국제캠퍼스"를 언급했다는 이유로
+        # 학과와의 연결을 잃고 "국제캠퍼스 전체" 공지가 되어, 학과를 고른 사람에게는
+        # 사라지고 엉뚱한 사람에게는 뜬다. 2026-09-07 실제로 그렇게 보였다.
+        # 다만 기본 대상이 대학 전체나 캠퍼스처럼 넓을 때는 게시물이 밝힌 캠퍼스로
+        # 좁히는 것이 맞다. 지키는 것은 조직 대상뿐이다.
+        keep = tuple(target for target in source_defaults if target.type == "organization")
+        return AudienceDecision(targets=keep + tuple(explicit_campus), note=note, narrowed=True)
 
     if source_defaults:
         return AudienceDecision(targets=tuple(source_defaults), note=note, narrowed=False)

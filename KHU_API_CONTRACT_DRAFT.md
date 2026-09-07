@@ -72,7 +72,7 @@
 | `updated_at`(내용 갱신 시각) | 서비스가 의미 있는 내용 변경을 반영한 시각 |
 | `deadline`(마감 정보) | 미확정이면 정보 없음. 있으면 날짜·선택적 시각·정밀도·원문 근거 |
 | `original_url`(대표 원문 주소) | 사용자가 원문으로 이동할 주소 |
-| `original_status`(원문 상태) | `available`(접근 가능), `unavailable`(확인 불가), `removed`(삭제 확인) |
+| `original_status`(원문 상태) | `available`(접근 가능), `restricted`(로그인 필요), `unavailable`(확인 불가), `removed`(삭제 확인) |
 | `freshness`(갱신 상태) | 상태 코드·한국어 이름·마지막 확인 시각 |
 
 다음은 실제 공지와 무관한 가상 응답이다. 예시 도메인과 가상 식별자는 운영에 가져오지 않는다. 중첩 객체의 `name`은 이름, `type`은 유형, `last_checked_at`은 마지막 정상 확인 시각을 뜻한다.

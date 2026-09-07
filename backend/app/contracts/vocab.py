@@ -52,6 +52,7 @@ SOURCE_STATUS_LABELS: dict[str, str] = {
 ORIGINAL_STATUS_LABELS: dict[str, str] = {
     "available": "접근 가능",
     "unavailable": "확인 불가",
+    "restricted": "로그인 필요",
     "removed": "삭제 확인",
 }
 

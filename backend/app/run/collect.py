@@ -35,7 +35,7 @@ from app.domain import dates as date_rules
 from app.domain import dedupe as dedupe_rules
 from app.export.static import ExportResult, export_static, refresh_public_status
 from app.ingestion import get_adapter
-from app.ingestion.base import FetchedDetail, ListedItem, ParseError
+from app.ingestion.base import FetchedDetail, ListedItem, ParseError, RestrictedError
 from app.ingestion.http import Fetcher, FetchError
 from app.storage import models as m
 from app.storage import repository as repo
@@ -195,6 +195,15 @@ async def collect_source(
                 seen.add(listed.external_id)
             else:
                 repo.touch_item_from_listing(session, source_id=source.id, listed=listed)
+        except RestrictedError:
+            # 로그인해야 볼 수 있는 글이다. 우리가 고칠 수 없는 실패이고, 없는 것처럼
+            # 두면 게시판이 통째로 사라진다. 목록에서 얻은 것만으로 남긴다.
+            repo.ensure_item_stub(session, source=source, listed=listed)
+            changed = record_listing_only(session, due, listed, campus_map=campus_map)
+            outcome.new_items += int(changed == "new")
+            outcome.updated_items += int(changed == "updated")
+            seen.add(listed.external_id)
+            return False
         except (ParseError, FetchError) as exc:
             repo.ensure_item_stub(session, source=source, listed=listed)
             repo.mark_detail_failure(session, source_id=source.id, external_id=listed.external_id, message=str(exc))
@@ -425,68 +434,235 @@ async def _process_item(
     return "new" if written.is_new_item else "updated"
 
 
+def record_listing_only(
+    session: Session,
+    due: repo.DueSource,
+    listed: ListedItem,
+    *,
+    campus_map: dict[str, tuple[str, str]],
+) -> str:
+    """본문을 못 여는 글을 목록 정보만으로 남긴다.
+
+    로그인해야 볼 수 있는 글이 그렇다. 본문이 없다고 빼 버리면 미래인재센터 채용
+    게시판처럼 게시판 하나가 통째로 없는 것처럼 보인다. 제목·발행일·주소는 목록에서
+    이미 얻었으므로 그것만으로 공지를 만들고, 원문 상태를 "로그인 필요"로 표시해
+    화면이 왜 본문이 없는지 말해 줄 수 있게 한다. 증거는 보관할 원문이 없어 남기지 않는다.
+    """
+    detail = FetchedDetail(
+        external_id=listed.external_id,
+        url=listed.url,
+        title=listed.title,
+        body_text="",
+        body_html="",
+        raw_html="",
+        published_raw=listed.published_raw,
+        extraction_notes={"extractor": "listing_only"},
+    )
+    published = date_rules.parse_published(listed.published_raw)
+    written = repo.upsert_item_and_revision(
+        session,
+        source=due.source,
+        listed=listed,
+        detail=detail,
+        published=published,
+        raw_object_key=None,
+        extractor_version="listing_only",
+    )
+    item = session.get(m.SourceItem, written.item_id)
+    if item is not None:
+        item.original_status = "restricted"
+    if not written.is_new_revision:
+        return "known"
+    revision = session.get(m.SourceItemRevision, written.revision_id)
+    repo.upsert_notice_for_item(
+        session,
+        item_id=written.item_id,
+        revision=revision,
+        category=category_rules.classify(listed.title, None, board_category=None),
+        audience=audience_rules.decide(
+            listed.title, None, source_defaults=due.audience_defaults, campus_lookup=campus_map,
+        ),
+        deadline=date_rules.guess_deadline(listed.title, None, published=published.date),
+    )
+    return "new" if written.is_new_item else "updated"
+
+
+class _MergeRouter:
+    """병합 대상을 살아 있는 대표 공지로 돌린다.
+
+    한 회차 안에서 A→B 를 병합하면 A 는 숨겨지고 원본 연결은 B 로 옮겨진다. 그 뒤
+    같은 회차가 (A, C) 를 다시 병합하려 할 때 A 를 대표로 고르면 C 의 원본이 이미
+    숨겨진 A 에 매달려 화면에서 통째로 사라진다. 실측 자료로 전체 판정을 돌려 보면
+    이런 짝이 479번 생기고 공지 55건이 원본을 쥔 채 사라진다. 대표를 항상 현재
+    살아 있는 공지로 다시 풀어서 그 구멍을 막는다.
+    """
+
+    def __init__(self) -> None:
+        self._alias: dict[str, str] = {}
+
+    def resolve(self, notice_id: str) -> str:
+        seen = notice_id
+        while self._alias.get(seen, seen) != seen:
+            seen = self._alias[seen]
+        if seen != notice_id:
+            self._alias[notice_id] = seen
+        return seen
+
+    def merge(
+        self,
+        session: Session,
+        *,
+        keep_notice_id: str,
+        absorb_notice_id: str,
+        reason: str,
+    ) -> bool:
+        keep_id = self.resolve(keep_notice_id)
+        absorb_id = self.resolve(absorb_notice_id)
+        if keep_id == absorb_id:
+            return False
+        keep = session.get(m.Notice, keep_id)
+        absorb = session.get(m.Notice, absorb_id)
+        if keep is None or absorb is None:
+            return False
+        if keep.status != "visible" and absorb.status == "visible":
+            keep, absorb = absorb, keep
+        if keep.status != "visible":
+            # 둘 다 이미 공개 대상이 아니다. 건드리면 원본만 옮겨 다닌다.
+            return False
+        repo.merge_notices(
+            session, keep_notice_id=keep.id, absorb_notice_id=absorb.id, reason=reason
+        )
+        self._alias[absorb.id] = keep.id
+        return True
+
+
+def _to_candidate(item: m.SourceItem, revision: m.SourceItemRevision) -> dedupe_rules.Candidate:
+    return dedupe_rules.Candidate(
+        item_id=item.id,
+        revision_id=revision.id,
+        source_id=item.source_id,
+        organization_id=None,
+        title=revision.title,
+        body_text=revision.body_text,
+        published_date=revision.published_date,
+    )
+
+
+def _judge_pairs(
+    session: Session,
+    pairs,
+    *,
+    router: _MergeRouter,
+) -> tuple[int, int]:
+    """짝마다 판정을 기록하고 확실한 것만 병합한다. (기록 수, 병합 수)를 준다."""
+    recorded = merged = 0
+    for left, left_notice, right, right_notice in pairs:
+        decision = dedupe_rules.compare(left, right)
+        if decision.decision == "distinct" and decision.score < 0.5:
+            continue
+        repo.record_dedupe_decision(
+            session,
+            left_item=left.item_id,
+            right_item=right.item_id,
+            left_revision=left.revision_id,
+            right_revision=right.revision_id,
+            decision=decision.decision,
+            score=decision.score,
+            signals=decision.signals,
+            rule_version=decision.rule_version,
+        )
+        recorded += 1
+        if decision.decision != "merge" or left_notice is None or right_notice is None:
+            continue
+        keep = dedupe_rules.pick_primary([left, right])
+        keep_notice = left_notice if keep.item_id == left.item_id else right_notice
+        absorb_notice = right_notice if keep.item_id == left.item_id else left_notice
+        merged += int(
+            router.merge(
+                session,
+                keep_notice_id=keep_notice.id,
+                absorb_notice_id=absorb_notice.id,
+                reason=decision.reason,
+            )
+        )
+    return recorded, merged
+
+
 def run_dedupe_pass(session: Session, *, limit: int = 300) -> int:
     """최근 항목끼리 중복 후보를 비교한다. 자동 병합은 확실할 때만 한다(9.1절)."""
     rows = repo.recent_items_for_dedupe(session, limit=limit)
-    candidates: list[tuple[dedupe_rules.Candidate, object]] = []
-    for item, revision, notice in rows:
-        candidates.append(
-            (
-                dedupe_rules.Candidate(
-                    item_id=item.id,
-                    revision_id=revision.id,
-                    source_id=item.source_id,
-                    organization_id=None,
-                    title=revision.title,
-                    body_text=revision.body_text,
-                    published_date=revision.published_date,
-                ),
-                notice,
-            )
-        )
+    candidates = [(_to_candidate(item, revision), notice) for item, revision, notice in rows]
 
-    merged = 0
-    seen_pairs: set[tuple[str, str]] = set()
-    for index, (left, left_notice) in enumerate(candidates):
-        for right, right_notice in candidates[index + 1 :]:
-            pair = tuple(sorted((left.item_id, right.item_id)))
-            if pair in seen_pairs:
-                continue
-            seen_pairs.add(pair)
+    def pairs():
+        seen: set[tuple[str, str]] = set()
+        for index, (left, left_notice) in enumerate(candidates):
+            for right, right_notice in candidates[index + 1 :]:
+                key = tuple(sorted((left.item_id, right.item_id)))
+                if key in seen:
+                    continue
+                seen.add(key)
+                yield left, left_notice, right, right_notice
 
-            decision = dedupe_rules.compare(left, right)
-            if decision.decision == "distinct" and decision.score < 0.5:
-                continue
-
-            repo.record_dedupe_decision(
-                session,
-                left_item=left.item_id,
-                right_item=right.item_id,
-                left_revision=left.revision_id,
-                right_revision=right.revision_id,
-                decision=decision.decision,
-                score=decision.score,
-                signals=decision.signals,
-                rule_version=decision.rule_version,
-            )
-
-            if (
-                decision.decision == "merge"
-                and left_notice is not None
-                and right_notice is not None
-                and left_notice.id != right_notice.id
-            ):
-                keep = dedupe_rules.pick_primary([left, right])
-                keep_notice = left_notice if keep.item_id == left.item_id else right_notice
-                absorb_notice = right_notice if keep.item_id == left.item_id else left_notice
-                repo.merge_notices(
-                    session,
-                    keep_notice_id=keep_notice.id,
-                    absorb_notice_id=absorb_notice.id,
-                    reason=decision.reason,
-                )
-                merged += 1
+    _, merged = _judge_pairs(session, pairs(), router=_MergeRouter())
     return merged
+
+
+def run_dedupe_backfill(
+    session: Session, *, chunk: int = 1000, max_block: int = 400
+) -> dict[str, int]:
+    """쌓인 전체 공지에 중복 판정을 한 번 적용한다(9.1절).
+
+    유지 수집의 run_dedupe_pass 는 가장 최근에 본 몇백 건만 비교한다. 초기 수집이
+    과거 글 수천 건을 한 회차에 몰아 넣으면 대부분은 그 창에 한 번도 들어오지 못하고,
+    그대로 두면 유지 수집이 아무리 돌아도 영원히 판정을 받지 못한다. 이 작업이 그 몫이다.
+
+    전체 짝짓기는 13,700건 기준 9,400만 번 비교라 쓸 수 없다. 자동 병합의 필요 조건은
+    본문 지문 일치(compare 의 body_equal)이므로 지문으로 먼저 묶고 같은 지문 안에서만
+    비교한다. 지문이 다른 짝은 compare 가 절대 merge 를 내지 않으므로 병합 결과는
+    전체 비교와 같다. 지문이 없는 글(본문이 없거나 서식뿐인 글)은 애초에 자동 병합
+    대상이 아니라 건너뛴다. 제목만 비슷한 review 후보는 이 작업의 몫이 아니다.
+    """
+    blocks: dict[str, list[str]] = {}
+    scanned = 0
+    for item_id, body_text in repo.iter_item_bodies_for_dedupe(session, chunk=chunk):
+        scanned += 1
+        fingerprint = dedupe_rules.body_fingerprint(body_text)
+        if fingerprint is None:
+            continue
+        blocks.setdefault(fingerprint, []).append(item_id)
+
+    router = _MergeRouter()
+    recorded = merged = compared = blocked = 0
+    for fingerprint, item_ids in blocks.items():
+        if len(item_ids) < 2:
+            continue
+        if len(item_ids) > max_block:
+            # 같은 서식을 그대로 쓰는 게시판이 있으면 한 묶음이 지나치게 커질 수 있다.
+            # 그런 묶음은 자동으로 다루지 않고 운영이 따로 본다.
+            blocked += 1
+            log.warning("중복 묶음이 너무 큽니다(%d건) 지문=%s", len(item_ids), fingerprint[:12])
+            continue
+        rows = repo.items_for_dedupe(session, item_ids)
+        candidates = [(_to_candidate(item, revision), notice) for item, revision, notice in rows]
+
+        def pairs(candidates=candidates):
+            for index, (left, left_notice) in enumerate(candidates):
+                for right, right_notice in candidates[index + 1 :]:
+                    yield left, left_notice, right, right_notice
+
+        pair_count = len(candidates) * (len(candidates) - 1) // 2
+        compared += pair_count
+        block_recorded, block_merged = _judge_pairs(session, pairs(), router=router)
+        recorded += block_recorded
+        merged += block_merged
+    return {
+        "scanned": scanned,
+        "blocks": sum(1 for ids_ in blocks.values() if len(ids_) > 1),
+        "oversized_blocks": blocked,
+        "compared": compared,
+        "recorded": recorded,
+        "merged": merged,
+    }
 
 
 class SharedFetcherProxy:

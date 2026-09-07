@@ -603,3 +603,194 @@ def test_list_is_newest_by_publish_date_not_by_when_we_crawled_it(seeded, settin
 
     listed = [n["id"] for n in page["data"]]
     assert listed == [newest.id, middle.id, old.id]
+
+
+def _seed_reposts(session, *, bodies: list[str], titles: list[str]) -> None:
+    """여러 학과 게시판이 같은 본부 공지를 각자 올린 상태를 만든다."""
+    session.add(m.University(id="u-rep", code="khu2", name="경희대학교"))
+    session.flush()
+    session.add(m.Organization(id="o-rep", university_id="u-rep", org_type="office", name="본부"))
+    session.flush()
+    for index, (body, title) in enumerate(zip(bodies, titles, strict=True)):
+        session.add(
+            m.Source(
+                id=f"src-rep-{index}",
+                organization_id="o-rep",
+                name=f"학과 게시판 {index}",
+                adapter="khu_board",
+                list_url=f"https://rep{index}.khu.ac.kr/list.do",
+                status="active",
+            )
+        )
+        session.flush()
+        session.add(
+            m.SourceItem(
+                id=f"item-rep-{index}",
+                source_id=f"src-rep-{index}",
+                external_id=str(index),
+                canonical_url=f"https://rep{index}.khu.ac.kr/view.do?id={index}",
+                original_status="available",
+            )
+        )
+        session.flush()
+        session.add(
+            m.SourceItemRevision(
+                id=f"rev-rep-{index}",
+                source_item_id=f"item-rep-{index}",
+                content_hash=f"hash-rep-{index}",
+                title=title,
+                body_text=body,
+                published_date=date(2026, 3, 20),
+                extractor_version="test",
+            )
+        )
+        session.flush()
+        session.get(m.SourceItem, f"item-rep-{index}").current_revision_id = f"rev-rep-{index}"
+        session.add(
+            m.Notice(
+                id=f"ntc-rep-{index}",
+                primary_source_item_id=f"item-rep-{index}",
+                status="visible",
+                title=title,
+                published_date=date(2026, 3, 20),
+            )
+        )
+        session.flush()
+        session.add(
+            m.NoticeSource(
+                id=f"ns-rep-{index}",
+                notice_id=f"ntc-rep-{index}",
+                source_item_id=f"item-rep-{index}",
+                is_active=True,
+                is_primary=True,
+            )
+        )
+    session.flush()
+
+
+BODY_SHARED = "2026학년도 1학기 우수연구자 추천장학 선발을 아래와 같이 안내합니다.\n" * 8
+
+
+def _active_links(session, notice_id: str) -> int:
+    return len(
+        session.execute(
+            select(m.NoticeSource).where(
+                m.NoticeSource.notice_id == notice_id, m.NoticeSource.is_active.is_(True)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+def test_dedupe_never_merges_into_an_already_hidden_notice(session_factory):
+    """이미 흡수된 공지를 대표로 삼으면 원본이 화면에서 사라진다.
+
+    A→B 로 병합한 뒤 같은 회차가 (A, C) 를 다시 보면 A 는 이미 숨겨져 있다. 거기에
+    C 를 넣으면 숨은 공지가 원본 세 개를 쥐고 목록에는 아무것도 남지 않는다.
+    """
+    with session_factory() as session:
+        # 가운데 글만 두 쪽과 제목이 통하게 해서 전이 병합이 일어나게 둔다.
+        _seed_reposts(
+            session,
+            bodies=[BODY_SHARED] * 3,
+            titles=[
+                "2026학년도 1학기 우수연구자 추천장학 선발 안내",
+                "우수연구자 추천장학 선발 안내",
+                "[대학원] 우수연구자 추천장학 선발 안내 (학과 공지)",
+            ],
+        )
+        session.commit()
+
+        run_dedupe_pass(session)
+        session.commit()
+
+        notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+        visible = [n for n in notices if n.status == "visible"]
+        assert len(visible) == 1, "같은 본문이면 하나로 묶여야 한다"
+        assert _active_links(session, visible[0].id) == 3, "원본 세 개가 모두 대표에 붙어야 한다"
+        for notice in notices:
+            if notice.status != "visible":
+                assert _active_links(session, notice.id) == 0, (
+                    "숨은 공지가 활성 원본을 쥐고 있으면 그 원본은 어디에도 보이지 않는다"
+                )
+
+
+def test_dedupe_backfill_merges_beyond_the_recent_window(session_factory):
+    """유지 수집의 최근 창 밖에 쌓인 글도 일괄 병합이 처리한다."""
+    from app.run.collect import run_dedupe_backfill
+
+    with session_factory() as session:
+        _seed_reposts(
+            session,
+            bodies=[BODY_SHARED, BODY_SHARED, "전혀 다른 공지입니다. " * 20],
+            titles=[
+                "2026학년도 1학기 우수연구자 추천장학 선발 안내",
+                "2026학년도 1학기 우수연구자 추천장학 선발 안내",
+                "2026학년도 1학기 우수연구자 추천장학 선발 안내",
+            ],
+        )
+        session.commit()
+
+        # 최근 창을 두 건으로 좁혀도 창 밖의 글은 판정을 못 받는다.
+        assert run_dedupe_pass(session, limit=1) == 0
+        session.commit()
+
+        stats = run_dedupe_backfill(session)
+        session.commit()
+
+        assert stats["merged"] == 1
+        assert stats["scanned"] == 3
+        assert stats["blocks"] == 1
+        visible = session.execute(
+            select(m.Notice).where(m.Notice.status == "visible")
+        ).scalars().all()
+        # 본문이 같은 두 건은 하나로, 제목만 같은 세 번째는 그대로 남는다.
+        assert len(visible) == 2
+        merged_notice = next(n for n in visible if _active_links(session, n.id) == 2)
+        assert merged_notice is not None
+
+
+def test_dedupe_backfill_keeps_same_title_different_body_apart(session_factory):
+    """제목만 같고 본문이 다르면 합치지 않는다. 잘못 합치는 값이 더 크다(9절 1차 원칙)."""
+    from app.run.collect import run_dedupe_backfill
+
+    with session_factory() as session:
+        _seed_reposts(
+            session,
+            bodies=[
+                "학과별 안내입니다. 신청은 학과 사무실로 하십시오. " * 8,
+                "본부 안내입니다. 신청은 포털에서 하십시오. " * 8,
+            ],
+            titles=["2026학년도 2학기 복학 신청 안내"] * 2,
+        )
+        session.commit()
+
+        stats = run_dedupe_backfill(session)
+        session.commit()
+
+        assert stats["merged"] == 0
+        assert stats["blocks"] == 0
+        visible = session.execute(
+            select(m.Notice).where(m.Notice.status == "visible")
+        ).scalars().all()
+        assert len(visible) == 2
+
+
+def test_dedupe_backfill_skips_oversized_fingerprint_blocks(session_factory):
+    """한 지문 묶음이 지나치게 크면 자동으로 다루지 않는다."""
+    from app.run.collect import run_dedupe_backfill
+
+    with session_factory() as session:
+        _seed_reposts(session, bodies=[BODY_SHARED] * 3, titles=["같은 공지 안내"] * 3)
+        session.commit()
+
+        stats = run_dedupe_backfill(session, max_block=2)
+        session.commit()
+
+        assert stats["merged"] == 0
+        assert stats["oversized_blocks"] == 1
+        visible = session.execute(
+            select(m.Notice).where(m.Notice.status == "visible")
+        ).scalars().all()
+        assert len(visible) == 3

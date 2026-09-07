@@ -29,6 +29,7 @@ from app.ingestion.base import (
     ListedItem,
     ListPage,
     ParseError,
+    RestrictedError,
     register,
 )
 from app.ingestion.http import Fetcher
@@ -255,7 +256,7 @@ class GnuboardAdapter:
         legacy = _first(doc, "//div[contains(@class,'default_view')]") if contents is None else None
         if contents is None and legacy is None:
             if _DENIED_HINT.search(text):
-                raise ParseError("상세를 열 권한이 없거나 로그인이 필요한 게시글입니다.")
+                raise RestrictedError("상세를 열 권한이 없거나 로그인이 필요한 게시글입니다.")
             raise ParseError("본문 영역을 찾지 못했습니다. 원문 구조 변경 가능성.")
 
         if contents is not None:

@@ -463,9 +463,16 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
     const campusIds = body.campus_id ? new Set([body.campus_id]) : new Set<string>();
     const inCampus = !campusIds.size || entry.a.some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap));
     const inOrganization = entry.a.some((audience) => audience.startsWith("org:") && organizationIds.has(audience.slice(4)));
-    // 기존 가상 분기와 같은 계약: 먼저 선택 캠퍼스 범위로 줄인 뒤
-    // 조직 대상 또는 구독 출처를 적용한다.
-    const inScope = inCampus && (subscribed.has(entry.s) || entry.a.some((audience) => audience === "university" || audience === "undetermined" || inOrganization || audience.startsWith("campus:")));
+    // 조직을 하나라도 고른 사람에게는 그 조직 대상 공지와 전교 공지만 보인다.
+    // 예전에는 대상이 캠퍼스이기만 하면 조직 선택과 무관하게 통과시켜, 스페인어학과를
+    // 고른 사람에게 국어국문학과 공지가 떴다. 캠퍼스 대상 공지가 1,483 건이라 사실상
+    // 필터가 없는 것과 같았다. 캠퍼스 대상은 조직을 고르지 않았을 때만 넣는다.
+    const picked = organizationIds.size > 0;
+    const universityWide = entry.a.some((audience) => audience === "university");
+    const campusWide = entry.a.some((audience) => audience.startsWith("campus:") || audience === "undetermined");
+    const inScope = inCampus && (
+      subscribed.has(entry.s) || inOrganization || universityWide || (!picked && campusWide)
+    );
     return inScope && staticNoticeMatches(entry, filters, {
       organizationIds,
       campusIds: undefined,

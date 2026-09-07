@@ -9,7 +9,7 @@ from sqlalchemy import select
 from test_pipeline import CONFIG, _seed
 
 from app.domain.dates import utcnow
-from app.ingestion.base import FetchedDetail, ListedItem, ListPage, ParseError
+from app.ingestion.base import FetchedDetail, ListedItem, ListPage, ParseError, RestrictedError
 from app.run import collect
 from app.storage import models as m
 from app.storage import repository as repo
@@ -359,3 +359,36 @@ def test_verified_order_still_stops_at_the_first_old_page(session_factory, setti
         })
         run(db, source, settings, store, board, monkeypatch, ordered=True)
         assert board.read_pages == [1, 2]
+
+
+def test_login_walled_item_is_kept_from_the_listing(session_factory, settings, store, monkeypatch):
+    """로그인해야 볼 수 있는 글도 목록 정보만으로 남긴다.
+
+    본문이 없다고 빼 버리면 미래인재센터 채용 게시판처럼 게시판 하나가 통째로 없는 것처럼
+    보인다. 2026-09-07 운영에서 1,579건이 이렇게 사라지고 있었다.
+    """
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({1: [item(1, "2026-09-01"), item(2, "2026-09-02")]})
+
+        async def detail(fetcher, config, listed):
+            if listed.external_id == "1":
+                raise RestrictedError("상세를 열 권한이 없거나 로그인이 필요한 게시글입니다.")
+            return await Board.detail(board, fetcher, config, listed)
+
+        board.detail = detail
+        run(db, source, settings, store, board, monkeypatch)
+
+        locked = repo.item_for_listing(db, source.id, "1")
+        assert locked is not None
+        # 공지가 만들어져야 목록에 나온다. 예전에는 여기서 사라졌다.
+        assert locked.current_revision_id is not None
+        assert locked.original_status == "restricted"
+        notice = db.scalar(select(m.Notice).where(m.Notice.primary_source_item_id == locked.id))
+        assert notice is not None and notice.status == "visible"
+        assert notice.title == "공지 1"
+        # 본문은 없다. 있는 척하지 않는다.
+        revision = db.get(m.SourceItemRevision, locked.current_revision_id)
+        assert not revision.body_text
+        assert revision.raw_object_key is None
