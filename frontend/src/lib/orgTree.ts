@@ -1,26 +1,39 @@
-// 조직 계층 트리. 경희대학교 → 캠퍼스 → 단과대 → 학과.
+// 조직 계층 트리. 경희대학교 → 캠퍼스(국제·서울)·기타 → 단과대 → 학과.
 //
-// 공개 organizations.json 은 484곳 중 상위(parent_id)가 붙은 것이 50곳, 캠퍼스가
-// 붙은 것이 122곳뿐이다. 나머지 조직이 목록에서 사라지면 안 되므로 "모르는 만큼만"
-// 위로 올려 붙인다: 상위를 모르면 캠퍼스 바로 밑에, 캠퍼스도 모르면 경희대학교 바로 밑에.
-// '미상' 같은 가짜 묶음은 만들지 않는다 — 사용자에게는 그냥 목록의 한 줄이다.
-// 등록부에 계층이 더 채워지면 같은 규칙이 그 조직을 저절로 제자리로 내려보낸다.
+// 최상위는 국제캠퍼스·서울캠퍼스, 그리고 둘 중 어디에도 못 넣는 조직을 담는 '기타'다.
+// 캠퍼스가 둘 다 붙은 조직(실측 61곳)은 **두 캠퍼스에 모두** 나온다. 한쪽으로 내려보내면
+// 거짓이 되고, 위로 빼면 정작 캠퍼스를 고른 사람이 못 찾는다. 캠퍼스가 하나도 안 붙은
+// 조직(실측 6곳)만 '기타'로 간다 — 없다는 것은 "그 캠퍼스가 아니다"가 아니라 "아직 모른다"는
+// 뜻이므로 감추지 않고 맨 아래에 둔다.
 //
-// 캠퍼스가 둘 다 붙은 조직(16곳)도 경희대학교 바로 밑에 둔다. 한쪽 캠퍼스로 내려보내면
-// 거짓이 되고, 양쪽에 복제하면 같은 줄이 두 번 보인다.
+// 캠퍼스 안은 두 묶음이다. 먼저 단과대(type.code === "college")를 ㄱㄴㄷ순으로, 그 다음
+// 단과대에 속하지 않는 조직(부서·연구소·기구·학생회)을 ㄱㄴㄷ순으로 늘어놓는다.
+// 단과대 밑으로는 상위(parent_id)가 붙은 조직이 한 단계씩 더 들어간다.
+//
+// 조직이 두 캠퍼스에 동시에 그려지므로 줄마다 키가 두 개 필요하다.
+//   key      — 화면의 한 줄을 가리키는 경로 키. 접힘 상태·React key 에 쓴다.
+//   countKey — 공지 건수를 찾을 때 쓰는 조직 키(org:<id>). 두 줄이 같은 값을 쓴다.
 import type { Campus, Organization } from "./types";
 
 export const ROOT_KEY = "root";
 export const ROOT_NAME = "경희대학교";
+/** 캠퍼스를 하나도 모르는 조직이 모이는 마디. 맨 아래에 둔다. */
+export const OTHER_KEY = "other";
+export const OTHER_NAME = "기타";
 
 export const campusKey = (id: string) => `campus:${id}`;
 export const orgKey = (id: string) => `org:${id}`;
 
+/** 캠퍼스 바로 밑 줄이 속한 묶음. 단과대가 먼저, 그 밖이 나중이다. */
+export type OrgGroup = "college" | "other";
+
 export interface OrgNode {
-  /** 접힘 상태·수치를 붙일 때 쓰는 고유 키. "root" | "campus:<id>" | "org:<id>" */
+  /** 이 줄만 가리키는 경로 키. "root" | "campus:<id>" | "campus:<id>/org:<id>/org:<id>" … */
   key: string;
-  kind: "root" | "campus" | "org";
-  /** 체크로 고를 수 있는 조직 id. 대학·캠퍼스 마디는 조직이 아니므로 null. */
+  /** 공지 건수를 찾을 때 쓰는 키. 같은 조직이 두 캠퍼스에 나와도 값은 하나다. */
+  countKey: string;
+  kind: "root" | "campus" | "other" | "org";
+  /** 체크로 고를 수 있는 조직 id. 대학·캠퍼스·기타 마디는 조직이 아니므로 null. */
   id: string | null;
   name: string;
   /** 경희대학교가 0. 화면 들여쓰기에 그대로 쓴다. */
@@ -30,6 +43,8 @@ export interface OrgNode {
   sourceCount: number;
   /** 그중 지금 공지가 들어올 수 있는 것(폐쇄·대기 제외). 감출지 판정은 이 값으로 한다. */
   activeSourceCount: number;
+  /** 캠퍼스·기타 바로 밑 줄만 값을 갖는다. 그 아래 단계는 null. */
+  group: OrgGroup | null;
   children: OrgNode[];
 }
 
@@ -37,9 +52,29 @@ const sourceCountOf = (org: Organization) => org.source_count ?? 0;
 /** 옛 공개 파일에는 active_source_count 가 없다. 없으면 전체 수로 갈음한다(감추지 않는 쪽). */
 const activeSourceCountOf = (org: Organization) => org.active_source_count ?? org.source_count ?? 0;
 
-/** 같은 단계에서는 단과대를 위로. 목업의 세로 순서(단과대 → 학과 → 그 밖)와 같다. */
-const TYPE_RANK: Record<string, number> = { college: 0, department: 1, council: 2, office: 3, institute: 4 };
-const rankOf = (org: Organization | null) => (org ? TYPE_RANK[org.type.code] ?? 5 : -1);
+const isCollege = (org: Organization | null) => org?.type.code === "college";
+
+/**
+ * ㄱㄴㄷ 정렬에 쓰는 이름.
+ *
+ * 앞에 붙은 `[확인 필요]` 나 `경희대학교 ` 는 어느 조직이냐를 가르는 말이 아니라서,
+ * 그대로 두면 `[` 로 시작하는 줄이 전부 맨 앞에 몰리고 '경희대학교 생활과학대학'이
+ * ㄱ 자리에 선다. 정렬할 때만 떼어 낸다(화면에 적는 이름은 그대로다).
+ */
+export function orgSortKey(name: string): string {
+  return name.replace(/^\s*(?:\[[^\]]*\]\s*)?(?:경희대학교\s*)?/, "").trim() || name.trim();
+}
+
+/** ㄱㄴㄷ순. 같은 이름이면 원래 이름으로 한 번 더 갈라 순서가 흔들리지 않게 한다. */
+export function compareOrgNames(a: string, b: string): number {
+  return orgSortKey(a).localeCompare(orgSortKey(b), "ko") || a.localeCompare(b, "ko");
+}
+
+/** 같은 단계에서는 단과대가 먼저, 그 안에서는 ㄱㄴㄷ순. */
+function compareNodes(a: OrgNode, b: OrgNode): number {
+  const rank = (node: OrgNode) => (isCollege(node.organization) ? 0 : 1);
+  return rank(a) - rank(b) || compareOrgNames(a.name, b.name);
+}
 
 /** 상위를 따라 올라가다 제자리로 돌아오면 그 연결은 없는 셈 친다(무한 재귀 방지). */
 function inCycle(org: Organization, byId: Map<string, Organization>): boolean {
@@ -77,21 +112,20 @@ export function drawnOrgIds(orgs: Organization[], byId: Map<string, Organization
   return out;
 }
 
-function parentKeyOf(
-  org: Organization,
-  byId: Map<string, Organization>,
-  campusIds: Set<string>,
-  drawn: Map<string, string>,
-): string {
-  if (org.parent_id && org.parent_id !== org.id && byId.has(org.parent_id) && !inCycle(org, byId)) {
-    // 부모가 별칭이면 본체 줄에 붙인다. 별칭 줄은 그려지지 않으므로 그대로 두면 고아가 된다.
-    const parentId = drawn.get(org.parent_id) ?? org.parent_id;
-    if (parentId !== org.id) return orgKey(parentId);
-  }
+/** 이 조직이 매달릴 상위 조직 id. 없으면(=캠퍼스 바로 밑이면) null. */
+function parentOrgIdOf(org: Organization, byId: Map<string, Organization>, drawn: Map<string, string>): string | null {
+  if (!org.parent_id || org.parent_id === org.id) return null;
+  if (!byId.has(org.parent_id) || inCycle(org, byId)) return null;
+  // 부모가 별칭이면 본체 줄에 붙인다. 별칭 줄은 그려지지 않으므로 그대로 두면 고아가 된다.
+  const parentId = drawn.get(org.parent_id) ?? org.parent_id;
+  return parentId === org.id ? null : parentId;
+}
+
+/** 상위가 없는 조직이 설 자리. 캠퍼스 id 목록이거나, 하나도 모르면 '기타'. */
+function bucketsOf(org: Organization, campusIds: Set<string>): string[] {
   const campuses = org.campuses ?? (org.campus_id ? [{ id: org.campus_id, name: "" }] : []);
-  // 캠퍼스가 정확히 하나일 때만 그 밑으로 내린다. 없거나 둘 다면 대학 바로 밑이다.
-  if (campuses.length === 1 && campusIds.has(campuses[0].id)) return campusKey(campuses[0].id);
-  return ROOT_KEY;
+  const ids = campuses.map((c) => c.id).filter((id) => campusIds.has(id));
+  return ids.length > 0 ? Array.from(new Set(ids)) : [OTHER_KEY];
 }
 
 /** 목록(catalog)에 없는 캠퍼스가 조직 쪽에만 있어도 트리에서 빠지지 않게 합친다. */
@@ -119,53 +153,100 @@ export function buildOrgTree(orgs: Organization[], campuses: Campus[] | undefine
   const campusRows = campusList(orgs, campuses);
   const campusIds = new Set(campusRows.map((c) => c.id));
 
-  const root: OrgNode = { key: ROOT_KEY, kind: "root", id: null, name: ROOT_NAME, depth: 0, organization: null, sourceCount: 0, activeSourceCount: 0, children: [] };
-  const nodes = new Map<string, OrgNode>([[ROOT_KEY, root]]);
-  const campusNodes = campusRows.map((campus) => {
-    const node: OrgNode = { key: campusKey(campus.id), kind: "campus", id: null, name: campus.name || campus.id, depth: 1, organization: null, sourceCount: 0, activeSourceCount: 0, children: [] };
-    nodes.set(node.key, node);
-    return node;
-  });
-  // 별칭은 줄을 만들지 않는다. 대신 게시판 수를 본체 줄에 얹는다(아래 합산).
+  // 별칭은 줄을 만들지 않는다. 대신 게시판 수를 본체 줄에 얹는다.
   const drawnOrgs = orgs.filter((org) => drawn.get(org.id) === org.id);
-  for (const org of drawnOrgs) {
-    nodes.set(orgKey(org.id), { key: orgKey(org.id), kind: "org", id: org.id, name: org.name, depth: 0, organization: org, sourceCount: 0, activeSourceCount: 0, children: [] });
-  }
+  const drawnIds = new Set(drawnOrgs.map((o) => o.id));
+  const boards = new Map<string, { source: number; active: number }>();
   for (const org of orgs) {
-    const node = nodes.get(orgKey(drawn.get(org.id) ?? org.id));
-    if (!node) continue;
-    node.sourceCount += sourceCountOf(org);
-    node.activeSourceCount += activeSourceCountOf(org);
+    const id = drawn.get(org.id) ?? org.id;
+    const acc = boards.get(id) ?? { source: 0, active: 0 };
+    acc.source += sourceCountOf(org);
+    acc.active += activeSourceCountOf(org);
+    boards.set(id, acc);
   }
 
+  // 상위 조직별 자식 목록과, 상위가 없어 캠퍼스(또는 기타)에 바로 서는 조직 목록.
+  const childrenOf = new Map<string, Organization[]>();
+  const topLevel = new Map<string, Organization[]>();
+  for (const key of [...campusRows.map((c) => c.id), OTHER_KEY]) topLevel.set(key, []);
   for (const org of drawnOrgs) {
-    const parent = nodes.get(parentKeyOf(org, byId, campusIds, drawn)) ?? root;
-    parent.children.push(nodes.get(orgKey(org.id))!);
+    const parentId = parentOrgIdOf(org, byId, drawn);
+    if (parentId && drawnIds.has(parentId)) {
+      const list = childrenOf.get(parentId) ?? [];
+      list.push(org);
+      childrenOf.set(parentId, list);
+      continue;
+    }
+    for (const bucket of bucketsOf(org, campusIds)) {
+      const list = topLevel.get(bucket) ?? [];
+      list.push(org);
+      topLevel.set(bucket, list);
+    }
   }
-  // 깊이를 매기기 전에 캠퍼스도 대학의 자식으로 붙여 둔다. 빠뜨리면 캠퍼스 밑의
-  // 가지들이 깊이 0으로 남아 들여쓰기가 통째로 사라진다.
-  root.children.push(...campusNodes);
 
-  const sortChildren = (node: OrgNode, depth: number) => {
-    node.depth = depth;
-    node.children.sort(
-      (a, b) =>
-        rankOf(a.organization) - rankOf(b.organization)
-        || b.sourceCount - a.sourceCount
-        || a.name.localeCompare(b.name, "ko"),
-    );
-    for (const child of node.children) sortChildren(child, depth + 1);
+  /** 조직 한 곳을 줄로 만든다. 같은 조직이 두 캠퍼스에 나오므로 키에 경로를 담는다. */
+  const makeOrgNode = (org: Organization, parentKey: string, depth: number, group: OrgGroup | null, seen: Set<string>): OrgNode => {
+    const counts = boards.get(org.id) ?? { source: 0, active: 0 };
+    const key = `${parentKey}/${orgKey(org.id)}`;
+    const nextSeen = new Set(seen).add(org.id);
+    const children = (childrenOf.get(org.id) ?? [])
+      .filter((child) => !nextSeen.has(child.id))
+      .map((child) => makeOrgNode(child, key, depth + 1, null, nextSeen))
+      .sort(compareNodes);
+    return {
+      key,
+      countKey: orgKey(org.id),
+      kind: "org",
+      id: org.id,
+      name: org.name,
+      depth,
+      organization: org,
+      sourceCount: counts.source,
+      activeSourceCount: counts.active,
+      group,
+      children,
+    };
   };
-  sortChildren(root, 0);
-  // 캠퍼스는 늘 대학 바로 밑 맨 앞에, catalog 가 준 순서 그대로 둔다.
-  root.children = [...campusNodes, ...root.children.filter((n) => n.kind !== "campus")];
-  return root;
+
+  const bucketNode = (bucket: string, key: string, name: string, kind: "campus" | "other"): OrgNode => ({
+    key,
+    countKey: key,
+    kind,
+    id: null,
+    name,
+    depth: 1,
+    organization: null,
+    sourceCount: 0,
+    activeSourceCount: 0,
+    group: null,
+    children: (topLevel.get(bucket) ?? [])
+      .map((org) => makeOrgNode(org, key, 2, isCollege(org) ? "college" : "other", new Set<string>()))
+      .sort(compareNodes),
+  });
+
+  // 캠퍼스는 catalog 가 준 순서대로. '기타'는 언제나 맨 아래다.
+  const children = campusRows.map((campus) => bucketNode(campus.id, campusKey(campus.id), campus.name || campus.id, "campus"));
+  children.push(bucketNode(OTHER_KEY, OTHER_KEY, OTHER_NAME, "other"));
+
+  return {
+    key: ROOT_KEY,
+    countKey: ROOT_KEY,
+    kind: "root",
+    id: null,
+    name: ROOT_NAME,
+    depth: 0,
+    organization: null,
+    sourceCount: 0,
+    activeSourceCount: 0,
+    group: null,
+    children,
+  };
 }
 
 /**
  * 조직 하나가 공지 한 건을 올릴 때 그 건이 얹히는 모든 마디의 키.
- * 자기 자신 + 조상들 + (닿으면) 캠퍼스 마디. 트리에서 위 칸의 수치가
- * 아래 칸을 품도록 하려는 것이다.
+ * 자기 자신 + 조상들 + (닿으면) 캠퍼스 마디들. 트리에서 위 칸의 수치가
+ * 아래 칸을 품도록 하려는 것이다. 캠퍼스가 둘 다 붙은 조직은 두 캠퍼스에 모두 얹는다.
  */
 export function nodeKeyChains(orgs: Organization[], campuses: Campus[] | undefined): Map<string, string[]> {
   const byId = new Map(orgs.map((o) => [o.id, o]));
@@ -180,13 +261,15 @@ export function nodeKeyChains(orgs: Organization[], campuses: Campus[] | undefin
     while (current && !seen.has(current.id)) {
       seen.add(current.id);
       keys.push(orgKey(current.id));
-      const parent = parentKeyOf(current, byId, campusIds, drawn);
-      if (parent === ROOT_KEY) break;
-      if (parent.startsWith("campus:")) {
-        keys.push(parent);
+      const parentId = parentOrgIdOf(current, byId, drawn);
+      const parent = parentId ? byId.get(parentId) : undefined;
+      if (!parent || seen.has(parent.id)) {
+        for (const bucket of bucketsOf(current, campusIds)) {
+          if (bucket !== OTHER_KEY) keys.push(campusKey(bucket));
+        }
         break;
       }
-      current = byId.get(parent.slice(4));
+      current = parent;
     }
     chains.set(org.id, keys);
   }

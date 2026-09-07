@@ -1,9 +1,9 @@
 "use client";
-// 조직 다중 선택 — 계층 트리. 경희대학교 → 캠퍼스 → 단과대 → 학과.
+// 조직 다중 선택 — 계층 트리. 경희대학교 → 국제·서울캠퍼스·기타 → 단과대 → 학과.
 //
-// 계층을 아는 만큼만 내려 붙인다(lib/orgTree.ts). 상위를 모르는 조직은 캠퍼스 밑,
-// 캠퍼스도 모르는 조직은 경희대학교 바로 밑에 그냥 한 줄로 선다. 484곳 중 상위가
-// 붙은 것이 50곳뿐이라, 모른다는 이유로 감추면 대부분이 목록에서 사라져 버린다.
+// 캠퍼스 안은 단과대(ㄱㄴㄷ) 묶음이 먼저, 단과대에 속하지 않는 부서·기관(ㄱㄴㄷ)이 나중이다.
+// 두 묶음 사이는 작은 소제목과 얇은 선으로만 가른다 — 색 면을 만들지 않는다.
+// 캠퍼스를 하나도 모르는 조직은 맨 아래 '기타'에 모인다. 자세한 규칙은 lib/orgTree.ts.
 //
 // 맨 위 '경희대학교' 줄은 테두리·배경 없는 보통 줄이다. 맨 위라는 것과 골라져 있다는
 // 것만 글자 굵기·색·구분선으로 드러낸다(사용자 지적: "면으로 들어오는 디자인").
@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Organization } from "@/lib/types";
 import { useCatalog, useOrganizationNoticeCounts, useOrganizations } from "@/lib/queries";
 import { useSettings } from "@/lib/settings";
-import { buildOrgTree, campusKey, ROOT_KEY, type OrgNode } from "@/lib/orgTree";
+import { buildOrgTree, campusKey, ROOT_KEY, type OrgGroup, type OrgNode } from "@/lib/orgTree";
 import { IconChevron, IconSearch } from "./icons";
 
 interface Props {
@@ -22,22 +22,29 @@ interface Props {
   dense?: boolean;
 }
 
-/** 화면에 세울 한 줄. 트리를 펼친 순서대로 늘어놓은 것이다. */
-interface Row {
-  node: OrgNode;
-  hasChildren: boolean;
-  open: boolean;
-}
+/**
+ * 화면에 세울 한 줄. 트리를 펼친 순서대로 늘어놓은 것이다.
+ * caption 은 고를 수 없는 소제목("단과대" / "부서·기관")이다.
+ */
+type Row =
+  | { type: "caption"; key: string; text: string; depth: number }
+  | { type: "node"; key: string; node: OrgNode; hasChildren: boolean; open: boolean; covered: boolean };
+
+const GROUP_LABEL: Record<OrgGroup, string> = { college: "단과대", other: "부서·기관" };
 
 function matches(node: OrgNode, keyword: string) {
   return node.name.toLowerCase().includes(keyword);
 }
 
-/** 트리에 실제로 줄이 생기는 조직 수. 별칭은 줄이 없으므로 여기서도 세지 않는다. */
-function countOrgNodes(node: OrgNode): number {
-  let n = node.kind === "org" ? 1 : 0;
-  for (const child of node.children) n += countOrgNodes(child);
-  return n;
+/**
+ * 트리에 줄이 생기는 조직 수. 별칭은 줄이 없으므로 세지 않는다.
+ * 캠퍼스가 둘 다 붙은 조직은 두 캠퍼스에 그려지므로 id 로 겹치는 것을 지운다 —
+ * 안 그러면 "더 보기"의 곳 수가 실제보다 부풀어, 눌러도 나오지 않는 곳이 생긴다.
+ */
+function orgIdsIn(node: OrgNode, out: Set<string> = new Set()): Set<string> {
+  if (node.id) out.add(node.id);
+  for (const child of node.children) orgIdsIn(child, out);
+  return out;
 }
 
 export function OrganizationPicker({ selected, onToggle, onClear, dense = false }: Props) {
@@ -87,7 +94,7 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
       if (showEmpty) return true;
       // 폐쇄·대기 게시판은 세지 않는다. 정경대학은 게시판 4개가 전부 폐쇄인데도
       // source_count 로는 4라서 목록에 남았고, 골라 보면 0건이었다.
-      return node.activeSourceCount > 0 || (counts?.byKey.get(node.key) ?? 0) > 0;
+      return node.activeSourceCount > 0 || (counts?.byKey.get(node.countKey) ?? 0) > 0;
     };
     const walk = (node: OrgNode): OrgNode | null => {
       const children = node.children.map(walk).filter((child): child is OrgNode => child !== null);
@@ -108,7 +115,7 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
       const path = [...trail, node.key];
       let hit = node.kind === "org" && !!node.id && selected.has(node.id);
       for (const child of node.children) if (walk(child, path)) hit = true;
-      if (node.kind === "campus" && node.key === campusKey(settings.campus_id ?? "")) keys.add(node.key);
+      if (node.kind === "campus" && node.countKey === campusKey(settings.campus_id ?? "")) keys.add(node.key);
       if (hit) for (const key of path) keys.add(key);
       return hit;
     };
@@ -120,16 +127,30 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
 
   const rows = useMemo(() => {
     const out: Row[] = [];
-    const walk = (node: OrgNode) => {
+    const walk = (node: OrgNode, covered: boolean) => {
       const hasChildren = node.children.length > 0;
       // 검색 중에는 결과가 바로 보여야 한다. 접힌 채로 두면 못 찾은 것처럼 보인다.
       const isOpen = node.kind === "root" || !!keyword || openKeys.has(node.key);
-      out.push({ node, hasChildren, open: isOpen && hasChildren });
-      if (isOpen) for (const child of node.children) walk(child);
+      out.push({ type: "node", key: node.key, node, hasChildren, open: isOpen && hasChildren, covered });
+      if (!isOpen) return;
+      // 캠퍼스 안에서만 묶음을 가른다. 한 묶음뿐이면 소제목이 군더더기가 되므로 붙이지 않는다.
+      const split =
+        (node.kind === "campus" || node.kind === "other")
+        && node.children.some((c) => c.group === "college")
+        && node.children.some((c) => c.group === "other");
+      const childCovered = covered || (!!node.id && selected.has(node.id));
+      let group: OrgGroup | null = null;
+      for (const child of node.children) {
+        if (split && child.group && child.group !== group) {
+          group = child.group;
+          out.push({ type: "caption", key: `${node.key}#${group}`, text: GROUP_LABEL[group], depth: child.depth });
+        }
+        walk(child, childCovered);
+      }
     };
-    walk(pruned);
+    walk(pruned, false);
     return out;
-  }, [pruned, openKeys, keyword]);
+  }, [pruned, openKeys, keyword, selected]);
 
   // 한 번에 여러 줄이 열리고 닫혀도 앞의 결과 위에 쌓이도록 갱신 함수 꼴로 쓴다.
   const toggleOpen = (key: string) =>
@@ -140,12 +161,24 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
       return next;
     });
 
+  /**
+   * 체크는 줄마다 따로 논다. 단과대를 체크해도 하위 학과가 저절로 체크되지는 않는다.
+   * 상위를 고르면 하위 공지가 이미 전부 들어오기 때문이다(홈이 자손까지 넓힌다).
+   * 대신 체크하는 순간 그 줄을 펼쳐, 학과를 따로 고를 수 있다는 것을 눈으로 보게 한다.
+   */
+  const toggleOrg = (node: OrgNode) => {
+    if (!node.id) return;
+    const turningOn = !selected.has(node.id);
+    onToggle(node.id);
+    if (turningOn && node.children.length > 0) setOpen((prev) => new Set(prev ?? defaultOpen).add(node.key));
+  };
+
   const selectedOrgs = orgs.filter((o) => selected.has(o.id));
   // 접혀 있는 것은 숨긴 것이 아니다. 남긴 가지에 든 조직 수로 센다.
   // 별칭 조직은 애초에 트리에 줄이 없다. orgs.length 로 빼면 "숨은 곳"이 부풀어
   // 눌러도 나오지 않는 곳이 생긴다. 그래서 자르기 전 트리의 줄 수로 센다.
-  const totalOrgs = useMemo(() => countOrgNodes(tree), [tree]);
-  const keptOrgs = useMemo(() => countOrgNodes(pruned), [pruned]);
+  const totalOrgs = useMemo(() => orgIdsIn(tree).size, [tree]);
+  const keptOrgs = useMemo(() => orgIdsIn(pruned).size, [pruned]);
   const hiddenOrgs = totalOrgs - keptOrgs;
 
   // 촘촘한 좌측 열(220px)에서는 들여쓰기와 여백을 줄여야 이름이 덜 접힌다.
@@ -198,9 +231,20 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
         {orgs.length > 0 && (
           <ul>
             {rows.map((row) => {
+              // 묶음 소제목. 고를 수 없는 안내 줄이라 얇은 선과 작은 글자만 쓴다.
+              if (row.type === "caption") {
+                return (
+                  <li key={row.key} className="mt-1 border-t border-line-2 pt-1.5 first:mt-0 first:border-t-0">
+                    <div className={`${padX} pb-0.5 text-[11px] font-semibold tracking-wide text-gray-2`} style={{ paddingLeft: row.depth * step + 10 }}>
+                      {row.text}
+                    </div>
+                  </li>
+                );
+              }
+
               const { node } = row;
               const indent = node.depth * step;
-              const count = counts?.byKey.get(node.key);
+              const count = counts?.byKey.get(node.countKey);
 
               // 맨 위 경희대학교 줄. 면(테두리·배경)을 만들지 않고 굵기와 구분선만 쓴다.
               if (node.kind === "root") {
@@ -238,8 +282,8 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
                 <span aria-hidden className={`shrink-0 ${twist}`} />
               );
 
-              // 캠퍼스 줄은 고르는 자리가 아니라 묶음이다. 줄 전체가 펼침 단추다.
-              if (node.kind === "campus") {
+              // 캠퍼스·기타 줄은 고르는 자리가 아니라 묶음이다. 줄 전체가 펼침 단추다.
+              if (node.kind === "campus" || node.kind === "other") {
                 return (
                   <li key={node.key}>
                     <div className={`flex items-center ${padX} ${rowMin} ${dense ? "py-1" : "py-1.5"} hover:bg-bg`}>
@@ -270,14 +314,17 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
                       <input
                         type="checkbox"
                         checked={on}
-                        onChange={() => node.id && onToggle(node.id)}
+                        onChange={() => toggleOrg(node)}
                         className={`shrink-0 accent-red ${dense ? "h-3.5 w-3.5" : "h-4 w-4"}`}
                       />
                       <span className={`min-w-0 flex-1 break-keep [overflow-wrap:anywhere] ${on ? "font-semibold text-red" : "text-ink-2"}`}>{node.name}</span>
+                      {/* 위 칸을 이미 골랐으면 이 줄의 공지도 함께 나온다. 따로 체크할 수도 있다. */}
+                      {row.covered && !on && <span className="shrink-0 text-[11px] text-gray-2">포함됨</span>}
                       {count !== undefined ? (
                         <span className={`shrink-0 text-[11.5px] ${on ? "text-red" : "text-gray-2"}`}>{count.toLocaleString("ko-KR")}</span>
                       ) : (
-                        boards === 0 && <span className="shrink-0 text-[11px] text-gray-2">준비 중</span>
+                        // '포함됨'과 '준비 중'을 나란히 붙이면 220px 열에서 이름이 세 줄로 접힌다.
+                        boards === 0 && !row.covered && <span className="shrink-0 text-[11px] text-gray-2">준비 중</span>
                       )}
                     </label>
                   </div>

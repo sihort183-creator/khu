@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Organization, OrgType } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
-import { drawnOrgIds } from "@/lib/orgTree";
+import { compareOrgNames, drawnOrgIds } from "@/lib/orgTree";
 import { campusOptions } from "@/lib/campus";
 import { IconSearch } from "./icons";
 
@@ -39,13 +39,21 @@ function boardsByOrg(orgs: Organization[]): Map<string, number> {
 }
 
 /**
- * 게시판이 붙은 곳을 위로. 아무 공지도 오지 않는 이름만 늘어놓으면 고를 수가 없다.
- * 별칭 조직은 빼서 같은 학과가 두 번 나오지 않게 한다.
+ * 고른 캠퍼스에 있는 곳인가. 캠퍼스가 하나도 안 붙은 조직은 "그 캠퍼스가 아니다"가 아니라
+ * "아직 모른다"는 뜻이므로 감추지 않는다. 캠퍼스를 안 골랐으면(공통) 전부 보인다.
  */
-function byUsefulness(list: Organization[], type: OrgType, boards: Map<string, number>) {
-  return list
-    .filter((o) => o.type.code === type && !o.is_alias)
-    .sort((a, b) => (boards.get(b.id) ?? 0) - (boards.get(a.id) ?? 0) || a.name.localeCompare(b.name, "ko"));
+function inCampus(org: Organization, campusId: string | null) {
+  if (!campusId) return true;
+  const list = org.campuses ?? (org.campus_id ? [{ id: org.campus_id, name: "" }] : []);
+  return list.length === 0 || list.some((c) => c.id === campusId);
+}
+
+/**
+ * ㄱㄴㄷ순. 조직 선택기(lib/orgTree.ts)와 같은 정렬 규칙을 쓴다 — 두 화면에서 같은 이름이
+ * 다른 자리에 있으면 찾을 수가 없다. 별칭 조직은 빼서 같은 학과가 두 번 나오지 않게 한다.
+ */
+function byName(list: Organization[], type: OrgType, campusId: string | null) {
+  return list.filter((o) => o.type.code === type && !o.is_alias && inCampus(o, campusId)).sort((a, b) => compareOrgNames(a.name, b.name));
 }
 
 function OnboardingDialog() {
@@ -65,8 +73,8 @@ function OnboardingDialog() {
   }, []);
 
   const boards = useMemo(() => boardsByOrg(orgs), [orgs]);
-  const colleges = useMemo(() => byUsefulness(orgs, "college", boards), [orgs, boards]);
-  const departments = useMemo(() => byUsefulness(orgs, "department", boards), [orgs, boards]);
+  const colleges = useMemo(() => byName(orgs, "college", campus), [orgs, campus]);
+  const departments = useMemo(() => byName(orgs, "department", campus), [orgs, campus]);
   const loaded = !!catalog && orgs.length > 0;
 
   const keyword = q.trim().toLowerCase();
