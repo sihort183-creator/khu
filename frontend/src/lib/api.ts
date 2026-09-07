@@ -424,9 +424,9 @@ async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> 
     organizations: organizationMap,
     sourceMedia,
   }));
-  if (query.sort === "published") {
-    entries = [...entries].sort((a, b) => (b.d ?? "").localeCompare(a.d ?? "") || a.id.localeCompare(b.id));
-  }
+  // 색인은 발행일(d)만 갖고 있다. 서버가 이미 발행일 순으로 내보내지만, 걸러낸 뒤에도
+  // 순서가 유지되도록 여기서도 같은 기준으로 세운다.
+  entries = [...entries].sort((a, b) => (b.d ?? "").localeCompare(a.d ?? "") || a.id.localeCompare(b.id));
   const selected = entries.slice(offset, offset + limit);
   const data = await Promise.all(selected.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
   const hasNext = offset + data.length < entries.length;
@@ -551,14 +551,27 @@ const matchesCampus = (n: Notice, campusIds: string[]) => {
   });
 };
 
-const sortNotices = (list: Notice[], sort: NoticeQuery["sort"] = "recent") => {
-  const copy = [...list];
-  if (sort === "published") {
-    copy.sort((a, b) => (b.published_date ?? "").localeCompare(a.published_date ?? "") || a.id.localeCompare(b.id));
-  } else {
-    copy.sort((a, b) => b.first_visible_at.localeCompare(a.first_visible_at) || a.id.localeCompare(b.id));
-  }
-  return copy;
+/**
+ * "최신순"은 발행일 기준이다.
+ *
+ * 처음 본 시각으로 세우면 수집이 과거 페이지를 긁는 동안 오래된 공지가 맨 위로 올라와
+ * 목록이 뒤죽박죽으로 보인다. 발행일이 같으면 시각으로, 시각을 모르면 처음 본 시각으로
+ * 가른다. 서버가 내보내는 순서와 같은 규칙이다.
+ *
+ * 검색 결과도 같은 순서로 준다. 예전에는 sort 값에 따라 갈랐으나 어느 쪽이든 처음 본
+ * 시각으로 세워 결과가 같았고, 화면에도 "최신순" 한 가지만 있다.
+ */
+const sortNotices = (list: Notice[]) => {
+  const key = (n: Notice) => [
+    n.published_date ?? n.published_at?.slice(0, 10) ?? "",
+    n.published_at ?? "",
+    n.first_visible_at,
+  ];
+  return [...list].sort((a, b) => {
+    const [ad, at, af] = key(a);
+    const [bd, bt, bf] = key(b);
+    return bd.localeCompare(ad) || bt.localeCompare(at) || bf.localeCompare(af) || a.id.localeCompare(b.id);
+  });
 };
 
 const textMatch = (n: Notice, q?: string) => {
@@ -603,7 +616,7 @@ export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse
     list = list.filter((n) => n.audiences.some((a) => a.type === "organization" && ids.has(a.id!)));
   }
   list = list.filter((n) => textMatch(n, query.q));
-  return paginate(sortNotices(list, query.sort), query.limit ?? 20, query.cursor);
+  return paginate(sortNotices(list), query.limit ?? 20, query.cursor);
 }
 
 export async function getNotice(id: string): Promise<ItemResponse<NoticeDetail>> {
@@ -637,7 +650,7 @@ export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<N
   if (f.category_code?.length) list = list.filter((n) => f.category_code!.includes(n.primary_category.code));
   if (f.medium?.length) list = list.filter((n) => f.medium!.includes(n.primary_source.medium.code));
   list = list.filter((n) => textMatch(n, f.q));
-  return paginate(sortNotices(list, "recent"), body.limit ?? 20, body.cursor);
+  return paginate(sortNotices(list), body.limit ?? 20, body.cursor);
 }
 
 export async function listSources(params: { campus_id?: string; q?: string } = {}): Promise<ListResponse<Source>> {

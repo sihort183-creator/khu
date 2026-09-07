@@ -378,6 +378,24 @@ def _load_notices(
 
     rows = [row for row in rows if within_window(row[0])]
 
+    def newest_first(notice: m.Notice) -> tuple:
+        """화면의 "최신순"은 발행일 기준이다.
+
+        우리가 처음 본 시각으로 세우면 백필이 과거 페이지를 긁는 동안 오래된 공지가
+        맨 위로 올라와 뒤죽박죽으로 보인다. 날짜가 같으면 시각으로, 시각을 모르면
+        처음 본 시각으로 가른다. 데이터베이스마다 시간대 함수가 달라 여기서 정렬한다.
+        """
+        stamp = as_utc(notice.published_at)
+        day = notice.published_date or (stamp.astimezone(KST).date() if stamp else None)
+        return (
+            day or date.min,
+            stamp or datetime.min.replace(tzinfo=UTC),
+            as_utc(notice.first_visible_at) or datetime.min.replace(tzinfo=UTC),
+            notice.id,
+        )
+
+    rows.sort(key=lambda row: newest_first(row[0]), reverse=True)
+
     built = []
     for notice, item, revision, source in rows:
         built.append(

@@ -569,3 +569,37 @@ def test_pruning_pins_latest_despite_newer_unpublished_revision(seeded, settings
     store.put_bytes(settings.r2.bucket_public, "v1/r/r999/manifest.json", b'{"entries":{}}', content_type="application/json")
     prune_old_revisions(settings, keep=1, store=store)
     assert store.get_bytes(settings.r2.bucket_public, "v1/r/r100/manifest.json")
+
+
+def test_list_is_newest_by_publish_date_not_by_when_we_crawled_it(seeded, settings, store, board_fixture):
+    """화면의 "최신순"은 발행일 기준이다.
+
+    백필은 과거 페이지를 나중에 긁는다. 우리가 처음 본 시각으로 세우면 오래된 공지가
+    맨 위로 올라와 목록이 뒤죽박죽으로 보인다. 2026-09-07 사용자가 이 상태를 지적했다.
+    """
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+
+    notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+    assert len(notices) >= 3
+    old, middle, newest = notices[0], notices[1], notices[2]
+    for notice in notices[3:]:
+        notice.status = "hidden"
+    # 처음 본 순서를 발행 순서와 정반대로 둔다. 발행일이 이겨야 한다.
+    for index, (notice, day) in enumerate(
+        ((old, date(2026, 3, 10)), (middle, date(2026, 6, 15)), (newest, date(2026, 9, 1)))
+    ):
+        notice.published_date = day
+        notice.published_at = datetime(day.year, day.month, day.day, 1, 0, tzinfo=UTC)
+        notice.first_visible_at = datetime(2026, 9, 7, 1 + index, 0, tzinfo=UTC)
+    old.first_visible_at = datetime(2026, 9, 7, 9, 0, tzinfo=UTC)
+    session.commit()
+
+    windowed = replace(settings, initial_window_start=date(2026, 3, 1))
+    export_static(windowed, run_id="run-order01", store=store)
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
+    page = json.loads(_read_export(store, settings.r2.bucket_public, f"{pointer['base_path']}/notices/page/1.json"))
+
+    listed = [n["id"] for n in page["data"]]
+    assert listed == [newest.id, middle.id, old.id]
