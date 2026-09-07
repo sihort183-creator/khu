@@ -1,13 +1,17 @@
 {
  "meta": {
   "observed_at": "2026-09-06T04:12:16Z",
-  "total": 463,
+  "total": 479,
   "merged_mirrors": 394,
   "status_counts": {
-   "active": 416,
+   "active": 432,
    "pending": 47
   },
-  "note": "공지 여부는 게시판 이름이 아니라 board_profiles.json 의 판정을 따른다. 판정 근거가 뚜렷한 것(confidence=high)만 active 로 두고 나머지는 pending 이다. 대상 범위 기본값은 출처의 소속 조직이며, 본부 게시판을 전교생 대상으로 단정하지 않는다. 게시판 성격은 학기마다 다시 조사한다."
+  "note": "공지 여부는 게시판 이름이 아니라 board_profiles.json 의 판정을 따른다. 판정 근거가 뚜렷한 것(confidence=high)만 active 로 두고 나머지는 pending 이다. 대상 범위 기본값은 출처의 소속 조직이며, 본부 게시판을 전교생 대상으로 단정하지 않는다. 게시판 성격은 학기마다 다시 조사한다.",
+  "board_batch_2026_09_07": {
+   "추가": 16,
+   "근거": "registry/proposals/클로드_게시판_판정.json 의 제안 16개를 2026-09-07 다시 1페이지씩 받아 확인했다. 16개 모두 HTTP 200 이고 기존 어댑터가 목록을 인식했다."
+  }
  },
  "sources": [
   {
@@ -11039,6 +11043,382 @@
    ],
    "official_evidence_url": "https://zhongwen.khu.ac.kr/zhongwen/user/bbs/BMSR00040/list.do?menuNo=2300012",
    "notes": "2026-09-06T04:12:16Z 조사: 상위 메뉴가 공지 묶음이다(공지・자료 > 취업・대외활동 정보). (메뉴 경로: 공지・자료 > 취업・대외활동 정보)"
+  },
+  {
+   "key": "goodjob-s3_4_2",
+   "name": "미래인재센터 교외",
+   "organization": "org-goodjob",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://goodjob.khu.ac.kr",
+    "bo_table": "s3_4_2"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-goodjob"
+    }
+   ],
+   "official_evidence_url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_4_2",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 15건. | 2026-09-07 재확인: HTTP 200, 1페이지 15건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 15건."
+  },
+  {
+   "key": "goodjob-s3_5",
+   "name": "미래인재센터 각종활동",
+   "organization": "org-goodjob",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://goodjob.khu.ac.kr",
+    "bo_table": "s3_5"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-goodjob"
+    }
+   ],
+   "official_evidence_url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_5",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 15건. | 2026-09-07 재확인: HTTP 200, 1페이지 15건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "goodjob-s3_4_1",
+   "name": "미래인재센터 아르바이트",
+   "organization": "org-goodjob",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://goodjob.khu.ac.kr",
+    "bo_table": "s3_4_1"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-goodjob"
+    }
+   ],
+   "official_evidence_url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s3_4_1",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 0건), 최신 2026-03-30, 2026-03-01 이후 1건. | 2026-09-07 재확인: HTTP 200, 1페이지 15건 인식(고정 0건), 최신 2026-03-30, 2026-03-01 이후 1건."
+  },
+  {
+   "key": "kor-BMSR00040-200320",
+   "name": "[확인 필요] news.khu.ac.kr 교내학점교류",
+   "organization": "org-news",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://news.khu.ac.kr",
+    "prefix": "kor",
+    "board_code": "BMSR00040",
+    "menu_no": "200320"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-news"
+    }
+   ],
+   "official_evidence_url": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200320",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 1건), 최신 2026-08-07, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 1건), 최신 2026-08-07, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "kor-BMSR00040-200375",
+   "name": "[확인 필요] news.khu.ac.kr 분실물 안내",
+   "organization": "org-news",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://news.khu.ac.kr",
+    "prefix": "kor",
+    "board_code": "BMSR00040",
+    "menu_no": "200375"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-news"
+    }
+   ],
+   "official_evidence_url": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200375",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-08-21, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "kor-BMSR00040-200283",
+   "name": "[확인 필요] news.khu.ac.kr 식단안내",
+   "organization": "org-news",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://news.khu.ac.kr",
+    "prefix": "kor",
+    "board_code": "BMSR00040",
+    "menu_no": "200283"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-news"
+    }
+   ],
+   "official_evidence_url": "https://news.khu.ac.kr/kor/user/bbs/BMSR00040/list.do?menuNo=200283",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 0건), 최신 2026-09-04, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "law-08_06_01",
+   "name": "법학전문대학원 세진원 기숙사",
+   "organization": "org-law",
+   "adapter": "gnuboard",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://law.khu.ac.kr",
+    "bo_table": "08_06_01"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-law"
+    }
+   ],
+   "official_evidence_url": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_06_01",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 15건 인식(고정 7건), 최신 2026-09-04, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 15건 인식(고정 7건), 최신 2026-09-04, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "pnc-BMSR00045-800211",
+   "name": "공공대학원 시간표",
+   "organization": "org-pnc",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://pnc.khu.ac.kr",
+    "prefix": "pnc",
+    "board_code": "BMSR00045",
+    "menu_no": "800211"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-pnc"
+    }
+   ],
+   "official_evidence_url": "https://pnc.khu.ac.kr/pnc/user/bbs/BMSR00045/list.do?menuNo=800211",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 9건 인식(고정 0건), 최신 2026-08-11, 2026-03-01 이후 3건. | 2026-09-07 재확인: HTTP 200, 1페이지 9건 인식(고정 0건), 최신 2026-08-11, 2026-03-01 이후 3건."
+  },
+  {
+   "key": "maths-BMSR00048-600011",
+   "name": "수학과 학부",
+   "organization": "org-maths",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://maths.khu.ac.kr",
+    "prefix": "maths",
+    "board_code": "BMSR00048",
+    "menu_no": "600011"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-maths"
+    }
+   ],
+   "official_evidence_url": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00048/list.do?menuNo=600011",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 5건 인식(고정 0건), 최신 2026-01-12, 2026-03-01 이후 0건. | 2026-09-07 재확인: HTTP 200, 1페이지 5건 인식(고정 0건), 최신 2026-01-12, 2026-03-01 이후 0건."
+  },
+  {
+   "key": "maths-BMSR00048-600014",
+   "name": "수학과 학사일정",
+   "organization": "org-maths",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://maths.khu.ac.kr",
+    "prefix": "maths",
+    "board_code": "BMSR00048",
+    "menu_no": "600014"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-maths"
+    }
+   ],
+   "official_evidence_url": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00048/list.do?menuNo=600014",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 5건 인식(고정 0건), 최신 2026-01-23, 2026-03-01 이후 0건. | 2026-09-07 재확인: HTTP 200, 1페이지 5건 인식(고정 0건), 최신 2026-01-23, 2026-03-01 이후 0건."
+  },
+  {
+   "key": "fst-BMSR00040-11800058",
+   "name": "식품생명공학과 열린광장",
+   "organization": "org-fst",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://fst.khu.ac.kr",
+    "prefix": "fst",
+    "board_code": "BMSR00040",
+    "menu_no": "11800058"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-fst"
+    }
+   ],
+   "official_evidence_url": "https://fst.khu.ac.kr/fst/user/bbs/BMSR00040/list.do?menuNo=11800058",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-09-05, 2026-03-01 이후 8건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 0건), 최신 2026-09-05, 2026-03-01 이후 8건."
+  },
+  {
+   "key": "sls_kor-BMSR00040-20200036",
+   "name": "자유전공학부 대학생활",
+   "organization": "org-sls_kor",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://sls.khu.ac.kr",
+    "prefix": "sls_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "20200036"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-sls_kor"
+    }
+   ],
+   "official_evidence_url": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200036",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 2건 인식(고정 1건), 최신 2026-09-01, 2026-03-01 이후 1건. | 2026-09-07 재확인: HTTP 200, 1페이지 2건 인식(고정 1건), 최신 2026-09-01, 2026-03-01 이후 1건."
+  },
+  {
+   "key": "sls_kor-BMSR00040-20200035",
+   "name": "자유전공학부 동아리",
+   "organization": "org-sls_kor",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://sls.khu.ac.kr",
+    "prefix": "sls_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "20200035"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-sls_kor"
+    }
+   ],
+   "official_evidence_url": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200035",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 1건 인식(고정 0건), 최신 2026-02-09, 2026-03-01 이후 0건. | 2026-09-07 재확인: HTTP 200, 1페이지 1건 인식(고정 0건), 최신 2026-02-09, 2026-03-01 이후 0건."
+  },
+  {
+   "key": "sls_kor-BMSR00040-20200043",
+   "name": "자유전공학부 학술활동",
+   "organization": "org-sls_kor",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://sls.khu.ac.kr",
+    "prefix": "sls_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "20200043"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-sls_kor"
+    }
+   ],
+   "official_evidence_url": "https://sls.khu.ac.kr/sls_kor/user/bbs/BMSR00040/list.do?menuNo=20200043",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 1건 인식(고정 0건), 최신 2026-02-10, 2026-03-01 이후 0건. | 2026-09-07 재확인: HTTP 200, 1페이지 1건 인식(고정 0건), 최신 2026-02-10, 2026-03-01 이후 0건."
+  },
+  {
+   "key": "kmc_kor-BMSR00040-4200014",
+   "name": "한의과대학 이슈",
+   "organization": "org-kmc_kor",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://kmc.khu.ac.kr",
+    "prefix": "kmc_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "4200014"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kmc_kor"
+    }
+   ],
+   "official_evidence_url": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200014",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-09-02, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 0건), 최신 2026-09-02, 2026-03-01 이후 10건."
+  },
+  {
+   "key": "kmc_kor-BMSR00040-4200214",
+   "name": "한의과대학 한의소식",
+   "organization": "org-kmc_kor",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "active",
+   "config": {
+    "base_url": "https://kmc.khu.ac.kr",
+    "prefix": "kmc_kor",
+    "board_code": "BMSR00040",
+    "menu_no": "4200214"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-kmc_kor"
+    }
+   ],
+   "official_evidence_url": "https://kmc.khu.ac.kr/kmc_kor/user/bbs/BMSR00040/list.do?menuNo=4200214",
+   "notes": "2026-09-07T00:40:42+09:00 클로드 원문 확인: 미정 게시판 97개 재판정. 1페이지 10건 인식(고정 0건), 최신 2026-08-25, 2026-03-01 이후 10건. | 2026-09-07 재확인: HTTP 200, 1페이지 10건 인식(고정 0건), 최신 2026-08-25, 2026-03-01 이후 10건."
   }
  ]
 }

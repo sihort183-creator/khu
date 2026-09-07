@@ -9,8 +9,9 @@
    "news.khu.ac.kr",
    "www.khu.ac.kr"
   ],
-  "note": "조직 이름은 학교가 공개한 사이트 명부(sites.json)의 사이트 이름에서 가져왔다. 명부에 없는 사이트는 페이지 제목을 썼고, 그마저 없으면 needs_review 로 두고 이름을 지어내지 않았다. parent 와 campus_codes 는 학교 공식 \"대학\" 목록표(menuNo=200105)와 공식 \"부서 소개\" 명부(menuNo=200355, 493행)로만 채웠다. 확인하지 못한 조직은 비워 두었다. 판정 근거는 registry/proposals/조직계층_판정.json 에 있다.",
-  "hierarchy_observed_at": "2026-09-07T00:00:00Z"
+  "note": "조직 이름은 학교가 공개한 사이트 명부(sites.json)의 사이트 이름에서 가져왔다. 명부에 없는 사이트는 페이지 제목을 썼고, 그마저 없으면 needs_review 로 두고 이름을 지어내지 않았다. parent 와 campus_codes 는 학교 공식 \"대학\" 목록표(menuNo=200105)와 공식 \"부서 소개\" 명부(menuNo=200355, 493행)로만 채웠다. 확인하지 못한 조직은 비워 두었다. 판정 근거는 registry/proposals/조직계층_판정.json 에 있다. 2026-09-07: 연락처 가져오기(app.ops.cli contacts import)가 만든 조직 343개를 등록부에 올리고 캠퍼스를 붙였다. 근거는 공식 '부서 소개' 명부(menuNo=200355, 493행)와 공식 '교내 전화번호 안내' 서울(200091)·국제(200092)이며, 조직마다 registry/proposals/조직캠퍼스_판정.json 에 남겼다. 상위 없이(parent=null) 올려 조직 식별자가 연락처 가져오기가 쓴 값과 같도록 했다(organizations 행이 늘지 않는다).",
+  "hierarchy_observed_at": "2026-09-07T12:00:00Z",
+  "campus_observed_at": "2026-09-07T12:00:00Z"
  },
  "campuses": [
   {
@@ -623,10 +624,13 @@
    "name": "평화복지대학원 국제평화-거버넌스학과 홈페이지",
    "type": "college",
    "parent": null,
-   "campus_codes": [],
+   "campus_codes": [
+    "seoul"
+   ],
    "homepage_url": "https://gip.khu.ac.kr/",
    "needs_review": false,
-   "evidence_url": "https://gip.khu.ac.kr"
+   "evidence_url": "https://gip.khu.ac.kr",
+   "campus_confidence": "medium"
   },
   {
    "key": "org-give",
@@ -1573,6 +1577,4666 @@
    "homepage_url": "https://zhongwen.khu.ac.kr/",
    "needs_review": false,
    "evidence_url": "https://zhongwen.khu.ac.kr"
+  },
+  {
+   "key": "orgc-000d33950271",
+   "name": "나노의약생명과학과",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-00780f034658",
+   "name": "주차관리실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-00a5e476aa33",
+   "name": "재정운영본부",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-00c5b9be9005",
+   "name": "외식경영학과",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-0138b1821a2c",
+   "name": "네오르네상스관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0257234c120e",
+   "name": "러시아어학",
+   "type": "department",
+   "parent": "org-foreign_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-061a5c91dd80",
+   "name": "국제통상금융투자학부",
+   "type": "department",
+   "parent": "org-khsma",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-0849b9e1ec4c",
+   "name": "아동연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-0c6ac8877eb1",
+   "name": "생체의공학",
+   "type": "department",
+   "parent": "org-eni25",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-0ce1e9ed8497",
+   "name": "출판문화원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0d8266c94b65",
+   "name": "멀티관기관실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0dc1ab15c0ab",
+   "name": "대외협력부총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0e4247289a68",
+   "name": "우편실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0e7d06b89648",
+   "name": "레이저공학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0ef249315b68",
+   "name": "현대미술연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-0f7f469358db",
+   "name": "중앙도서관",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-0f86a9737ee8",
+   "name": "주차장정산소",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-0f9550cc2e11",
+   "name": "환경미화원실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1",
+   "name": "오수처리장(1호)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1132b4a546a5",
+   "name": "공학관기관실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-11c777c0e1c6",
+   "name": "융합지식연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1289f25c42e5",
+   "name": "나노기반차세대방사선 진단기연구단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-1436f25113c5",
+   "name": "하나은행",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-165892736ef0",
+   "name": "공관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-16feace36f17",
+   "name": "체육학",
+   "type": "department",
+   "parent": "orgc-3ddeb9160c20",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-18e30cc074ac",
+   "name": "컴퓨터공학",
+   "type": "department",
+   "parent": "org-software25",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-18f40bc956f7",
+   "name": "본관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1a08e153f681",
+   "name": "문화아이템팩토리센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-1a7cad3f6c1a",
+   "name": "이과대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1bff0b7256bd",
+   "name": "사회과학연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-1c2433bb8488",
+   "name": "입점 상가",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1ca52b61dc29",
+   "name": "응원단",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1d12c7d55c95",
+   "name": "인삼소재은행",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-1d5b745b19e9",
+   "name": "시각정보디자인학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-1db60dc89e8e",
+   "name": "경영연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-1e87c4a033c8",
+   "name": "정보처 사무실",
+   "type": "office",
+   "parent": "orgc-751a0f5abd9d",
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-1fb9e7b3e6c5",
+   "name": "캡스사무실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2",
+   "name": "제2기숙사 매점",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2-2",
+   "name": "제2기숙사(여) 플라타너스",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2-3",
+   "name": "제2법학관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-21856b6cf507",
+   "name": "생명자원과학연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-222caa976e3c",
+   "name": "첨단소재 및 디바이스 기반 악안면 조직재건 연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-232df349130e",
+   "name": "동서의학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-25643563cede",
+   "name": "체육영재교육원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2591ba25f6ac",
+   "name": "생명과학대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-267e0be0e2ae",
+   "name": "언론정보학과",
+   "type": "department",
+   "parent": "org-khsma",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-26ec7ec76a35",
+   "name": "생활관",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-27855d256611",
+   "name": "스포츠커뮤니케이션 융합센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-283a308675f1",
+   "name": "비폭력연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-2869f6e01216",
+   "name": "의과대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2956b64c1c2f",
+   "name": "글로컬역사문화연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-29a66e69b934",
+   "name": "경희법학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-2a2c1e7ec7b2",
+   "name": "응용화학",
+   "type": "department",
+   "parent": "org-applsci",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-2b8449d20aee",
+   "name": "근골격계바이오장기센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2bb1583fc285",
+   "name": "미술학부",
+   "type": "department",
+   "parent": "org-khuart",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2bebc00f0406",
+   "name": "멀티미디어기술연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2bee248c4947",
+   "name": "본관(직통전화)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2c531fcf94ed",
+   "name": "약학대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-2f64e69132b0",
+   "name": "호텔관광대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-32352f0e3ff8",
+   "name": "보수반 및 기관실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-3285cbf9baf2",
+   "name": "동아리연합회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-3382ca93b114",
+   "name": "창업보육센터(홍릉)",
+   "type": "office",
+   "parent": "orgc-a82e44b3445e",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-33cb14b77517",
+   "name": "체육부",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-355b51b1c229",
+   "name": "불편신고",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-35ffcc3b5c4b",
+   "name": "매점",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-394e587a470f",
+   "name": "응용물리학",
+   "type": "department",
+   "parent": "org-applsci",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-396d22767ae8",
+   "name": "교육학과",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-39a29f8af188",
+   "name": "응용수학",
+   "type": "department",
+   "parent": "org-applsci",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-3a39a01e4368",
+   "name": "스마트관광연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-3b0ff3e7a1a5",
+   "name": "비교문화연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-3c1c0834714b",
+   "name": "우정원 입점 상가",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-3c9f771279b2",
+   "name": "문과대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-3cb10fb569fc",
+   "name": "국제교육원(국제)",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-3d8dc749e075",
+   "name": "정보디스플레이연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-3ddeb9160c20",
+   "name": "체육대학",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-402564add816",
+   "name": "의무부총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-40784d4741ad",
+   "name": "교무처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-40d57071bc74",
+   "name": "체육대학관기관실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-4192002dab27",
+   "name": "문화관광콘텐츠학과",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4256fb3ab4c7",
+   "name": "스포츠지도학",
+   "type": "department",
+   "parent": "orgc-3ddeb9160c20",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-42adf6356fa1",
+   "name": "골프산업학",
+   "type": "department",
+   "parent": "orgc-3ddeb9160c20",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-42f5dfa0123c",
+   "name": "동서골관절연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-432f5e313846",
+   "name": "버스주차장",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-448b47335dca",
+   "name": "미래혁신정책연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-44fe5e94b3a5",
+   "name": "사회기반시스템공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-468d561f6653",
+   "name": "생활과학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-474ec380ded9",
+   "name": "세화원",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-47b662ddf481",
+   "name": "천연물의약소재개발 및 표준화지원사업단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-496fbb695e3f",
+   "name": "의과대학",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-49deff8c19c3",
+   "name": "성평등상담실",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-4a579b8a3d50",
+   "name": "건축공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4b4e434973e3",
+   "name": "식품영양학과",
+   "type": "department",
+   "parent": "orgc-afd530d064c0",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4b5c4cce4a17",
+   "name": "서울부총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-4c0667e5a114",
+   "name": "총무관리처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-4c0815db1c32",
+   "name": "정경대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-4d3e31c5ff35",
+   "name": "학교기업(한방재료가공)",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4da6605ffbb1",
+   "name": "연구처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-4e3ca7bf10fa",
+   "name": "관광개발연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4e58629230cf",
+   "name": "바이오나노컴포지트연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4ee2debe7daa",
+   "name": "호스피탈리티경영학부",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-4f1a64750d54",
+   "name": "기계공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-4f1f486939da",
+   "name": "계약학과",
+   "type": "department",
+   "parent": "org-khmba_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-512df084d37f",
+   "name": "조리·서비스경영학과",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-52296e1dd82c",
+   "name": "교수학습개발원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-5352bc6e0bdb",
+   "name": "문화예술경영연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-53ad6c406d40",
+   "name": "디지털콘텐츠학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5516f053fd58",
+   "name": "기획조정처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5667da931d40",
+   "name": "한국조류연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-56f9c17b86f4",
+   "name": "프랑스어학",
+   "type": "department",
+   "parent": "org-foreign_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-57b9984fee01",
+   "name": "대학원 의료경영학과",
+   "type": "department",
+   "parent": "orgc-82e52e1c9169",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-57f18bc979f1",
+   "name": "교육혁신사업단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5968d875425b",
+   "name": "학생회관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-59c28f608c38",
+   "name": "체육시설운영단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-59e3fb884b97",
+   "name": "미래혁신원",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-59eba9a55df4",
+   "name": "사회교육원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5bca7a7acce5",
+   "name": "인턴십/장학",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5d20eaa56163",
+   "name": "목공실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5e16eaad06d5",
+   "name": "공과대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5e56bc75ffc4",
+   "name": "국제한의학교육원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5ecedddd46c6",
+   "name": "대학원 총학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-5fc23f369081",
+   "name": "캠퍼스타운사업단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-60b36940e044",
+   "name": "언어대조·언어교육연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-61306d625cfb",
+   "name": "선동호",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-613699ae3297",
+   "name": "교육발전연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-62e91b9c59ca",
+   "name": "정경대학 경제학과",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": "https://econ.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-64a8afa89421",
+   "name": "국제교류팀",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": "https://oia.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-64ca13cdaf94",
+   "name": "본관(당직실)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-650d6f2bd1a7",
+   "name": "국제대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-65ecd5c58085",
+   "name": "커뮤니케이션센터",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-67d162a1de17",
+   "name": "동서간호학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-69c299e26797",
+   "name": "주차장관리사무실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-69e25951cc95",
+   "name": "인공지능학",
+   "type": "department",
+   "parent": "org-software25",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-69e8c784c787",
+   "name": "주차관리소(후문)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-6be6205de704",
+   "name": "법과대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-6cde4dd344df",
+   "name": "음악대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-6d51378fcae4",
+   "name": "피부생명공학센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-6fd2a03f000e",
+   "name": "대학원 경영컨설팅학과",
+   "type": "department",
+   "parent": "orgc-82e52e1c9169",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-6ffafbab8c2c",
+   "name": "동서의학대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-70a19d6cbca7",
+   "name": "자연과학종합연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-751a0f5abd9d",
+   "name": "정보처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-75e160d73ca8",
+   "name": "차세대디스플레이연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-7637d52bcb83",
+   "name": "총학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-771a48c04d11",
+   "name": "인문학연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-781f6345b1c8",
+   "name": "산업디자인학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-78715778bde7",
+   "name": "마케팅공학연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-78da4d26d660",
+   "name": "실감미디어 혁신공유대학사업단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-7a07a8859acd",
+   "name": "융합한의학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-7bc026b7dbc4",
+   "name": "팔각정",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-7c77e2a03d7e",
+   "name": "대외부총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-7ccd9675619a",
+   "name": "공학관전기실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-7db659ab7148",
+   "name": "양자물질글로벌연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-7dc66f1c4503",
+   "name": "의학계열도서관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-7e1c178a22ea",
+   "name": "경영대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-7eba28d313c5",
+   "name": "아동가족학과",
+   "type": "department",
+   "parent": "orgc-afd530d064c0",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-7f632489d809",
+   "name": "청운관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-803645a45da1",
+   "name": "우편취급국",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-8088c50fc296",
+   "name": "수위실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-81b231b4dbb1",
+   "name": "일본어학",
+   "type": "department",
+   "parent": "org-foreign_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-826ab2f20cd5",
+   "name": "스포츠과학연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-82e52e1c9169",
+   "name": "경영대학",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-840488824345",
+   "name": "결정기능화공정기술센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-840742e4b6b8",
+   "name": "수리계산센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-848dbf07336a",
+   "name": "무용학부 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-8490fbaedf40",
+   "name": "신경퇴화제어연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-8528fa521afa",
+   "name": "건강센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-858a2b7921b0",
+   "name": "교수의회",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-8620074d5f6f",
+   "name": "경희봉사단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-8675e1e32d85",
+   "name": "실시간모바일클라우드연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-86bd97f3758c",
+   "name": "쓰레기분리장",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-87063e7717ec",
+   "name": "의학계열실습지원센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-88c059ee4c08",
+   "name": "컨벤션전시정책연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-88e693059ed5",
+   "name": "편의점",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-893e7aa9bd52",
+   "name": "의료산업연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-89838030d63c",
+   "name": "체육대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-8987480a0630",
+   "name": "중국어학",
+   "type": "department",
+   "parent": "org-foreign_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-8992b11d044e",
+   "name": "골프장(청운관)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-8a497506c254",
+   "name": "관광학과",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-8b6422473f49",
+   "name": "연극영화학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-8de64bf7563c",
+   "name": "대 학 원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-8e7be3d3e63e",
+   "name": "국제관광전략연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-8ea27d21a228",
+   "name": "중소기업산학협력센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-90180d5e2465",
+   "name": "국제평화연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-909e1be515e2",
+   "name": "건강가정지원센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-90bee97fe5fb",
+   "name": "한방재료가공학",
+   "type": "department",
+   "parent": "org-cls",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-90e9bde68a6a",
+   "name": "글로벌인문학술원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-925bc0e631f5",
+   "name": "영재교육센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-93414ee0caa4",
+   "name": "정문",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-94001cc9545d",
+   "name": "총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-95d8f7904909",
+   "name": "스포츠학",
+   "type": "department",
+   "parent": "orgc-3ddeb9160c20",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-979a01a7b721",
+   "name": "삼의원",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-98408bdf3fe2",
+   "name": "크라운관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-9841b4976381",
+   "name": "커뮤니케이션전략연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-98a0895ab722",
+   "name": "학생생활연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-98b3dd28d035",
+   "name": "법학관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-98d1496ed626",
+   "name": "감정문화연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-992a1acb07ed",
+   "name": "전자공학",
+   "type": "department",
+   "parent": "org-eni25",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-9b2c01379e03",
+   "name": "의상학과",
+   "type": "department",
+   "parent": "orgc-afd530d064c0",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-9b79dc662310",
+   "name": "교육사업추진단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-9eaa59868892",
+   "name": "국제지역연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a215b517403d",
+   "name": "정보디스플레이학과",
+   "type": "department",
+   "parent": "org-science_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-a2bfb9057adf",
+   "name": "신문방송국",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-a35289c1bbaa",
+   "name": "컨벤션경영학과",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a3f7a8cf335e",
+   "name": "주거환경학과",
+   "type": "department",
+   "parent": "orgc-afd530d064c0",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a648c4859c60",
+   "name": "관광산업연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a805bf88860f",
+   "name": "유전공학",
+   "type": "department",
+   "parent": "org-cls",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a8185931f52b",
+   "name": "예술디자인연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a82e44b3445e",
+   "name": "창업지원단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": "https://startup.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-a83661e355d7",
+   "name": "이과대학 지리학과",
+   "type": "department",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": "https://geo.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-a8a30cee6468",
+   "name": "한국어학",
+   "type": "department",
+   "parent": "org-foreign_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-aa61babc3fb8",
+   "name": "국제학연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-aad9a341aab8",
+   "name": "태권도학",
+   "type": "department",
+   "parent": "orgc-3ddeb9160c20",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-aba00af35068",
+   "name": "공학관통신실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ac4f084abe9e",
+   "name": "지구사회봉사단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-ad4f1d1a29f0",
+   "name": "대학본부",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": "https://www.khu.ac.kr/",
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-aeb3502f7a1f",
+   "name": "물리학과",
+   "type": "department",
+   "parent": "org-science_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-aecdaee9b40c",
+   "name": "교수회관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-af5ff554fbd7",
+   "name": "치의학전문대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-afd530d064c0",
+   "name": "생활과학대학",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-afdbdd33eff4",
+   "name": "언어정보연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b25022b60a2c",
+   "name": "법무대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b31f11c2dc24",
+   "name": "국제처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-b3d186c2dfde",
+   "name": "차량반",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-b45b3af634bb",
+   "name": "식품생명공학",
+   "type": "department",
+   "parent": "org-cls",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b53da228479b",
+   "name": "외식산업경영연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b5ce4d02b37d",
+   "name": "호텔관광정보연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b6099aa71e0f",
+   "name": "행·재정부총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b6110389a234",
+   "name": "스페인어학",
+   "type": "department",
+   "parent": "org-foreign_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b6208d443307",
+   "name": "글로벌류큐·오키나와연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b67026d2d712",
+   "name": "영어학부",
+   "type": "department",
+   "parent": "org-human_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-b67046a4d35b",
+   "name": "도서관기관실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-b8bb8346f84f",
+   "name": "글로벌인문기술연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b96991076ca9",
+   "name": "호텔경영학과",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-b9f63ad06aa6",
+   "name": "보건의료산업연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ba9dd35a8d1d",
+   "name": "환경미화원 대기실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-baa095d9d2c1",
+   "name": "의학전문대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-bab9dd70be28",
+   "name": "동아리 교환",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-bb3216a945df",
+   "name": "재무처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-bba31665b79a",
+   "name": "예술관기관실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-bc62a98a079a",
+   "name": "공동기기원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-bcc135b9649c",
+   "name": "전공기초사무실",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-be2d6ac71524",
+   "name": "산학협력단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-be3f10c9484b",
+   "name": "학무부총장실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-bef5231166b2",
+   "name": "종교시민문화연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-bfc7e6c1838a",
+   "name": "평화의전당",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-bfe53bb5e9b3",
+   "name": "노동조합",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-bfe5955e5dd4",
+   "name": "자율전공학과 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-bk21",
+   "name": "BK21 한의과학사업단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-bk21-2",
+   "name": "의학전문BK21사업단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-bk21-four",
+   "name": "BK21 four 스마트관광+호스피탈리티 교육플랫폼 사업단",
+   "type": "institute",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-c03be311b9f5",
+   "name": "산업관계연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-c040606bb78e",
+   "name": "테크노경영대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-c3362568b311",
+   "name": "고황편집실",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-c349c5a92b53",
+   "name": "현장실습지원센터",
+   "type": "office",
+   "parent": "orgc-linc",
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-c34d6766dc1b",
+   "name": "의과학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-c38f75e2ed1e",
+   "name": "후문",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-c6e694c630c3",
+   "name": "관광산업연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-c73432a629fe",
+   "name": "산업경영공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-c85cf8ea1537",
+   "name": "밝은사회연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-c8d175a70a85",
+   "name": "음악대학",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-caa9fe4bd03c",
+   "name": "아트·퓨전디자인대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-cb45c63b17d3",
+   "name": "현대문학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-cbc7ef224b9e",
+   "name": "무역학과",
+   "type": "department",
+   "parent": "org-khsma",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-cc4ce340524e",
+   "name": "식물·환경신소재공학",
+   "type": "department",
+   "parent": "org-cls",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-cc59eb533eb2",
+   "name": "도예학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-cc85263605e6",
+   "name": "푸른솔문화관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ccb2264d5b2e",
+   "name": "소프트웨어융합학",
+   "type": "department",
+   "parent": "org-software25",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ce-khu-ac-kr",
+   "name": "[확인 필요] ce.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": "https://ce.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ce2666a2444a",
+   "name": "주차관리소(정문)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-cf6659b34d7f",
+   "name": "사무실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-cf9b4d0be3d2",
+   "name": "정보사회연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-chemeng-khu-ac-kr",
+   "name": "[확인 필요] chemeng.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": "https://chemeng.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-d0014582965f",
+   "name": "헬스장(청운관)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d002d6b0f434",
+   "name": "도서관전기실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d0d84e0ee40c",
+   "name": "고황의학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-d0e40df8896a",
+   "name": "원자로센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-d0fc538ca552",
+   "name": "환경연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d18e85962a2f",
+   "name": "입학처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d1cb5936b2fc",
+   "name": "외국어대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d24343a06643",
+   "name": "의류디자인학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d2d5f4cb6b36",
+   "name": "중기사무실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d69fadb9431c",
+   "name": "우주과학",
+   "type": "department",
+   "parent": "org-applsci",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-d81eda0e5fb0",
+   "name": "치의학관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d8c350306b4c",
+   "name": "생활과학대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d9412c588aca",
+   "name": "관광학부",
+   "type": "department",
+   "parent": "org-hot20_kor",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d97a430dc584",
+   "name": "치의학전문대학원 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-d9e4e405bc97",
+   "name": "경영패러다임",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-dab3c5b782c7",
+   "name": "국제교육원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-dbc96efa2e38",
+   "name": "교육부특성화사업단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-dc29ded9218b",
+   "name": "학군단",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-dcdd3f04f625",
+   "name": "교육대학원",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-dd109c84760c",
+   "name": "민속학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-dd7f5348ce63",
+   "name": "교수회관 휴게실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ddaf14e7941f",
+   "name": "체육대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ddc4b9bb3d23",
+   "name": "도서관통신실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ddc69fa5161d",
+   "name": "원예생명공학",
+   "type": "department",
+   "parent": "org-cls",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-dx",
+   "name": "DX추진단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-e05d5fcf74e3",
+   "name": "온실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-e0a2695c835d",
+   "name": "지속가능건강건축연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-e0ee7056e39e",
+   "name": "인류사회재건연구원",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-e295bc381d2d",
+   "name": "내분비연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-e2af0b4af94f",
+   "name": "노인성 및 뇌질환연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-e2d44f7b3f2e",
+   "name": "예비군연대본부",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-e4b000735334",
+   "name": "중앙기기센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-e4b3fe0fd55c",
+   "name": "원자력공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-e50b3d94d263",
+   "name": "학생생활지원존",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-e525647b2318",
+   "name": "건축학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-e5cea14aa6b4",
+   "name": "미화용역 사무실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-e82a140b58a4",
+   "name": "중앙박물관",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ea90b33296db",
+   "name": "미래혁신원 창업지원단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-eb28f7ac85a8",
+   "name": "식당 및 매점",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-eba31d022168",
+   "name": "오비스홀",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ec963757e95d",
+   "name": "국토종합연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ecbf97af7bda",
+   "name": "유학생교육지원센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ed929ed24272",
+   "name": "이과대학 서관",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ee-khu-ac-kr",
+   "name": "[확인 필요] ee.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": "https://ee.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-eefeba009cd7",
+   "name": "메타트랜스포메이션연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-eng-khu-ac-kr",
+   "name": "[확인 필요] eng.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": "https://eng.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-f09aed30d26f",
+   "name": "환경조경디자인학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-f1f3da5fac8c",
+   "name": "한의과대학 학생회",
+   "type": "council",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-f31accb1d28b",
+   "name": "주차관리소(사무실)",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-f34f6ed5901f",
+   "name": "대학원 경영학과",
+   "type": "department",
+   "parent": "orgc-82e52e1c9169",
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-f59b6998ee76",
+   "name": "기초과학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-f5d61e218b25",
+   "name": "벤처농업경영센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-f8bcadc6b6cd",
+   "name": "법과대학",
+   "type": "college",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-f8f6b961ecb1",
+   "name": "임상영양연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-f93e11137232",
+   "name": "인사처",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-f96b910a841d",
+   "name": "복사실",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-fa5dfeb45e0d",
+   "name": "동서신장병연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-faa62fca4a81",
+   "name": "화학공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-fad797ab65b9",
+   "name": "양자 기후-바이오헬스 융합 연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-fbb6f32c12f9",
+   "name": "동아시아서지문헌연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-fd5fa6a8c0c2",
+   "name": "미래혁신원 미래혁신단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-fd7440a53ea3",
+   "name": "융합약학연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-fd8e7a3030f8",
+   "name": "환경학및환경공학",
+   "type": "department",
+   "parent": "org-eng_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-fdfc4f449b5e",
+   "name": "임피던스영상신기술연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-ff2cfca8d0a8",
+   "name": "인권센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-foreign-khu-ac-kr",
+   "name": "[확인 필요] foreign.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": "https://foreign.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-gsc",
+   "name": "지구사회봉사단(GSC)",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-hatis",
+   "name": "HATIS기획평가디자인연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-hc-khu-ac-kr",
+   "name": "[확인 필요] hc.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": "https://hc.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-iptv",
+   "name": "실감형유비쿼터스 IPTV 연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-k",
+   "name": "K-컬처·스토리콘텐츠연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-kbiz-khu-ac-kr",
+   "name": "[확인 필요] kbiz.khu.ac.kr",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": "https://kbiz.khu.ac.kr/",
+   "needs_review": true,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-lcd",
+   "name": "LCD거점연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-linc",
+   "name": "LINC+사업단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-mrc",
+   "name": "한의대 암예방소재개발 연구센터(MRC)",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-mrc-2",
+   "name": "활성산소연구센터(MRC)",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-ngo",
+   "name": "NGO국제연구소",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-post-modern",
+   "name": "Post Modern 음악학",
+   "type": "department",
+   "parent": "org-and_kor",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-ric",
+   "name": "디스플레이부품·소재 RIC",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "high"
+  },
+  {
+   "key": "orgc-rise",
+   "name": "RISE사업단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global",
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/deptIntro/list.do?menuNo=200355",
+   "campus_confidence": "low"
+  },
+  {
+   "key": "orgc-src",
+   "name": "침구경락과학연구센터(SRC)",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "seoul"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200091",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-sw",
+   "name": "SW중심대학사업단",
+   "type": "office",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-u",
+   "name": "동서신의학 U-라이프케어연구센터",
+   "type": "institute",
+   "parent": null,
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
+  },
+  {
+   "key": "orgc-vi",
+   "name": "판교VI캠퍼스",
+   "type": "office",
+   "parent": "orgc-rise",
+   "campus_codes": [
+    "global"
+   ],
+   "homepage_url": null,
+   "needs_review": false,
+   "evidence_url": "https://www.khu.ac.kr/kor/user/contents/view.do?menuNo=200092",
+   "campus_confidence": "medium"
   }
  ]
 }
