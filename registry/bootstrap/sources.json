@@ -11839,6 +11839,30 @@
    ],
    "official_evidence_url": "https://ce.khu.ac.kr/ce25/user/bbs/BMSR00040/list.do?menuNo=21600020",
    "notes": "2026-09-07 전수조사 5-2: 원문 10건 정상(최근 2026-09-04). 옛 등록부에서 빠져 폐쇄됐던 것을 되살린다."
+  },
+  {
+   "key": "biz_kor-BMSR00045-14500124",
+   "name": "경영대학 소식",
+   "organization": "org-biz_kor",
+   "adapter": "khu_board",
+   "medium": "web",
+   "content_kind": "notice",
+   "interval_minutes": 60,
+   "status": "pending",
+   "config": {
+    "base_url": "https://kbiz.khu.ac.kr",
+    "prefix": "biz_kor",
+    "board_code": "BMSR00045",
+    "menu_no": "14500124"
+   },
+   "audiences": [
+    {
+     "type": "organization",
+     "organization": "org-biz_kor"
+    }
+   ],
+   "official_evidence_url": "https://kbiz.khu.ac.kr/biz_kor/user/bbs/BMSR00045/list.do?menuNo=14500124",
+   "notes": "소식 게시판. 옛 등록부로 45건이 들어온 뒤 폐쇄됐다. 이름을 자리표시자에서 고치려고 대기 상태로 남긴다(수집하지 않는다)."
   }
  ]
 }
