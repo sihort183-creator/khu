@@ -2,6 +2,7 @@
 // 내 공지: 비회원 맞춤 조회(POST /v1/feeds/preview)
 import { useOrganizationSelection, useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
+import { campusScopeLabel } from "@/lib/campus";
 import { useNoticeFeed } from "@/lib/useNoticeFeed";
 import { useCategorySelection } from "@/lib/useCategorySelection";
 import { Shell } from "@/components/Shell";
@@ -32,8 +33,7 @@ export default function MyFeedPage() {
       : null,
   );
 
-  const campusName = catalog?.campuses.find((c) => c.id === settings.campus_id)?.name.replace("캠퍼스", "");
-  const scope = orgIds.length ? organizationScopeLabel(orgs, new Set(orgIds)) : `${campusName ?? ""} 전체`;
+  const scope = orgIds.length ? organizationScopeLabel(orgs, new Set(orgIds)) : campusScopeLabel(catalog?.campuses, settings.campus_id);
   const label = `${scope}${settings.subscribed_source_ids.length ? ` + 구독 ${settings.subscribed_source_ids.length}` : ""}`;
 
   return (

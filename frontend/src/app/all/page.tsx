@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useOrganizationSelection, useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
+import { campusScopeLabel } from "@/lib/campus";
 import { useNoticeFeed } from "@/lib/useNoticeFeed";
 import { useCategorySelection } from "@/lib/useCategorySelection";
 import { Shell } from "@/components/Shell";
@@ -50,8 +51,7 @@ function AllFeed() {
     },
   });
 
-  const campusName = catalog?.campuses.find((c) => c.id === settings.campus_id)?.name ?? "";
-  const scope = org.ids.length ? organizationScopeLabel(orgs, org.selected) : `${campusName} 전체`;
+  const scope = org.ids.length ? organizationScopeLabel(orgs, org.selected) : campusScopeLabel(catalog?.campuses, settings.campus_id);
   const label = q ? `‘${q}’ 검색 결과` : scope;
 
   return (

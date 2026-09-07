@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { Coded } from "@/lib/types";
 import { useOrganizationSelection, useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
+import { campusShortLabel } from "@/lib/campus";
 import { categoryStyle } from "@/lib/category";
 import { Ad } from "./Ad";
 import { IconChevron } from "./icons";
@@ -26,7 +27,7 @@ export function Shell({ children, categories, orgPicker }: Props) {
   const org = useOrganizationSelection();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const campus = catalog?.campuses.find((c) => c.id === settings.campus_id);
+  const campus = campusShortLabel(catalog?.campuses, settings.campus_id);
   const scope = organizationScopeLabel(orgs, org.selected);
   const subCount = settings.subscribed_source_ids.length;
 
@@ -81,7 +82,7 @@ export function Shell({ children, categories, orgPicker }: Props) {
           <div className="px-3.5 py-3 text-[13px]">
             <dl className="grid grid-cols-[56px_1fr] gap-y-1">
               <dt className="text-gray">캠퍼스</dt>
-              <dd className="font-medium">{campus?.name.replace("캠퍼스", "") ?? "-"}</dd>
+              <dd className="font-medium">{campus || "-"}</dd>
               <dt className="text-gray">조직</dt>
               <dd className="break-keep font-medium">{scope}</dd>
               <dt className="text-gray">구독</dt>

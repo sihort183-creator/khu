@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Organization, OrgType } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
+import { campusOptions } from "@/lib/campus";
 import { IconSearch } from "./icons";
 
 export function Onboarding() {
@@ -47,15 +48,18 @@ function OnboardingDialog() {
   const keyword = q.trim().toLowerCase();
   const visible = (list: Organization[]) => (keyword ? list.filter((o) => o.name.toLowerCase().includes(keyword)) : list);
 
+  // campus 는 '공통'이 null 이라 ?? 로 예전 값을 덧대면 공통을 고를 수가 없다. 고른 값을 그대로 쓴다.
   const finish = (dept: string | null) =>
     update({
-      campus_id: campus ?? settings.campus_id,
+      campus_id: campus,
       college_id: college,
       department_id: dept,
       organization_ids: [college, dept].filter((id): id is string => !!id),
       onboarded: true,
     });
-  const skip = () => update({ onboarded: true });
+  // 캠퍼스만 고르고 다음 단계에서 건너뛰면 고른 캠퍼스가 저장되지 않았다.
+  // '공통'을 고른 사람이 그대로 예전 캠퍼스에 머무르게 되므로 고른 값은 남긴다.
+  const skip = () => update({ campus_id: campus, onboarded: true });
   const titles = ["캠퍼스를 선택하세요", "단과대·대학원을 선택하세요", "학과·전공을 선택하세요"];
 
   return (
@@ -73,11 +77,19 @@ function OnboardingDialog() {
 
         {!loaded && <p className="text-[13px] text-gray">불러오는 중…</p>}
 
+        {/* 캠퍼스를 모르는 사람이 여기서 멈추지 않도록 빠져나갈 길을 먼저 알려 준다 */}
+        {loaded && step === 0 && (
+          <p className="mb-[18px] -mt-2 text-[13px] text-gray">
+            잘 모르겠거나 둘 다 보고 싶으면 <b className="font-semibold text-ink-2">공통</b>을 고르세요. 화면 위쪽에서 언제든 바꿀 수 있습니다.
+          </p>
+        )}
+
         {loaded &&
           step === 0 &&
-          catalog.campuses.map((c) => (
+          campusOptions(catalog.campuses).map((c) => (
             <Opt
-              key={c.id}
+              key={c.id ?? "all"}
+              sub={c.hint}
               onClick={() => {
                 setCampus(c.id);
                 setCollege(null);

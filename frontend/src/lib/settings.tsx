@@ -4,6 +4,10 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 export interface Settings {
+  /**
+   * 보고 있는 캠퍼스. null 이면 '공통'이라 캠퍼스로 거르지 않는다(서울·국제·캠퍼스 미상 전부).
+   * 값 자체는 예전 그대로(campus-seoul / campus-global)라 저장값을 옮길 필요가 없다. lib/campus.ts 참고.
+   */
   campus_id: string | null;
   college_id: string | null;
   department_id: string | null;
