@@ -123,3 +123,13 @@ def test_non_cross_images_and_outside_hosts_make_no_poster_key():
     assert poster_keys('<img src="https://evil.example.com/upload/cross/images/001/x.png">',
                        base_url=BASE) == frozenset()
     assert poster_keys(None) == frozenset()
+
+
+MANGLED = "https://open.kakao.[EMAIL]"
+
+
+def test_unreadable_url_is_refused_instead_of_raising():
+    """urllib 이 읽지 못하는 주소도 예외 없이 거절한다(연구처 공지 538796)."""
+    assert is_allowed_image_host(MANGLED) is False
+    assert extract_images(f'<p><img src="{MANGLED}"></p>', base_url=BASE) == []
+    assert poster_keys(f'<p><img src="{MANGLED}"></p>', base_url=BASE) == set()

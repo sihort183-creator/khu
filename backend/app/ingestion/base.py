@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Protocol
 
 from app.ingestion.http import Fetcher
@@ -57,6 +57,24 @@ class FetchedDetail:
     author: str | None = None
     attachments: tuple[FetchedAttachment, ...] = ()
     extraction_notes: dict[str, Any] = field(default_factory=dict)
+
+
+def unpin_whole_page(items: list[ListedItem]) -> list[ListedItem]:
+    """한 쪽이 통째로 상단 고정으로 보이면 아무 줄도 고정으로 보지 않는다.
+
+    상단 고정은 "다른 글보다 위에 붙였다"는 뜻이라 붙지 않은 줄이 있어야 성립한다.
+    2026-09-07 의과대학 게시판(khusm s6_1)은 4,392개 글 전부에 그누보드 공지 표시
+    (tr.bo_notice · 번호 칸 '공지')를 달고 있었다. 진짜 고정 글이라면 쪽마다 같은 줄이
+    다시 나와야 하는데 1쪽과 2쪽의 줄이 서로 달랐다. 게시판이 표시를 남발한 것이다.
+
+    고정 글은 수집 기간 밖이어도 버리지 않고 날짜 경계 판정에서도 빼기 때문에, 이
+    표시를 그대로 믿으면 게시판 하나가 통째로 기간 제한을 벗어난다. 실제로 그 게시판은
+    회차마다 시간 상한에 걸려 백필이 다섯 쪽에서 멈춰 있었다. 구별이 없는 표시는
+    표시가 없는 것과 같게 본다.
+    """
+    if len(items) < 2 or not all(item.is_pinned for item in items):
+        return items
+    return [replace(item, is_pinned=False) for item in items]
 
 
 class ParseError(Exception):

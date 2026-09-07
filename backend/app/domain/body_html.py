@@ -9,11 +9,10 @@
 
 from __future__ import annotations
 
-from urllib.parse import urljoin, urlsplit
-
 from lxml import html as lxml_html
 
 from app.domain.images import is_allowed_image_host, proxy_path
+from app.domain.urls import safe_join, safe_split
 
 # 공지 본문에 실제로 쓰이는 것만 남긴다. 모르는 태그는 글자만 남기고 껍데기를 벗긴다.
 ALLOWED_TAGS = {
@@ -40,11 +39,17 @@ def _clean_link(href: str, base_url: str | None) -> str | None:
     value = href.strip()
     if not value:
         return None
-    absolute = urljoin(base_url, value) if base_url else value
+    absolute = safe_join(base_url, value)
+    # 읽을 수 없는 주소는 링크로 만들지 않는다. 내보내기가 이것 하나로 죽으면 안 된다.
+    if absolute is None:
+        return None
     if not absolute.lower().startswith(SAFE_LINK_SCHEMES):
         # javascript: 와 data: 는 누르는 순간 남의 코드가 도는 길이다.
         return None
-    if urlsplit(absolute).scheme == "http":
+    parts = safe_split(absolute)
+    if parts is None:
+        return None
+    if parts.scheme == "http":
         # 화면이 https 라 http 링크는 경고가 뜬다. 주소만 올려 시도한다.
         return "https://" + absolute[len("http://"):]
     return absolute
@@ -95,10 +100,15 @@ def sanitize_body_html(
             continue
         if tag == "img":
             src = (element.get("src") or "").strip()
-            absolute = urljoin(base_url, src) if base_url else src
+            absolute = safe_join(base_url, src)
             keep = {k: v for k, v in element.attrib.items() if k in ALLOWED_ATTRS["img"]}
             element.attrib.clear()
-            if not src or any(c in src for c in "<>\"'") or not is_allowed_image_host(absolute):
+            if (
+                not src
+                or absolute is None
+                or any(c in src for c in "<>\"'")
+                or not is_allowed_image_host(absolute)
+            ):
                 # 보여줄 수 없는 그림이다. 자리만 없애고 대체 글자는 남긴다.
                 element.tag = "span"
                 if keep.get("alt"):

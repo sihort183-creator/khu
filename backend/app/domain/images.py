@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import base64
 import re
-from urllib.parse import unquote, urljoin, urlsplit
+from urllib.parse import unquote
 
 from lxml import html as lxml_html
+
+from app.domain.urls import safe_join, safe_split
 
 # 중계는 학교 주소로만 한다. 아무 주소나 받으면 남의 서버를 대신 때리는 통로가 된다.
 ALLOWED_SUFFIX = ".khu.ac.kr"
@@ -29,8 +31,8 @@ MAX_IMAGES = 12
 
 def is_allowed_image_host(url: str) -> bool:
     """중계해도 되는 주소인지 본다. Worker 의 검사와 같은 규칙이어야 한다."""
-    parts = urlsplit(url)
-    if parts.scheme not in ("http", "https"):
+    parts = safe_split(url)
+    if parts is None or parts.scheme not in ("http", "https"):
         return False
     host = parts.hostname or ""
     return host == ALLOWED_HOST or host.endswith(ALLOWED_SUFFIX)
@@ -69,8 +71,8 @@ def extract_images(
         # 붙이면 학교 주소로 보이는 쓰레기 경로가 만들어지므로 주소가 아닌 값은 버린다.
         if not src or any(c in src for c in "<>\"'") or any(c.isspace() for c in src):
             continue
-        absolute = urljoin(base_url, src) if base_url else src
-        if not is_allowed_image_host(absolute) or absolute in seen:
+        absolute = safe_join(base_url, src)
+        if absolute is None or not is_allowed_image_host(absolute) or absolute in seen:
             continue
         seen.add(absolute)
         found.append(proxy_path(absolute, base=proxy_base))
@@ -114,7 +116,9 @@ def poster_keys(body_html: str | None, *, base_url: str | None = None) -> frozen
             url = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4)).decode("utf-8")
         except (ValueError, UnicodeDecodeError):
             continue
-        parts = urlsplit(url)
+        parts = safe_split(url)
+        if parts is None:
+            continue
         matched = _CROSS_PATH.match(unquote(parts.path))
         if not matched:
             continue

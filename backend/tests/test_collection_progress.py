@@ -392,3 +392,50 @@ def test_login_walled_item_is_kept_from_the_listing(session_factory, settings, s
         revision = db.get(m.SourceItemRevision, locked.current_revision_id)
         assert not revision.body_text
         assert revision.raw_object_key is None
+
+
+def test_board_read_to_the_end_finishes_even_if_details_never_open(
+    session_factory, settings, store, monkeypatch
+):
+    """끝까지 읽은 게시판은 열리지 않는 상세 때문에 영원히 미완으로 남지 않는다.
+
+    2026-09-07 미래인재센터 프로그램 신청은 게시판 끝까지 읽고도(end_of_board)
+    완료로 넘어가지 못했다. 글 20개가 전부 로그인해야 열리는 글이라 상세 실패가
+    비지 않았고, 완료 조건이 "경계 도달 + 실패 0" 이었기 때문이다. 몇 번을 더 돌아도
+    실패가 사라지지 않는 게시판인데, 완료가 되지 않으면 초기 백필 감독이 남은 곳으로
+    계속 세어 회차를 끝없이 이어받는다.
+
+    재시도는 그대로 계속한다. 다만 `DETAIL_RETRY_LIMIT` 번을 넘게 실패한 글은
+    더 해 볼 것이 없는 글로 보고 게시판 완료를 막지 않는다.
+    """
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({1: [item(1, "2026-08-01"), item(2, "2026-08-02")]})
+        board.failed = {"1", "2"}
+        health = db.get(m.SourceHealth, source.id)
+
+        for attempt in range(1, repo.DETAIL_RETRY_LIMIT + 1):
+            result = run(db, source, settings, store, board, monkeypatch)
+            assert result.scan_stop_reason == "end_of_board"
+            assert health.backfill_boundary_reached is True
+            if attempt < repo.DETAIL_RETRY_LIMIT:
+                assert health.backfill_complete is False, f"{attempt}회차"
+                assert health.backfill_status == "detail_pending"
+            # 다음 회차가 재시도하도록 물러서기 시간만 앞당긴다.
+            for row in db.scalars(select(m.SourceItem)):
+                row.next_detail_attempt_after = utcnow() - timedelta(seconds=1)
+            db.commit()
+
+        assert health.backfill_complete is True
+        assert health.backfill_status == "complete"
+        # 포기한 것이 아니다. 실패 기록은 남아 있고 다음 회차도 다시 열어 본다.
+        rows = db.scalars(select(m.SourceItem)).all()
+        assert all(row.last_detail_error for row in rows)
+        assert len(board.read_details) == repo.DETAIL_RETRY_LIMIT * 2
+
+        # 원문이 열리면 그다음 회차가 그대로 채운다.
+        board.failed.clear()
+        run(db, source, settings, store, board, monkeypatch)
+        assert all(row.last_detail_error is None for row in db.scalars(select(m.SourceItem)))
+        assert health.backfill_complete is True

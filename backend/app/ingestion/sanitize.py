@@ -13,6 +13,8 @@ from urllib.parse import urlsplit, urlunsplit
 from lxml import etree
 from lxml import html as lxml_html
 
+from app.domain.urls import safe_split
+
 # 허용 태그. 표와 목록은 공지에서 의미를 가지므로 남긴다.
 ALLOWED_TAGS = {
     "p", "br", "span", "div", "strong", "b", "em", "i", "u", "s",
@@ -58,8 +60,12 @@ def _safe_url(value: str | None, *, base_url: str | None = None) -> str | None:
     if url.startswith("//"):
         return f"https:{url}"
     if url.startswith(("http://", "https://", "mailto:", "tel:")):
-        scheme = urlsplit(url).scheme.lower()
-        return url if scheme in SAFE_SCHEMES else None
+        # 원문이 망가뜨린 주소(예: https://open.kakao.[EMAIL])는 읽을 수 없다.
+        # 링크를 만들지 않고 넘어간다. 글 하나 때문에 회차가 죽으면 안 된다.
+        parts = safe_split(url)
+        if parts is None:
+            return None
+        return url if parts.scheme.lower() in SAFE_SCHEMES else None
     if base_url:
         parts = urlsplit(base_url)
         if url.startswith("/"):

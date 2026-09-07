@@ -82,3 +82,27 @@ def test_relay_base_is_used_inside_the_body():
         proxy_base="https://api.example.com",
     )
     assert 'src="https://api.example.com/v1/img/' in result
+
+
+# 2026-09-07 연구처&산학협력단 공지 538796 번 글의 본문에 실제로 들어 있던 값이다.
+# 원문 사이트의 이메일 가리기가 카카오 오픈채팅 주소 뒷부분을 통째로 치환했다.
+# urllib 은 대괄호를 IPv6 주소로 읽어 ValueError("Invalid IPv6 URL") 를 던진다.
+MANGLED = "https://open.kakao.[EMAIL]"
+
+
+def test_url_that_urllib_cannot_read_drops_the_link_instead_of_raising():
+    """읽을 수 없는 주소 하나가 본문 정리를 세우지 못하게 한다.
+
+    이 값 하나 때문에 수집 회차가 'unexpected' 로 죽어 게시판 한 곳이 네 회차 연속
+    실패하고 delayed 로 내려갔다. 내보내기도 같은 경로를 지난다.
+    """
+    result = clean(f'<p><a href="{MANGLED}">오픈채팅</a> 참여</p>')
+    assert "open.kakao" not in result
+    # 링크는 사라져도 글자는 남는다.
+    assert "오픈채팅" in result and "참여" in result
+
+
+def test_mangled_image_source_is_dropped_instead_of_raising():
+    result = clean(f'<p><img src="{MANGLED}" alt="포스터"></p>')
+    assert "open.kakao" not in result
+    assert "포스터" in result

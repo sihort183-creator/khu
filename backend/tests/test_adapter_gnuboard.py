@@ -7,8 +7,11 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import pytest
 
+from app.domain.dates import KST
 from app.ingestion import get_adapter
 from app.ingestion.base import ListedItem, ParseError
 
@@ -18,11 +21,43 @@ SWEDU = {"base_url": "https://swedu.khu.ac.kr", "bo_table": "07_01"}
 TOURISM = {"base_url": "https://tourism.khu.ac.kr", "bo_table": "s4_1"}
 KHUGPP = {"base_url": "https://khugpp.khu.ac.kr", "bo_table": "notice"}
 MEDIA_EMPTY = {"base_url": "https://media.khu.ac.kr", "bo_table": "notice_01"}
+KHUSM = {"base_url": "https://khusm.khu.ac.kr", "bo_table": "s6_1"}
 
 
 @pytest.fixture
 def adapter():
     return get_adapter("gnuboard")
+
+
+def test_page_of_only_notices_pins_nothing(adapter, gnuboard_fixture):
+    """줄마다 '공지' 를 단 게시판은 아무 줄도 고정으로 보지 않는다.
+
+    2026-09-07 의과대학 게시판(khusm s6_1)은 4,392개 글 전부에 그누보드 공지 표시를
+    달고 있었다. 고정 글은 수집 기간 밖이어도 상세를 받고 날짜 경계 판정에서도 빠지므로,
+    그대로 믿으면 게시판 하나가 통째로 기간 제한을 벗어나 회차마다 시간 상한에 걸린다.
+    실제로 그 게시판은 백필이 다섯 쪽에서 멈춘 채 열 시간을 헛돌았다.
+    """
+    page = adapter.parse_list(gnuboard_fixture("list_all_notice_khusm.html"), KHUSM, 1)
+
+    assert len(page.items) == 15
+    # 원문은 열다섯 줄 모두 tr.bo_notice · 번호 칸 '공지' 다.
+    assert not any(item.is_pinned for item in page.items)
+    assert page.has_next is True
+
+
+def test_time_only_stamp_is_read_as_today(adapter, gnuboard_fixture):
+    """등록일 칸에 시각만 있으면 오늘 올라온 글이다.
+
+    그누보드는 그날 올라온 글의 등록일을 '10:24' 처럼 시각만 적는다. 날짜를 비워 두면
+    그날의 새 공지가 발행일 모르는 글이 되어 공개 파일에서 빠지고, 목록 날짜 순서
+    검증도 '날짜 모름' 으로 깨져 조기 종료 가정을 잃는다.
+    """
+    page = adapter.parse_list(gnuboard_fixture("list_all_notice_khusm.html"), KHUSM, 1)
+
+    today = datetime.now(KST).date().isoformat()
+    assert page.items[0].published_raw == f"{today} 10:24"
+    # 날짜가 적힌 줄은 그대로 읽는다.
+    assert page.items[1].published_raw == "2026-09-04"
 
 
 def test_adapter_is_registered(adapter):

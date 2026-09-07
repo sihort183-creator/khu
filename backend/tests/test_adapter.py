@@ -161,6 +161,36 @@ def test_parses_thumbnail_gallery_list(adapter, board_fixture):
     assert page.has_next is True
 
 
+SPEECH = {
+    "base_url": "https://news.khu.ac.kr",
+    "prefix": "kor",
+    "board_code": "BMSR00057",
+    "menu_no": "200386",
+}
+
+
+def test_parses_list05_gallery_list(adapter, board_fixture):
+    """형식 C의 또 다른 표기: ul.list05 안의 li.clearfix.
+
+    news.khu.ac.kr 의 총장 연설문 게시판이 이 표기를 쓴다. li 를 class="item" 으로만
+    찾던 옛 조건으로는 한 줄도 못 읽어 '구조 변경' 으로 잘못 실패했고, 그 게시판 두 곳이
+    네 회차 연속 parse_error 로 delayed 까지 내려갔다. 목록 li 인지는 클래스가 아니라
+    안에 게시글 열기 호출 view(...) 가 있는지로 가른다.
+    """
+    page = adapter.parse_list(board_fixture("list_speech_news.html"), SPEECH, 1)
+
+    assert len(page.items) == 3
+    first = page.items[0]
+    assert first.external_id == "322887"
+    assert first.title == "자신과 세계를 숙고(熟考)하는 지혜로운 실천 지성인의 길"
+    assert first.published_raw == "2026-08-19"
+    assert first.url.endswith("view.do?menuNo=200386&boardId=322887")
+    # 한 쪽뿐인 게시판이다. 쪽 번호 1 만 있으면 다음 쪽이 없다.
+    assert page.has_next is False
+    # 메뉴의 view.do 링크를 글로 잘못 담지 않는다.
+    assert {i.external_id for i in page.items} == {"322887", "321387", "321227"}
+
+
 def test_parses_card_gallery_list(adapter, board_fixture):
     """형식 C의 다른 표기: div.bbs-gallery. 제목 앞에 BOM 이 섞여 온다."""
     page = adapter.parse_list(board_fixture("list_gallery_notice.html"), GALLERY, 1)

@@ -271,6 +271,12 @@ def mark_source_failure(
         source.status_message = "연속 실패로 갱신이 지연되고 있습니다."
 
 
+# 상세 하나를 몇 번까지 "아직 해 볼 것이 남았다"고 볼지. 재시도 간격이 1·2·4·8·16
+# ·16시간이므로 이 횟수를 채우려면 하루가 넘게 걸린다. 그때까지 같은 이유로 실패하는
+# 글은 우리가 고칠 수 없는 글로 보고 게시판 완료를 막지 않는다. 재시도는 계속한다.
+DETAIL_RETRY_LIMIT = 6
+
+
 def record_scan_progress(
     session: Session,
     health: m.SourceHealth,
@@ -283,7 +289,18 @@ def record_scan_progress(
     complete: bool,
     now: datetime | None = None,
 ) -> None:
-    """목록 경계 도달과 미해결 상세를 분리해 완료를 계산한다."""
+    """목록 경계 도달과 미해결 상세를 분리해 완료를 계산한다.
+
+    남은 상세 실패는 "아직 해 볼 것이 남은" 실패만 센다. `DETAIL_RETRY_LIMIT` 번을
+    넘게 실패한 글은 우리가 더 해 볼 것이 없으므로 게시판 전체의 완료를 막지 않는다.
+
+    2026-09-07 미래인재센터 프로그램 신청은 게시판 끝까지 읽고도(end_of_board)
+    완료로 넘어가지 못했다. 글 20개가 전부 로그인해야 열리는 글이라 상세 실패가
+    비지 않았기 때문이다. 이런 게시판은 몇 번을 더 돌아도 실패가 사라지지 않는데,
+    완료가 되지 않으면 초기 백필 감독(app.run.initial)이 남은 곳으로 계속 세어
+    회차를 끝없이 이어받는다. 재시도는 그대로 계속하므로 원문이 열리게 되면
+    다음 회차가 그 글을 다시 채운다.
+    """
     now = now or utcnow()
     previous_page = health.backfill_cursor_page or 1
     previous_anchor = health.backfill_cursor_external_id
@@ -307,6 +324,7 @@ def record_scan_progress(
         select(func.count(m.SourceItem.id)).where(
             m.SourceItem.source_id == health.source_id,
             m.SourceItem.last_detail_error.isnot(None),
+            func.coalesce(m.SourceItem.detail_attempts, 0) < DETAIL_RETRY_LIMIT,
         )
     ) or 0
     health.backfill_complete = bool(health.backfill_boundary_reached and not pending)
@@ -888,6 +906,81 @@ def recent_items_for_dedupe(
     if since is not None:
         stmt = stmt.where(m.SourceItemRevision.published_date >= since)
     return list(session.execute(stmt).all())
+
+
+def all_source_audiences(session: Session) -> dict[str, tuple[AudienceTarget, ...]]:
+    """모든 출처의 기본 대상. 대상 다시 계산이 출처마다 조회하지 않도록 한 번에 읽는다."""
+    source_ids = list(session.execute(select(m.Source.id)).scalars())
+    return _source_audiences_many(session, source_ids)
+
+
+def replace_notice_audiences(session: Session, notice_id: str, audience: AudienceDecision) -> None:
+    """공지 하나의 대상 행을 판정 결과로 바꾼다. 수집이 쓰는 것과 같은 경로다."""
+    _replace_audiences(session, notice_id, audience)
+
+
+def notice_audience_keys(session: Session, notice_ids: list[str]) -> dict[str, set[str]]:
+    """지금 저장된 대상을 AudienceTarget.key() 와 같은 표기로 읽는다."""
+    if not notice_ids:
+        return {}
+    rows = session.execute(
+        select(
+            m.NoticeAudience.notice_id,
+            m.NoticeAudience.audience_type,
+            m.NoticeAudience.campus_id,
+            m.NoticeAudience.organization_id,
+        ).where(m.NoticeAudience.notice_id.in_(notice_ids))
+    ).all()
+    out: dict[str, set[str]] = {}
+    for notice_id, audience_type, campus_id, organization_id in rows:
+        if audience_type == "university":
+            key = "university"
+        elif audience_type == "campus":
+            key = f"campus:{campus_id}"
+        elif audience_type == "organization":
+            key = f"org:{organization_id}"
+        else:
+            key = "undetermined"
+        out.setdefault(notice_id, set()).add(key)
+    return out
+
+
+def iter_notices_for_audience_recompute(session: Session, *, chunk: int = 1000):
+    """공지와 그 대표 원본의 저장된 제목·본문·출처를 순서대로 흘려준다.
+
+    대상 판정의 입력은 제목·본문·출처 기본 대상뿐이다(domain.audiences.decide).
+    셋 다 이미 저장되어 있으므로 원문을 다시 받지 않고 다시 계산할 수 있다.
+
+    대표 원본만 본다. 병합된 공지는 활성 연결이 여럿이지만 대표가 아닌 연결까지
+    쓰면 어느 원본이 이겼는지가 순서에 달리게 된다. 대표는 하나뿐이라 결과가
+    한결같다. 본문은 수만 건이면 수십 MB 라 keyset 으로 한 덩이씩만 읽는다.
+    """
+    after = ""
+    while True:
+        rows = session.execute(
+            select(
+                m.Notice.id,
+                m.Notice.status,
+                m.SourceItem.source_id,
+                m.SourceItemRevision.title,
+                m.SourceItemRevision.body_text,
+            )
+            .join(
+                m.NoticeSource,
+                (m.NoticeSource.notice_id == m.Notice.id)
+                & m.NoticeSource.is_active.is_(True)
+                & m.NoticeSource.is_primary.is_(True),
+            )
+            .join(m.SourceItem, m.SourceItem.id == m.NoticeSource.source_item_id)
+            .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .where(m.Notice.id > after)
+            .order_by(m.Notice.id)
+            .limit(chunk)
+        ).all()
+        if not rows:
+            return
+        yield rows
+        after = rows[-1][0]
 
 
 def iter_item_bodies_for_dedupe(session: Session, *, chunk: int = 1000):

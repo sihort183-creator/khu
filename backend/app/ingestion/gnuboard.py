@@ -17,11 +17,14 @@ media(미디어센터), tourism(관광대학원), khugpp(시설 대관).
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any
 from urllib.parse import parse_qs, urlsplit, urlunsplit
 
 from lxml import html as lxml_html
 
+from app.domain.dates import KST
+from app.domain.urls import safe_split
 from app.ingestion.base import (
     Adapter,
     FetchedAttachment,
@@ -31,6 +34,7 @@ from app.ingestion.base import (
     ParseError,
     RestrictedError,
     register,
+    unpin_whole_page,
 )
 from app.ingestion.http import Fetcher
 from app.ingestion.sanitize import clean_body_html, html_to_text
@@ -41,6 +45,8 @@ _WR_ID = re.compile(r"[?&]wr_id=(\d+)")
 _DATE_TEXT = re.compile(r"\d{4}[-./]\d{1,2}[-./]\d{1,2}")
 # 상세 화면은 두 자리 연도로 적는다: "작성일 26-09-04 09:04"
 _SHORT_DATE = re.compile(r"(?<!\d)(\d{2})-(\d{2})-(\d{2})(?!\d)")
+# 그누보드는 오늘 올라온 글의 등록일 칸에 날짜 없이 시각만 적는다: "10:24".
+_TIME_ONLY = re.compile(r"^(\d{1,2}):(\d{2})$")
 _INVISIBLE = re.compile("[﻿​-‍⁠]")
 
 # 로그인·권한 안내로 되돌아가는 화면.
@@ -179,7 +185,7 @@ class GnuboardAdapter:
             raise ParseError(f"목록 행 {len(rows)}개를 읽었으나 항목을 하나도 추출하지 못했습니다.")
 
         return ListPage(
-            items=tuple(items),
+            items=tuple(unpin_whole_page(items)),
             page_index=page_index,
             has_next=self._has_next(doc, page_index),
             total_text=_text(_first(doc, "//*[contains(@class,'bo_fx')]//*[contains(text(),'Total')]"))
@@ -207,6 +213,13 @@ class GnuboardAdapter:
         stamp_text = _text(stamp) if stamp is not None else _text(row)
         found = _DATE_TEXT.search(stamp_text) or _SHORT_DATE.search(stamp_text)
         published_raw = _expand_year(found.group(0)) if found else None
+        if published_raw is None and stamp is not None:
+            # 등록일 칸에 시각만 있으면 그 글은 오늘 올라온 것이다. 날짜를 비워 두면
+            # 그날 올라온 새 공지가 발행일 모르는 글로 분류되어 화면에서 빠지고,
+            # 목록 날짜 순서 검증도 "날짜 모름"으로 깨진다.
+            clock = _TIME_ONLY.match(stamp_text)
+            if clock:
+                published_raw = f"{datetime.now(KST).date().isoformat()} {stamp_text}"
 
         author_cell = _cell(row, "name")
         if author_cell is None:
@@ -237,7 +250,10 @@ class GnuboardAdapter:
         numbers: list[int] = []
         for anchor in doc.xpath("//*[contains(@class,'pg_wrap') or contains(@class,'pg')]//a"):
             href = (anchor.get("href") or "").replace("&amp;", "&")
-            page = parse_qs(urlsplit(href).query).get("page")
+            parts = safe_split(href)
+            if parts is None:
+                continue
+            page = parse_qs(parts.query).get("page")
             if page and page[0].isdigit():
                 numbers.append(int(page[0]))
         return bool(numbers) and max(numbers) > page_index

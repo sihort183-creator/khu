@@ -6,8 +6,9 @@
 목록: GET  {base}/{prefix}/user/bbs/{board}/list.do?menuNo={menuNo}&pageIndex={n}
       형식 A(본부): table.board01 tbody tr, a[href="javascript:view('<id>','<cat>')"]
       형식 B(학과): div.bbs_tbl-st1 table tbody tr, a[href="javascript:view('<id>')"]
-      형식 C(갤러리): ul.bbs-thumb 또는 div.bbs-gallery 안의 li.item
-                      — strong.t(제목)·span.date(등록일), 표가 아니라 카드다.
+      형식 C(갤러리): ul.bbs-thumb·div.bbs-gallery·ul.list05 안의 li
+                      — strong.t/strong.listTit(제목)·span.date(등록일), 표가 아니라 카드다.
+                      li 의 클래스는 스킨마다 달라 view(...) 호출 유무로 가른다.
       표 형식 둘은 tbody#noticeTbody 안의 행이 상단 고정 공지다. 갤러리에는 고정이 없다.
 
 상세: POST {base}/{prefix}/user/bbs/{board}/view.do  (menuNo, boardId, catId, pageIndex)
@@ -33,6 +34,7 @@ from app.ingestion.base import (
     ParseError,
     RestrictedError,
     register,
+    unpin_whole_page,
 )
 from app.ingestion.http import Fetcher
 from app.ingestion.sanitize import clean_body_html, html_to_text
@@ -112,11 +114,12 @@ class KhuBoardAdapter:
 
         rows = doc.xpath("//tr[.//a[contains(@href,'view(')]]")
         # 표가 없으면 갤러리 형식을 본다. 도메인이 아니라 문서 구조로 고른다.
-        cards = (
-            doc.xpath("//li[contains(@class,'item')][.//a[contains(@href,'view(')]]")
-            if not rows
-            else []
-        )
+        # li 의 클래스는 스킨마다 다르다(item, clearfix, …). 목록으로 쓰이는 li 인지는
+        # 클래스가 아니라 안에 게시글 열기 호출 view(...) 가 있는지로 가른다.
+        # news.khu.ac.kr 의 ul.list05 는 li.clearfix 를 쓰는데, item 만 찾던 옛 조건으로는
+        # 한 줄도 못 읽어 '구조 변경'으로 잘못 실패했다. 메뉴 링크는 view.do 라서
+        # view( 조건에 걸리지 않는다.
+        cards = doc.xpath("//li[.//a[contains(@href,'view(')]]") if not rows else []
         if not rows and not cards:
             # 진짜 빈 목록과 구조 변경을 구분한다(4절 8항).
             container = doc.xpath(
@@ -133,9 +136,12 @@ class KhuBoardAdapter:
             raise ParseError("게시판 목록 구조를 찾지 못했습니다. 원문 구조 변경 가능성.")
 
         items: list[ListedItem] = []
+        seen: set[str] = set()
         for node in rows or cards:
             item = self._parse_row(node, config) if rows else self._parse_card(node, config)
-            if item is not None:
+            # li 가 겹쳐 있는 스킨에서 같은 글을 두 번 담지 않는다.
+            if item is not None and item.external_id not in seen:
+                seen.add(item.external_id)
                 items.append(item)
 
         if not items:
@@ -144,7 +150,7 @@ class KhuBoardAdapter:
             )
 
         return ListPage(
-            items=tuple(items),
+            items=tuple(unpin_whole_page(items)),
             page_index=page_index,
             has_next=self._has_next(doc, page_index),
             total_text=_text(_first(doc, "//*[contains(@class,'bbs-total')]")) or None,
