@@ -150,6 +150,35 @@ def test_explicit_campus_narrows_audience():
     assert decision.targets[0].id == "campus-seoul"
 
 
+def test_campus_mention_keeps_the_source_organization():
+    """학과 게시판 글이 캠퍼스를 언급해도 학과를 잃지 않는다.
+
+    2026-09-07 실제로 소프트웨어융합학과 글이 제목의 "(국제)" 하나 때문에
+    국제캠퍼스 전체 공지가 되어 학과를 고른 사람에게서 사라졌다. 그 회귀를 막는다.
+    """
+    default = (aud.AudienceTarget("organization", "org-swcon", "소프트웨어융합학과"),)
+    decision = aud.decide(
+        "[홍보] [미래인재센터(국제)] 2026학년도 1학기 현장실습",
+        "국제캠퍼스에서 진행합니다.",
+        source_defaults=default,
+        campus_lookup=_campus_map(),
+    )
+    keys = {target.key() for target in decision.targets}
+    assert keys == {"org:org-swcon", "campus:campus-global"}
+
+
+def test_university_wide_wording_stays_university_wide():
+    """스스로 전교생 대상이라 밝힌 글을 학과 공지로 좁히지 않는다."""
+    default = (aud.AudienceTarget("organization", "org-swcon", "소프트웨어융합학과"),)
+    decision = aud.decide(
+        "2026학년도 1학기 성적입력 및 공시(정정)기간 안내",
+        "재학생 전원이 확인해야 합니다.",
+        source_defaults=default,
+        campus_lookup=_campus_map(),
+    )
+    assert [target.type for target in decision.targets] == ["university"]
+
+
 def test_both_campuses_mentioned_does_not_narrow():
     default = (aud.AudienceTarget("university", None, "대학 전체"),)
     decision = aud.decide(

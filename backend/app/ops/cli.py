@@ -11,6 +11,7 @@
     python -m app.ops.cli contacts import       정적 연락처 자료를 데이터베이스에 넣는다
     python -m app.ops.cli notice hide ID --reason ...
     python -m app.ops.cli notice dedupe        쌓인 전체 공지에 중복 병합을 한 번 적용한다
+    python -m app.ops.cli notice reaudience    쌓인 전체 공지의 대상 범위를 저장된 값으로 다시 계산한다
     python -m app.ops.cli export                정적 파일만 다시 만든다
     python -m app.ops.cli status                최근 실행과 출처 상태 요약
     python -m app.ops.cli check-sources         출처가 실행 서버에서 열리는지 확인한다
@@ -25,6 +26,7 @@ import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from uuid import uuid4
 
 from sqlalchemy import func, select
 
@@ -571,6 +573,80 @@ def notice_dedupe(args: argparse.Namespace) -> int:
     return 0
 
 
+def notice_reaudience(args: argparse.Namespace) -> int:
+    """쌓인 공지의 대상 범위를 저장된 제목·본문으로 다시 계산한다.
+
+    대상 판정의 입력은 제목·본문·출처 기본 대상뿐이고 셋 다 이미 저장되어 있다.
+    그래서 원문을 다시 받지 않는다. 규칙을 고쳐도 이미 쌓인 공지는 상세 재확인이
+    돌아오는 최대 14일 뒤에야 반영되는데, 이 명령이 그 기다림을 없앤다.
+
+    모의 실행은 세션을 전혀 건드리지 않고 세기만 한다. 실제 적용은 바뀐 공지마다
+    audit_logs 에 이전·이후 대상을 남기고 한 묶음 번호를 붙이므로,
+    `notice reaudience --revert 묶음번호` 로 그대로 되돌릴 수 있다.
+    """
+    from app.run.collect import revert_audience_backfill, run_audience_backfill
+
+    if args.revert:
+        with session_scope() as session:
+            # 묶음이 없으면 아무것도 하지 않고 세션을 되돌린다. 빈 되돌리기를 기록하지 않는다.
+            preview = revert_audience_backfill(session, batch_id=args.revert, apply=False)
+            if preview["entries"] == 0 or args.dry_run:
+                session.rollback()
+                print(json.dumps(preview, ensure_ascii=False))
+                if preview["entries"] == 0:
+                    print(f"그 묶음의 기록이 없습니다: {args.revert}", file=sys.stderr)
+                    return 1
+                print("모의 실행입니다. 아무것도 저장하지 않았습니다.")
+                return 0
+            stats = revert_audience_backfill(
+                session, batch_id=args.revert, actor=_actor(), apply=True
+            )
+            _audit(
+                session,
+                action="notice.reaudience_revert",
+                target_kind="notice",
+                target_id="*",
+                reason=args.reason,
+                after=stats,
+            )
+        print(json.dumps(stats, ensure_ascii=False))
+        print("되돌렸습니다. `ops export` 또는 다음 수집 실행 후 정적 파일에 반영됩니다.")
+        return 0
+
+    if args.dry_run:
+        with session_scope() as session:
+            stats = run_audience_backfill(
+                session, apply=False, sample_limit=args.samples, actor=_actor()
+            )
+            session.rollback()
+        print(json.dumps(stats, ensure_ascii=False, indent=2))
+        print("모의 실행입니다. 아무것도 저장하지 않았습니다.")
+        return 0
+
+    batch_id = f"reaud-{uuid4().hex[:12]}"
+    with session_scope() as session:
+        stats = run_audience_backfill(
+            session,
+            apply=True,
+            batch_id=batch_id,
+            reason=args.reason,
+            actor=_actor(),
+            sample_limit=args.samples,
+        )
+        _audit(
+            session,
+            action="notice.reaudience_batch",
+            target_kind="notice",
+            target_id="*",
+            reason=args.reason,
+            after={k: v for k, v in stats.items() if k != "samples"},
+        )
+    print(json.dumps(stats, ensure_ascii=False, indent=2))
+    print(f"되돌리려면: python -m app.ops.cli notice reaudience --revert {batch_id}")
+    print("`ops export` 또는 다음 수집 실행 후 정적 파일에 반영됩니다.")
+    return 0
+
+
 # ------------------------------------------------------------------ 내보내기·점검
 
 
@@ -675,6 +751,17 @@ def build_parser() -> argparse.ArgumentParser:
     dedupe.add_argument("--dry-run", action="store_true", help="저장하지 않고 결과만 센다")
     dedupe.add_argument("--max-block", type=int, default=400, help="한 묶음(지문·포스터)의 상한")
     dedupe.set_defaults(func=notice_dedupe)
+
+    reaud = notice.add_parser(
+        "reaudience", help="쌓인 전체 공지의 대상 범위를 저장된 제목·본문으로 다시 계산"
+    )
+    reaud.add_argument("--reason", default="대상 판정 규칙 수정 후 일괄 재계산")
+    reaud.add_argument("--dry-run", action="store_true", help="저장하지 않고 결과만 센다")
+    reaud.add_argument("--samples", type=int, default=20, help="눈으로 볼 변경 표본 수")
+    reaud.add_argument(
+        "--revert", default=None, metavar="BATCH", help="그 묶음의 변경을 이전 대상으로 되돌린다"
+    )
+    reaud.set_defaults(func=notice_reaudience)
 
     export = sub.add_parser("export", help="정적 파일 다시 만들기")
     export.add_argument("--prune", action="store_true")

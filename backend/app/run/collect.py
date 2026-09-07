@@ -33,6 +33,7 @@ from app.domain import audiences as audience_rules
 from app.domain import categories as category_rules
 from app.domain import dates as date_rules
 from app.domain import dedupe as dedupe_rules
+from app.domain import ids
 from app.domain.images import poster_keys
 from app.export.static import ExportResult, export_static, refresh_public_status
 from app.ingestion import get_adapter
@@ -687,6 +688,181 @@ def run_dedupe_backfill(
         "recorded": recorded,
         "merged": merged,
     }
+
+
+@dataclass(frozen=True)
+class AudienceChange:
+    """대상이 달라지는 공지 한 건. 표본 확인과 되돌리기에 필요한 값만 담는다."""
+
+    notice_id: str
+    title: str
+    source_id: str
+    before: tuple[str, ...]
+    after: tuple[str, ...]
+    transition: str
+
+
+def _audience_shape(keys: tuple[str, ...]) -> str:
+    """대상 열쇠 묶음을 종류 표기로 줄인다. 'campus+organization' 같은 모양."""
+    kinds = set()
+    for key in keys:
+        if key.startswith("campus:"):
+            kinds.add("campus")
+        elif key.startswith("org:"):
+            kinds.add("organization")
+        else:
+            kinds.add(key)
+    return "+".join(sorted(kinds)) or "none"
+
+
+def run_audience_backfill(
+    session: Session,
+    *,
+    chunk: int = 1000,
+    apply: bool = False,
+    batch_id: str | None = None,
+    reason: str | None = None,
+    actor: str = "ops",
+    sample_limit: int = 0,
+    now: datetime | None = None,
+) -> dict:
+    """쌓인 공지의 대상 범위를 저장된 값으로 다시 계산한다(8.2절).
+
+    대상 판정 audiences.decide 의 입력은 제목·본문·출처 기본 대상 셋뿐이고, 셋 다
+    이미 데이터베이스에 있다. 그래서 원문을 다시 받지 않고 다시 계산할 수 있다.
+    2026-09-07 게시물이 캠퍼스를 언급하면 출처 조직을 통째로 버리던 규칙을 고쳤는데
+    (조직은 지키고 캠퍼스를 더한다), 이미 쌓인 공지는 상세 재확인이 돌아올 때까지
+    최대 14일 동안 잘못된 채로 남는다. 이 작업이 그 기다림을 없앤다.
+
+    apply=False 면 세션을 전혀 건드리지 않고 세기만 한다. 실제 적용은 공지마다
+    audit_logs 에 이전·이후 대상을 남기므로 batch_id 하나로 되돌릴 수 있다.
+    """
+    now = now or datetime.now(UTC)
+    campus_map = repo.campus_lookup(session)
+    defaults_map = repo.all_source_audiences(session)
+
+    scanned = changed = unchanged = 0
+    transitions: dict[str, int] = {}
+    samples: list[AudienceChange] = []
+
+    for rows in repo.iter_notices_for_audience_recompute(session, chunk=chunk):
+        current = repo.notice_audience_keys(session, [row[0] for row in rows])
+        for notice_id, status, source_id, title, body_text in rows:
+            scanned += 1
+            decision = audience_rules.decide(
+                title,
+                body_text,
+                source_defaults=defaults_map.get(source_id, ()),
+                campus_lookup=campus_map,
+            )
+            after = tuple(sorted({target.key() for target in decision.targets}))
+            before = tuple(sorted(current.get(notice_id, set())))
+            if before == after:
+                unchanged += 1
+                continue
+            changed += 1
+            transition = f"{_audience_shape(before)} -> {_audience_shape(after)}"
+            transitions[transition] = transitions.get(transition, 0) + 1
+            if len(samples) < sample_limit:
+                samples.append(
+                    AudienceChange(
+                        notice_id=notice_id,
+                        title=title,
+                        source_id=source_id,
+                        before=before,
+                        after=after,
+                        transition=transition,
+                    )
+                )
+            if not apply:
+                continue
+            repo.replace_notice_audiences(session, notice_id, decision)
+            notice = session.get(m.Notice, notice_id)
+            if notice is not None:
+                notice.audience_note = decision.note
+                notice.updated_at = now
+            session.add(
+                m.AuditLog(
+                    id=ids._digest("reaudience", notice_id, batch_id or now.isoformat()),
+                    actor=actor,
+                    action="notice.reaudience",
+                    target_kind="notice",
+                    target_id=notice_id,
+                    before={"audiences": list(before)},
+                    after={"audiences": list(after), "status": status},
+                    reason=reason,
+                    run_id=batch_id,
+                )
+            )
+
+    return {
+        "scanned": scanned,
+        "changed": changed,
+        "unchanged": unchanged,
+        "transitions": dict(sorted(transitions.items(), key=lambda kv: -kv[1])),
+        "applied": bool(apply),
+        "batch": batch_id,
+        "samples": [
+            {
+                "notice_id": s.notice_id,
+                "title": s.title[:80],
+                "before": list(s.before),
+                "after": list(s.after),
+                "transition": s.transition,
+            }
+            for s in samples
+        ],
+    }
+
+
+def revert_audience_backfill(
+    session: Session, *, batch_id: str, actor: str = "ops", apply: bool = False
+) -> dict:
+    """대상 다시 계산 한 묶음을 audit_logs 의 이전 값으로 되돌린다.
+
+    되돌리기는 규칙을 다시 돌리지 않는다. 남겨 둔 이전 대상 열쇠를 그대로 다시 쓴다.
+    규칙으로 되돌리면 그 사이에 규칙이 또 바뀐 경우 원래 값으로 돌아가지 않는다.
+    """
+    rows = list(
+        session.execute(
+            select(m.AuditLog).where(
+                m.AuditLog.action == "notice.reaudience", m.AuditLog.run_id == batch_id
+            )
+        ).scalars()
+    )
+    restored = missing = 0
+    for entry in rows:
+        keys = tuple((entry.before or {}).get("audiences") or ())
+        if entry.target_id is None or not keys:
+            missing += 1
+            continue
+        targets = [_target_from_key(key) for key in keys]
+        if any(target is None for target in targets):
+            missing += 1
+            continue
+        restored += 1
+        if not apply:
+            continue
+        repo.replace_notice_audiences(
+            session,
+            entry.target_id,
+            audience_rules.AudienceDecision(
+                targets=tuple(t for t in targets if t is not None), note=None
+            ),
+        )
+    return {"batch": batch_id, "entries": len(rows), "restored": restored, "unusable": missing}
+
+
+def _target_from_key(key: str) -> audience_rules.AudienceTarget | None:
+    if key == "university":
+        return audience_rules.AudienceTarget("university", None, "대학 전체")
+    if key == "undetermined":
+        return audience_rules.UNDETERMINED
+    if key.startswith("campus:"):
+        return audience_rules.AudienceTarget("campus", key.split(":", 1)[1], "캠퍼스")
+    if key.startswith("org:"):
+        return audience_rules.AudienceTarget("organization", key.split(":", 1)[1], "조직")
+    return None
 
 
 class SharedFetcherProxy:
