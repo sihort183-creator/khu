@@ -50,7 +50,11 @@ type StaticIndexEntry = {
   o: string | null;
   s: string;
   m?: string;
+  /** 발행일(한국시간 날짜) */
   d: string | null;
+  /** 발행 시각(UTC ISO). 원문에 시각이 없으면 없다. */
+  p?: string | null;
+  /** 우리가 처음 본 시각(UTC ISO) */
   v: string;
   a: string[];
 };
@@ -424,9 +428,7 @@ async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> 
     organizations: organizationMap,
     sourceMedia,
   }));
-  // 색인은 발행일(d)만 갖고 있다. 서버가 이미 발행일 순으로 내보내지만, 걸러낸 뒤에도
-  // 순서가 유지되도록 여기서도 같은 기준으로 세운다.
-  entries = [...entries].sort((a, b) => (b.d ?? "").localeCompare(a.d ?? "") || a.id.localeCompare(b.id));
+  entries = sortIndexEntries(entries);
   const selected = entries.slice(offset, offset + limit);
   const data = await Promise.all(selected.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
   const hasNext = offset + data.length < entries.length;
@@ -480,11 +482,12 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
       sourceMedia,
     });
   });
+  const ordered = sortIndexEntries(selected);
   const offset = staticOffset(body.cursor, pointer.revision);
   const limit = body.limit ?? 20;
-  const slice = selected.slice(offset, offset + limit);
+  const slice = ordered.slice(offset, offset + limit);
   const data = await Promise.all(slice.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
-  const hasNext = offset + data.length < selected.length;
+  const hasNext = offset + data.length < ordered.length;
   return {
     data,
     page: { next_cursor: hasNext ? staticCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
@@ -556,6 +559,40 @@ const matchesCampus = (n: Notice, campusIds: string[]) => {
     }
     return false;
   });
+};
+
+/**
+ * 색인 항목을 목록 페이지와 똑같은 "최신순"으로 세운다.
+ *
+ * 색인은 검색·필터·맞춤 목록이 쓰는 경로다. 걸러내고 나면 남은 항목만 다시 세워야
+ * 하는데, 예전에는 발행일(d)과 id 로만 세웠다. 색인에 발행 시각이 없었기 때문이다.
+ * 그 결과 같은 날 공지들이 id(무작위 16진수) 순으로 섞였다. 2026-09-07 사용자가
+ * 09:14 → 09:16 → 09:24 처럼 같은 날 시각이 뒤죽박죽인 목록을 보고 지적했다.
+ *
+ * 이제 색인이 발행 시각(p)과 처음 본 시각(v)까지 담으므로, 서버(export/static.py 의
+ * newest_first)와 글자 그대로 같은 키를 쓴다. 두 경로가 같은 키를 쓰면 목록 페이지와
+ * 검색 결과가 어긋날 수 없다.
+ *
+ * p 가 없던 옛 개정은 다르게 다룬다. 그때는 발행일로만 세우고 같은 날 안은 서버가
+ * 내보낸 순서 그대로 둔다(정렬 안정성은 ES2019 이후 규격이 보장한다). 그 개정의
+ * 색인에는 같은 날 순서를 되만들 값이 아예 없어서, v 로 세우면 발행 순서가 아니라
+ * 우리가 긁은 순서가 되어 도리어 서버가 옳게 내보낸 순서를 망가뜨린다.
+ *
+ * 반대로 p 가 있을 때 안정성에 기대지 않는 이유는, 그러면 화면의 정확성이 산출물의
+ * 순서에 조용히 매여 스스로 검증할 수 없기 때문이다.
+ */
+const sortIndexEntries = (entries: StaticIndexEntry[]) => {
+  const byDay = (a: StaticIndexEntry, b: StaticIndexEntry) => (b.d ?? "").localeCompare(a.d ?? "");
+  // 옛 개정 판별: 항목에 p 키 자체가 없다. p 가 null 인 것(시각을 모르는 공지)과 다르다.
+  if (!entries.some((entry) => entry.p !== undefined)) return [...entries].sort(byDay);
+  return [...entries].sort((a, b) => (
+    byDay(a, b)
+    // 시각을 모르는 공지는 ""가 되어 그날의 맨 아래로 간다. 언제 올라왔는지 모르는
+    // 글이 방금 올라온 것이 확실한 글을 밀어내지 않게 한다.
+    || (b.p ?? "").localeCompare(a.p ?? "")
+    || (b.v ?? "").localeCompare(a.v ?? "")
+    || a.id.localeCompare(b.id)
+  ));
 };
 
 /**

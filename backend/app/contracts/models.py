@@ -321,7 +321,13 @@ class NoticePageFile(Strict):
 
 
 class IndexEntry(Strict):
-    """기기 검색·맞춤 필터용 경량 색인 항목. 키를 줄여 파일 크기를 낮춘다."""
+    """기기 검색·맞춤 필터용 경량 색인 항목. 키를 줄여 파일 크기를 낮춘다.
+
+    d·p·v·id 는 목록 페이지(`notices/page/<n>.json`)와 똑같은 "최신순" 키다.
+    화면이 색인을 걸러낸 뒤 다시 세워도 목록 페이지와 같은 순서가 나와야 하므로,
+    정렬에 필요한 값은 하나도 빠짐없이 여기에 담는다. p 를 빼면 같은 날 안의
+    시각 순서를 화면이 복원할 수 없다(2026-09-07 사용자가 지적한 증상).
+    """
 
     id: str
     t: str
@@ -329,6 +335,7 @@ class IndexEntry(Strict):
     o: str | None = None
     s: str
     d: date | None = None
+    p: datetime | None = None
     v: datetime
     a: list[str] = Field(default_factory=list)
 

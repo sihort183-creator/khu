@@ -8,7 +8,8 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import replace
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
+from functools import cmp_to_key
 
 import httpx
 import pytest
@@ -603,6 +604,133 @@ def test_list_is_newest_by_publish_date_not_by_when_we_crawled_it(seeded, settin
 
     listed = [n["id"] for n in page["data"]]
     assert listed == [newest.id, middle.id, old.id]
+
+
+def _index_order(a: dict, b: dict) -> int:
+    """frontend/src/lib/api.ts 의 sortIndexEntries 와 같은 비교 규칙."""
+    for field in ("d", "p", "v"):
+        left, right = a.get(field) or "", b.get(field) or ""
+        if left != right:
+            return -1 if right < left else 1  # 내림차순
+    return -1 if a["id"] < b["id"] else 1  # id 만 오름차순
+
+
+def _order_fixture(session, settings, store, board_fixture, plan):
+    """같은 날 공지들의 발행 시각만 다르게 두고 내보낸다.
+
+    plan 은 (한국시간 자정으로부터의 분 또는 None, 처음 본 시각의 시) 의 목록이다.
+    시각을 모르는 공지는 published_at 을 비우고 published_date 만 남긴다.
+    검사 시각과 무관하게 "미래 발행"으로 걸리지 않도록 지난 날짜를 쓴다.
+    """
+    notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+    assert len(notices) >= len(plan)
+    picked = notices[: len(plan)]
+    for notice in notices[len(plan) :]:
+        notice.status = "hidden"
+    day = date(2026, 9, 5)
+    midnight = datetime(day.year, day.month, day.day, tzinfo=KST)
+    for notice, (minute_of_day, seen_hour) in zip(picked, plan, strict=True):
+        notice.published_date = day
+        # sqlite 는 시간대를 버리고 벽시계 값만 남긴다. UTC 로 바꿔서 넣는다.
+        notice.published_at = (
+            (midnight + timedelta(minutes=minute_of_day)).astimezone(UTC)
+            if minute_of_day is not None
+            else None
+        )
+        notice.first_visible_at = datetime(day.year, day.month, day.day, seen_hour, 0, tzinfo=UTC)
+    session.commit()
+
+    windowed = replace(settings, initial_window_start=date(2026, 3, 1))
+    export_static(windowed, run_id="run-order02", store=store)
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
+    page = json.loads(
+        _read_export(store, settings.r2.bucket_public, f"{pointer['base_path']}/notices/page/1.json")
+    )
+    index = json.loads(
+        _read_export(store, settings.r2.bucket_public, f"{pointer['base_path']}/notices/index.json")
+    )
+    return picked, page, index
+
+
+def test_same_day_list_is_newest_time_first(seeded, settings, store, board_fixture):
+    """같은 날 안에서는 발행 시각이 늦은 것이 위로 온다.
+
+    2026-09-07 사용자가 09:14 → 09:16 → (시각 없음) → 09:24 순으로 나오는 목록을
+    보고 지적했다. 날짜만 맞추고 같은 날 안을 우리가 처음 본 시각으로 세우면
+    이렇게 된다. 발행 시각이 이겨야 한다.
+    """
+    session, _source = seeded
+    asyncio.run(_collect(settings, session, _source, store, _transport(board_fixture)))
+    session.commit()
+
+    # 처음 본 순서를 발행 시각과 정반대로 둔다. 발행 시각이 이겨야 한다.
+    plan = [(9 * 60 + 14, 5), (9 * 60 + 16, 4), (9 * 60 + 24, 3)]
+    picked, page, _index = _order_fixture(session, settings, store, board_fixture, plan)
+    early, middle, late = picked
+
+    assert [n["id"] for n in page["data"]] == [late.id, middle.id, early.id]
+    # sqlite 는 시간대를 붙여 돌려주지 않아 끝의 Z 가 없다. 시각만 본다.
+    assert [n["published_at"].rstrip("Z") for n in page["data"]] == [
+        "2026-09-05T00:24:00",
+        "2026-09-05T00:16:00",
+        "2026-09-05T00:14:00",
+    ]
+
+
+def test_notice_without_a_time_sits_at_the_bottom_of_its_day(seeded, settings, store, board_fixture):
+    """발행 시각을 모르는 공지는 그날의 맨 아래에 둔다.
+
+    언제 올라왔는지 모르는 글을 목록 꼭대기에 올리면, 방금 올라온 것이 확실한 글을
+    아래로 밀어낸다. 맨 위는 가장 최신이라고 확신하는 글의 자리다. 같은 날 안에서
+    시각을 모르는 것끼리는 우리가 처음 본 시각이 늦은 쪽이 위로 온다.
+    """
+    session, _source = seeded
+    asyncio.run(_collect(settings, session, _source, store, _transport(board_fixture)))
+    session.commit()
+
+    # 시각을 아는 가장 이른 글(한국시간 09:01)보다도 아래여야 한다.
+    plan = [(9 * 60 + 59, 3), (None, 9), (9 * 60 + 1, 4), (None, 8)]
+    picked, page, _index = _order_fixture(session, settings, store, board_fixture, plan)
+    latest, unknown_seen_late, earliest, unknown_seen_early = picked
+
+    assert [n["id"] for n in page["data"]] == [
+        latest.id,
+        earliest.id,
+        unknown_seen_late.id,
+        unknown_seen_early.id,
+    ]
+
+
+def test_index_carries_enough_to_rebuild_the_list_order(seeded, settings, store, board_fixture):
+    """색인만 보고도 목록 페이지와 같은 순서를 만들 수 있어야 한다.
+
+    검색·필터·맞춤 목록은 목록 페이지가 아니라 색인을 읽고, 걸러낸 뒤 다시 세운다.
+    색인에 발행 시각이 없던 동안에는 같은 날 항목이 id(무작위 16진수) 순으로 섞였다.
+    화면(frontend/src/lib/api.ts 의 sortIndexEntries)이 쓰는 키를 그대로 재현한다.
+    """
+    session, _source = seeded
+    asyncio.run(_collect(settings, session, _source, store, _transport(board_fixture)))
+    session.commit()
+
+    plan = [(9 * 60 + 14, 5), (9 * 60 + 16, 4), (None, 9), (None, 8), (9 * 60 + 24, 3)]
+    _picked, page, index = _order_fixture(session, settings, store, board_fixture, plan)
+
+    entries = index["entries"]
+    assert entries, "표본이 작아 조각으로 나뉘지 않는다"
+    # 색인은 목록 페이지와 같은 순서로 나가야 한다.
+    assert [e["id"] for e in entries] == [n["id"] for n in page["data"]]
+    # 그리고 색인 항목만 가지고 그 순서를 되만들 수 있어야 한다.
+    rebuilt = sorted(entries, key=cmp_to_key(_index_order))
+    assert [e["id"] for e in rebuilt] == [n["id"] for n in page["data"]]
+
+    # p 가 왜 있어야 하는지도 못박는다. p 를 빼면 남는 값(d·v·id)으로는 무엇을 하든
+    # 같은 날 순서를 되만들 수 없다. v 는 우리가 긁은 순서라 발행 순서와 무관하다.
+    # 그래서 화면은 옛 개정(p 가 없는 색인)을 만나면 발행일로만 세우고 같은 날 안은
+    # 서버가 내보낸 순서를 그대로 둔다.
+    without_time = sorted(
+        [{k: v for k, v in e.items() if k != "p"} for e in entries], key=cmp_to_key(_index_order)
+    )
+    assert [e["id"] for e in without_time] != [n["id"] for n in page["data"]]
 
 
 def _seed_reposts(session, *, bodies: list[str], titles: list[str]) -> None:

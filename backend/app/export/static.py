@@ -309,6 +309,48 @@ def window_floor(window_start: date | None) -> datetime | None:
     return datetime(window_start.year, window_start.month, window_start.day, tzinfo=KST).astimezone(UTC)
 
 
+# 시각을 모르는 공지는 그날의 맨 아래로 간다. 어느 시각이었는지 모르는 글을 목록
+# 꼭대기에 올리면, 방금 올라온 것이 확실한 글을 아래로 밀어낸다. 목록의 맨 위는 가장
+# 최신이라고 확신하는 글의 자리다. 이 값이 그 "맨 아래"를 뜻한다.
+UNKNOWN_TIME = datetime.min.replace(tzinfo=UTC)
+
+
+def newest_first(
+    *,
+    published_date: date | None,
+    published_at: datetime | None,
+    first_visible_at: datetime | None,
+    notice_id: str,
+) -> tuple:
+    """화면의 "최신순" 키. 큰 것이 위로 온다(내림차순 정렬).
+
+    우리가 처음 본 시각으로 세우면 백필이 과거 페이지를 긁는 동안 오래된 공지가
+    맨 위로 올라와 뒤죽박죽으로 보인다. 그래서 발행일이 먼저다. 날짜가 같으면
+    발행 시각으로, 시각을 모르면 그날의 맨 아래에 두고 처음 본 시각으로 가른다.
+    데이터베이스마다 시간대 함수가 달라 파이썬에서 정렬한다.
+
+    같은 키를 색인(IndexEntry)의 d·p·v·id 로도 내보낸다. 화면이 색인을 걸러낸 뒤
+    다시 세워도 목록 페이지와 같은 순서가 나오게 하려면 두 곳이 같은 키를 써야 한다.
+    """
+    stamp = as_utc(published_at)
+    day = published_date or (stamp.astimezone(KST).date() if stamp else None)
+    return (
+        day or date.min,
+        stamp or UNKNOWN_TIME,
+        as_utc(first_visible_at) or UNKNOWN_TIME,
+        notice_id,
+    )
+
+
+def _notice_order(notice: m.Notice) -> tuple:
+    return newest_first(
+        published_date=notice.published_date,
+        published_at=notice.published_at,
+        first_visible_at=notice.first_visible_at,
+        notice_id=notice.id,
+    )
+
+
 def _load_notices(
     session: Session, now: datetime, *, window_start: date | None = None, proxy_base: str = "",
 ) -> list[tuple[api.Notice, m.SourceItemRevision, m.SourceItem, list]]:
@@ -378,23 +420,7 @@ def _load_notices(
 
     rows = [row for row in rows if within_window(row[0])]
 
-    def newest_first(notice: m.Notice) -> tuple:
-        """화면의 "최신순"은 발행일 기준이다.
-
-        우리가 처음 본 시각으로 세우면 백필이 과거 페이지를 긁는 동안 오래된 공지가
-        맨 위로 올라와 뒤죽박죽으로 보인다. 날짜가 같으면 시각으로, 시각을 모르면
-        처음 본 시각으로 가른다. 데이터베이스마다 시간대 함수가 달라 여기서 정렬한다.
-        """
-        stamp = as_utc(notice.published_at)
-        day = notice.published_date or (stamp.astimezone(KST).date() if stamp else None)
-        return (
-            day or date.min,
-            stamp or datetime.min.replace(tzinfo=UTC),
-            as_utc(notice.first_visible_at) or datetime.min.replace(tzinfo=UTC),
-            notice.id,
-        )
-
-    rows.sort(key=lambda row: newest_first(row[0]), reverse=True)
+    rows.sort(key=lambda row: _notice_order(row[0]), reverse=True)
 
     built = []
     for notice, item, revision, source in rows:
@@ -840,6 +866,9 @@ def export_static(
                 o=None,
                 s=n.primary_source.id,
                 d=n.published_date,
+                # 목록 페이지와 똑같은 "최신순" 키를 색인에도 담는다. p 가 없으면
+                # 화면은 같은 날 안의 시각 순서를 복원할 수 없다.
+                p=n.published_at,
                 v=n.first_visible_at,
                 a=[
                     "university"
