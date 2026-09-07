@@ -520,3 +520,26 @@ def test_existing_aliases_are_never_dropped(session_factory, registry_dir):
     with session_factory() as session:
         row = session.execute(select(m.Organization)).scalar_one()
         assert sorted(row.aliases) == sorted(["전자공학", "운영자가 손으로 넣은 별칭"])
+
+
+def test_source_name_follows_the_registry(session_factory, registry_dir, capsys):
+    """출처 이름은 조직 이름 + 게시판 이름이라 등록부가 바뀌면 같이 바뀐다."""
+    src = _source("s-1", "o-dept")
+    src["name"] = "[확인 필요] example.khu.ac.kr 공지사항"
+    registry_dir([_org("o-dept", "전자공학부")], [src])
+    ops.sources_sync(_args())
+    capsys.readouterr()
+
+    src["name"] = "전자공학부 공지사항"
+    registry_dir([_org("o-dept", "전자공학부")], [src])
+    ops.sources_sync(_args(dry_run=True))
+    out = capsys.readouterr().out
+    assert "출처 이름 변경 1" in out
+    with session_factory() as session:
+        assert session.execute(select(m.Source)).scalar_one().name.startswith("[확인 필요]")
+
+    ops.sources_sync(_args())
+    with session_factory() as session:
+        assert session.execute(select(m.Source)).scalar_one().name == "전자공학부 공지사항"
+        actions = [a.action for a in session.execute(select(m.AuditLog)).scalars()]
+        assert "source.rename" in actions

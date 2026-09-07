@@ -222,7 +222,8 @@ def sources_sync(args: argparse.Namespace) -> int:
 
     added_org = added_src = updated_cfg = retired = 0
     linked_org = typed_org = aliased_org = keyed_org = renamed_org = 0
-    status_changed = moved_src = 0
+    status_changed = moved_src = renamed_src = 0
+    source_renames: list[str] = []
     conflicts: list[str] = []
     renames: list[str] = []
     moves: list[str] = []
@@ -278,6 +279,9 @@ def sources_sync(args: argparse.Namespace) -> int:
             if row is None:
                 added_src += 1
                 continue
+            if row.name != spec.name:
+                renamed_src += 1
+                source_renames.append(f"{spec.key}: {row.name} -> {spec.name}")
             if apply_status and spec.status == "active" and row.status == "pending":
                 status_changed += 1
                 status_moves.append(f"{spec.key} {spec.name}")
@@ -312,7 +316,7 @@ def sources_sync(args: argparse.Namespace) -> int:
                 f" / 별칭 표시 변경 {aliased_org} / 등록부 열쇠 기록 {keyed_org}"
             )
             print(
-                f"[모의 실행] 출처 추가 {added_src} / 상태 변경 {status_changed}"
+                f"[모의 실행] 출처 추가 {added_src} / 출처 이름 변경 {renamed_src} / 상태 변경 {status_changed}"
                 f" / 조직 이관 {moved_src} / 설정 갱신 {updated_cfg} / 폐쇄 {retired}"
             )
             print(f"[모의 실행] organizations 행 수: 지금 {len(existing_rows)} -> 반영 후 예상 {expected}")
@@ -333,6 +337,8 @@ def sources_sync(args: argparse.Namespace) -> int:
                 print(f"  이름 변경: {line}")
             for line in type_moves:
                 print(f"  유형 변경: {line}")
+            for line in source_renames:
+                print(f"  출처 이름 변경: {line}")
             for line in status_moves:
                 print(f"  상태 pending -> active: {line}")
             for line in moves:
@@ -493,6 +499,20 @@ def sources_sync(args: argparse.Namespace) -> int:
                 )
                 continue
 
+            # 출처 이름은 "조직 이름 + 게시판 이름" 이라 조직 이름이 바뀌면 같이 바뀐다.
+            # "[확인 필요] 호스트" 자리표시자가 공지의 출처 표시에 남지 않게 한다.
+            if row.name != spec.name:
+                _audit(
+                    session,
+                    action="source.rename",
+                    target_kind="source",
+                    target_id=sid,
+                    reason=f"등록부 동기화: {spec.key}",
+                    before={"name": row.name},
+                    after={"name": spec.name},
+                )
+                row.name = spec.name
+
             # 등록부가 active 라고 말하는데 데이터베이스가 pending 인 경우만 올린다.
             # retired·paused·delayed 는 운영 판단이 들어간 값이라 등록부가 덮지 않는다.
             if apply_status and spec.status == "active" and row.status == "pending":
@@ -591,7 +611,7 @@ def sources_sync(args: argparse.Namespace) -> int:
     print(
         f"조직 추가 {added_org} / 상위 변경 {linked_org} / 유형 변경 {typed_org}"
         f" / 별칭 표시 변경 {aliased_org} / 출처 추가 {added_src} / 설정 갱신 {updated_cfg}"
-        f" / 상태 변경 {status_changed} / 조직 이관 {moved_src} / 폐쇄 {retired}"
+        f" / 상태 변경 {status_changed} / 조직 이관 {moved_src} / 출처 이름 변경 {renamed_src} / 폐쇄 {retired}"
     )
     if conflicts:
         print(f"주의: 같은 이름의 조직 행을 새로 만들었습니다 {len(conflicts)}건")
