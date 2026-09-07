@@ -10,6 +10,7 @@
     python -m app.ops.cli sources pause KEY --reason ...
     python -m app.ops.cli contacts import       정적 연락처 자료를 데이터베이스에 넣는다
     python -m app.ops.cli notice hide ID --reason ...
+    python -m app.ops.cli notice dedupe        쌓인 전체 공지에 중복 병합을 한 번 적용한다
     python -m app.ops.cli export                정적 파일만 다시 만든다
     python -m app.ops.cli status                최근 실행과 출처 상태 요약
     python -m app.ops.cli check-sources         출처가 실행 서버에서 열리는지 확인한다
@@ -535,6 +536,37 @@ def notice_hide(args: argparse.Namespace) -> int:
     return 0
 
 
+def notice_dedupe(args: argparse.Namespace) -> int:
+    """초기 수집으로 쌓인 공지에 중복 판정을 한 번에 적용한다.
+
+    유지 수집의 중복 판정은 가장 최근에 본 몇백 건만 본다. 백필로 한 번에 들어온
+    과거 공지는 그 창에 들어오지 못해 판정을 받지 못한 채 남는다. 그것을 메운다.
+    """
+    from app.run.collect import run_dedupe_backfill
+
+    if args.dry_run:
+        with session_scope() as session:
+            stats = run_dedupe_backfill(session, max_block=args.max_block)
+            print(json.dumps(stats, ensure_ascii=False))
+            session.rollback()
+        print("모의 실행입니다. 아무것도 저장하지 않았습니다.")
+        return 0
+
+    with session_scope() as session:
+        stats = run_dedupe_backfill(session, max_block=args.max_block)
+        _audit(
+            session,
+            action="notice.dedupe_backfill",
+            target_kind="notice",
+            target_id="*",
+            reason=args.reason,
+            after=stats,
+        )
+    print(json.dumps(stats, ensure_ascii=False))
+    print("`ops export` 또는 다음 수집 실행 후 정적 파일에 반영됩니다.")
+    return 0
+
+
 # ------------------------------------------------------------------ 내보내기·점검
 
 
@@ -633,6 +665,12 @@ def build_parser() -> argparse.ArgumentParser:
     hide.add_argument("notice_id")
     hide.add_argument("--reason", required=True)
     hide.set_defaults(func=notice_hide)
+
+    dedupe = notice.add_parser("dedupe", help="쌓인 전체 공지에 중복 병합을 한 번 적용")
+    dedupe.add_argument("--reason", default="초기 수집 백필 뒤 일괄 중복 병합")
+    dedupe.add_argument("--dry-run", action="store_true", help="저장하지 않고 결과만 센다")
+    dedupe.add_argument("--max-block", type=int, default=400, help="한 지문 묶음의 상한")
+    dedupe.set_defaults(func=notice_dedupe)
 
     export = sub.add_parser("export", help="정적 파일 다시 만들기")
     export.add_argument("--prune", action="store_true")

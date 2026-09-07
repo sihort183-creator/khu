@@ -890,5 +890,55 @@ def recent_items_for_dedupe(
     return list(session.execute(stmt).all())
 
 
+def iter_item_bodies_for_dedupe(session: Session, *, chunk: int = 1000):
+    """공개 중인 공지의 원본 식별자와 본문을 순서대로 흘려준다.
+
+    전체 중복 판정이 본문 지문으로 묶을 때만 쓴다. 본문을 한꺼번에 들고 있으면
+    수십 MB 가 되므로 keyset 방식으로 한 덩이씩만 읽고 지문만 남긴다.
+    """
+    after = ""
+    while True:
+        rows = session.execute(
+            select(m.SourceItem.id, m.SourceItemRevision.body_text)
+            .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .join(
+                m.NoticeSource,
+                (m.NoticeSource.source_item_id == m.SourceItem.id)
+                & m.NoticeSource.is_active.is_(True),
+            )
+            .join(
+                m.Notice,
+                (m.Notice.id == m.NoticeSource.notice_id) & (m.Notice.status == "visible"),
+            )
+            .where(m.SourceItem.original_status == "available", m.SourceItem.id > after)
+            .order_by(m.SourceItem.id)
+            .limit(chunk)
+        ).all()
+        if not rows:
+            return
+        yield from rows
+        after = rows[-1][0]
+
+
+def items_for_dedupe(
+    session: Session, item_ids: list[str]
+) -> list[tuple[m.SourceItem, m.SourceItemRevision, m.Notice | None]]:
+    """식별자로 지목한 원본만 비교 대상 모양으로 읽는다."""
+    if not item_ids:
+        return []
+    stmt = (
+        select(m.SourceItem, m.SourceItemRevision, m.Notice)
+        .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+        .outerjoin(
+            m.NoticeSource,
+            (m.NoticeSource.source_item_id == m.SourceItem.id) & m.NoticeSource.is_active.is_(True),
+        )
+        .outerjoin(m.Notice, m.Notice.id == m.NoticeSource.notice_id)
+        .where(m.SourceItem.id.in_(item_ids))
+        .order_by(m.SourceItem.id)
+    )
+    return list(session.execute(stmt).all())
+
+
 def _aware(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=UTC)
