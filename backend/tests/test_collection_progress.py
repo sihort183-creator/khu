@@ -53,18 +53,23 @@ def run(db, source, settings, store, board, monkeypatch, *, ordered=False, budge
     return outcome
 
 
-def test_unverified_order_does_not_stop_at_old_item(session_factory, settings, store, monkeypatch):
+def test_page_entirely_older_than_window_stops_without_order_proof(session_factory, settings, store, monkeypatch):
+    """날짜순 판정이 없어도 쪽 전체가 범위 밖이면 그 자리에서 멈춘다(안전망)."""
     settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
     with session_factory() as db:
         source = _seed(db)
         board = Board({1: [item(1, "2026-02-28")], 2: [item(2, "2026-03-01")]})
         result = run(db, source, settings, store, board, monkeypatch)
-        assert board.read_pages == [1, 2]
-        assert board.read_details == ["2"]
+        assert board.read_pages == [1]
+        assert board.read_details == []
+        assert result.scan_stop_reason == "date_boundary"
         assert result.backfill_complete
 
 
-def test_broken_order_falls_back_and_reads_later_in_scope_item(session_factory, settings, store, monkeypatch):
+def test_unknown_date_drops_order_proof_and_page_rule_still_ends_range(
+    session_factory, settings, store, monkeypatch
+):
+    """날짜 미상은 정렬 검증을 폐기하지만, 범위 밖 쪽 규칙이 그대로 범위를 끝낸다."""
     settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=10)
     with session_factory() as db:
         source = _seed(db)
@@ -77,14 +82,15 @@ def test_broken_order_falls_back_and_reads_later_in_scope_item(session_factory, 
         })
         result = run(db, source, settings, store, board, monkeypatch, ordered=True)
         assert result.backfill_complete
-        assert board.read_pages == [1, 2, 3]
-        assert repo.item_for_listing(db, source.id, "3") is not None
+        # 1쪽은 날짜를 몰라 멈추지 않고, 2쪽이 전부 범위 밖이라 거기서 끝낸다.
+        assert board.read_pages == [1, 2]
         active = db.scalar(select(m.SourceConfigVersion).where(m.SourceConfigVersion.is_active.is_(True)))
         assert active.version == 2
         assert active.config["date_ordered"] is False
 
 
-def test_order_flag_without_evidence_cannot_skip_later_date(session_factory, settings, store, monkeypatch):
+def test_order_flag_without_evidence_still_ends_at_first_old_page(session_factory, settings, store, monkeypatch):
+    """검증 증거가 없어도 쪽 전체가 범위 밖이면 더 내려가지 않는다."""
     settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
     board = Board({1: [item(1, "2025-01-01")], 2: [item(2, "2026-03-01")]})
     monkeypatch.setattr(collect, "get_adapter", lambda name: board)
@@ -95,8 +101,8 @@ def test_order_flag_without_evidence_cannot_skip_later_date(session_factory, set
             db, None, store, due, cfg=settings, budget=collect.TimeBudget(60), campus_map={},
         ))
         assert result.backfill_complete
-        assert board.read_pages == [1, 2]
-        assert repo.item_for_listing(db, source.id, "2") is not None
+        assert board.read_pages == [1]
+        assert repo.item_for_listing(db, source.id, "2") is None
 
 
 def test_pinned_outside_window_and_date_boundary(session_factory, settings, store, monkeypatch):
@@ -199,23 +205,21 @@ def test_one_page_budget_eventually_reaches_end(session_factory, settings, store
         assert {i.external_id for i in db.scalars(select(m.SourceItem))} == {str(i) for i in range(1, 6)}
 
 
-def test_old_unordered_pages_do_not_reset_history_forever(session_factory, settings, store, monkeypatch):
+def test_old_front_pages_end_range_instead_of_walking_to_board_end(session_factory, settings, store, monkeypatch):
+    """앞쪽이 전부 범위 밖이면 뒤쪽에 범위 안 글이 있어도 게시판 끝까지 가지 않는다.
+
+    사용자 결정(2026-09-07): "3월까지만 읽고 2월 나오면 멈춘다." 뒤쪽에 섞인 범위 안
+    글을 놓칠 수는 있으나, 2011~2018년까지 끝없이 내려가는 회차를 막는다.
+    """
     settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=2)
     with session_factory() as db:
         source = _seed(db)
-        # 최신 앞쪽이 모두 기간 밖이어도 날짜순 미검증 게시판 뒤쪽에 새 글이 있다.
         board = Board({i: [item(i, "2026-02-01")] for i in range(1, 9)})
         board.pages[8] = [item(8, "2026-03-02")]
-        cursors = []
-        for _ in range(8):
-            result = run(db, source, settings, store, board, monkeypatch)
-            cursors.append(db.get(m.SourceHealth, source.id).backfill_cursor_page)
-            if result.backfill_complete:
-                break
+        result = run(db, source, settings, store, board, monkeypatch)
         assert result.backfill_complete
-        assert max(cursors) == 8
-        assert board.read_details == ["8"]
-        assert repo.item_for_listing(db, source.id, "8") is not None
+        assert board.read_pages == [1]
+        assert db.get(m.SourceHealth, source.id).backfill_cursor_page == 1
 
 
 def test_large_new_burst_revalidates_anchor_and_fills_shifted_gap(session_factory, settings, store, monkeypatch):
@@ -283,12 +287,8 @@ def test_unexpected_failure_preserves_committed_resume_position(session_factory,
         assert len(db.scalars(select(m.Notice)).all()) == 2
 
 
-def test_optimistic_boundary_needs_two_consecutive_old_pages(session_factory, settings, store, monkeypatch):
-    """가정에 기댄 조기 종료는 한 쪽만 보고 멈추지 않는다.
-
-    범위 밖 글만 있는 쪽이 한 번 나와도 다음 쪽에 범위 안 글이 있을 수 있다.
-    연속 두 쪽을 요구하므로 그 글을 놓치지 않는다.
-    """
+def test_mixed_page_does_not_end_the_range(session_factory, settings, store, monkeypatch):
+    """쪽에 범위 안 글이 하나라도 있으면 멈추지 않는다. 판단 단위는 글이 아니라 쪽이다."""
     settings = replace(
         settings, initial_window_start=date(2026, 3, 1), list_page_limit=10,
         optimistic_date_boundary=True,
@@ -297,16 +297,16 @@ def test_optimistic_boundary_needs_two_consecutive_old_pages(session_factory, se
         source = _seed(db)
         board = Board({
             1: [item(1, "2026-03-20")],
-            2: [item(2, "2026-02-25")],
-            3: [item(3, "2026-03-10")],
+            2: [item(2, "2026-02-25"), item(3, "2026-03-05")],
+            3: [item(4, "2026-03-10")],
         })
         run(db, source, settings, store, board, monkeypatch)
         assert board.read_pages == [1, 2, 3]
-        assert repo.item_for_listing(db, source.id, "3") is not None
+        assert repo.item_for_listing(db, source.id, "4") is not None
 
 
-def test_optimistic_boundary_stops_after_two_old_pages(session_factory, settings, store, monkeypatch):
-    """연속 두 쪽이 모두 범위 밖이면 뒤쪽을 더 읽지 않고 멈춘다."""
+def test_optimistic_boundary_stops_at_the_first_old_page(session_factory, settings, store, monkeypatch):
+    """범위 밖 쪽을 만나면 그 자리에서 멈추고 뒤쪽을 더 읽지 않는다."""
     settings = replace(
         settings, initial_window_start=date(2026, 3, 1), list_page_limit=10,
         optimistic_date_boundary=True,
@@ -320,7 +320,7 @@ def test_optimistic_boundary_stops_after_two_old_pages(session_factory, settings
             4: [item(4, "2026-02-01")],
         })
         result = run(db, source, settings, store, board, monkeypatch)
-        assert board.read_pages == [1, 2, 3]
+        assert board.read_pages == [1, 2]
         assert db.get(m.SourceHealth, source.id).last_scan_stop_reason == "date_boundary"
         assert result.backfill_complete
 
@@ -333,10 +333,10 @@ def test_optimistic_boundary_is_not_assumed_again_after_inversion(session_factor
     )
     with session_factory() as db:
         source = _seed(db)
+        # 범위 안에서 역전이 드러나므로 날짜 경계 종료 전에 가정이 폐기된다.
         board = Board({
-            1: [item(1, "2026-03-20")],
-            2: [item(2, "2026-02-25")],
-            3: [item(3, "2026-03-10")],
+            1: [item(1, "2026-03-20"), item(2, "2026-04-01")],
+            2: [item(3, "2026-03-10")],
         })
         run(db, source, settings, store, board, monkeypatch)
         active = db.scalar(select(m.SourceConfigVersion).where(m.SourceConfigVersion.is_active.is_(True)))
@@ -528,3 +528,61 @@ def test_timestamped_board_backfills_without_skipping_any_item(
         assert {i.external_id for i in db.scalars(select(m.SourceItem))} == expected
         # 각 글의 상세는 딱 한 번씩만 받는다(고정 글·실패 글은 없다).
         assert sorted(board.read_details) == sorted(expected)
+
+
+def test_invalidated_order_stops_at_old_page_and_cursor_does_not_advance(
+    session_factory, settings, store, monkeypatch
+):
+    """(가) 날짜순 판정이 해제된 출처도 범위 밖 쪽에서 완료되고 커서가 더 나가지 않는다."""
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        config = db.scalar(select(m.SourceConfigVersion))
+        config.config = {**config.config, "date_ordered": False,
+                         "date_order_invalidated": {"reason": "date_inversion"}}
+        board = Board({
+            1: [item(1, "2026-08-01")],
+            2: [item(2, "2013-05-01"), item(3, "2012-01-01")],
+            3: [item(4, "2011-08-05")],
+        })
+        result = run(db, source, settings, store, board, monkeypatch)
+        assert board.read_pages == [1, 2]
+        assert result.scan_stop_reason == "date_boundary"
+        assert result.backfill_complete
+        health = db.get(m.SourceHealth, source.id)
+        assert health.backfill_boundary_reached
+        assert health.backfill_cursor_page == 2
+        # 다음 회차는 최신 구간만 다시 본다. 게시판 끝(3쪽)으로 더 내려가지 않는다.
+        board.read_pages.clear()
+        run(db, source, settings, store, board, monkeypatch)
+        assert board.read_pages == [1]
+
+
+def test_single_old_pinned_notice_does_not_stop_the_page(session_factory, settings, store, monkeypatch):
+    """(나) 고정 공지 하나만 오래되고 나머지가 범위 안이면 멈추지 않는다."""
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({
+            1: [item(1, "2011-01-01", True), item(2, "2026-08-01")],
+            2: [item(3, "2026-07-01")],
+        })
+        result = run(db, source, settings, store, board, monkeypatch)
+        assert board.read_pages == [1, 2]
+        assert result.scan_stop_reason == "end_of_board"
+        assert repo.item_for_listing(db, source.id, "3") is not None
+
+
+def test_page_without_any_known_date_does_not_stop(session_factory, settings, store, monkeypatch):
+    """(다) 날짜를 아는 글이 하나도 없는 쪽에서는 멈추지 않는다."""
+    settings = replace(settings, initial_window_start=date(2026, 3, 1), list_page_limit=5)
+    with session_factory() as db:
+        source = _seed(db)
+        board = Board({
+            1: [item(1, None), item(2, None)],
+            2: [item(3, "2026-07-01")],
+        })
+        result = run(db, source, settings, store, board, monkeypatch)
+        assert board.read_pages == [1, 2]
+        assert result.scan_stop_reason == "end_of_board"
+        assert repo.item_for_listing(db, source.id, "3") is not None

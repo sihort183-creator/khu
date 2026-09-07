@@ -273,7 +273,14 @@ async def collect_source(
                     session.commit()
             page_below = bool(window and ordered and dates and all(d is not None and d < window for d in dates))
             below_window = below_window + 1 if page_below else 0
-            boundary = below_window >= boundary_pages
+            # 안전망: 날짜순 판정이 해제된 출처라도 한 쪽의 일반 글이 전부 수집 범위보다
+            # 오래되면 그 자리에서 멈춘다. 2026-09-07 역전을 만나 가정을 잃은 출처 9곳이
+            # 2011~2018년까지 게시판 끝을 향해 내려가고 있었다. 글 하나가 아니라 "쪽 전체"를
+            # 기준으로 삼아 고정 공지·역전 한 건에 속지 않게 하고, 날짜를 모르는 글은
+            # 판단에서 뺀다(쪽에 날짜 있는 글이 하나도 없으면 멈추지 않는다).
+            known_dates = [d for d in dates if d is not None]
+            page_all_old = bool(window and known_dates and all(d < window for d in known_dates))
+            boundary = below_window >= boundary_pages or page_all_old
             if not page.has_next or boundary:
                 if history and not anchor_found:
                     cursor, anchor = 1, None
