@@ -60,24 +60,25 @@ jobs:
       KHU_INITIAL_UNTIL: ${{ vars.KHU_INITIAL_UNTIL }}
       # 유지 수집 예산. 초기 실행기는 짧은 회차로 덮어쓰고 연속 실행한다.
       KHU_RUN_BUDGET_SECONDS: "2400"
-      # 첫 백필을 빨리 끝내기 위한 설정이다. 사이트가 125개인데 기본값(registrable)은
+      # 2026-09-07 23:50 KST 초기 백필이 끝나 유지 수집 값으로 낮췄다(요청 간격 1초, 동시 8).
+      # 사이트가 125개인데 기본값(registrable)은
       # 이를 한 줄로 세워 2초에 1건씩만 받는다. host 모드는 사이트마다 따로 세어
       # 훨씬 빠르다. 백필이 끝나면 기본값으로 되돌리는 것을 검토한다.
       KHU_HOST_GROUP_MODE: host
-      KHU_HTTP_DELAY_SECONDS: "0.5"
-      KHU_HTTP_CONCURRENCY: "16"
+      KHU_HTTP_DELAY_SECONDS: "1.0"
+      KHU_HTTP_CONCURRENCY: "8"
       # 출처를 동시에 처리한다. 이 값이 1 이면 위 설정을 아무리 풀어도
       # 요청이 한 개씩만 날아간다. 데이터베이스 연결도 이만큼 함께 쓴다.
       # 변수로 두어 push 없이 조절한다. 백필이 끝나면 되돌리는 것도 변수로 한다.
       # 11 을 넘기지 않는다. Supabase 풀러가 세션 모드에서 사용자당 연결 15개로 막는다.
       # 이 값 + 4 가 실제 연결 수다. 넘기면 수집이 통째로 죽는다(app/storage/db.py 참조).
-      KHU_SOURCE_CONCURRENCY: ${{ vars.KHU_SOURCE_CONCURRENCY || '10' }}
+      KHU_SOURCE_CONCURRENCY: ${{ vars.KHU_SOURCE_CONCURRENCY || '4' }}
       # 출처 하나에 주는 시간. 기본 120초로는 큰 게시판이 다섯 쪽을 다 읽기 전에 잘려
       # 진행 위치를 저장하지 못하고, 다음 회차가 같은 자리를 다시 읽는다. 실제로 2026-09-07
       # 열한 곳이 한 시간에 열한 번 착수하고도 커서가 5쪽에 그대로 있었다.
       KHU_SOURCE_BUDGET_SECONDS: ${{ vars.KHU_SOURCE_BUDGET_SECONDS || '120' }}
       # 한 회차에 한 출처에서 넘길 목록 쪽 수. 백필이 끝나면 되돌린다.
-      KHU_LIST_PAGE_LIMIT: ${{ vars.KHU_LIST_PAGE_LIMIT || '5' }}
+      KHU_LIST_PAGE_LIMIT: ${{ vars.KHU_LIST_PAGE_LIMIT || '2' }}
       # 남은 예산이 이보다 적으면 새 출처를 시작하지 않는다. 조각으로 착수하면
       # 저장은 0건인데 대기열 순번만 잃어 그 출처가 계속 꼬리에 갇힌다.
       KHU_SOURCE_MIN_BUDGET_SECONDS: ${{ vars.KHU_SOURCE_MIN_BUDGET_SECONDS || '30' }}
