@@ -175,3 +175,62 @@ def freshness_code(last_checked: datetime | None, *, now: datetime | None = None
     if age <= timedelta(days=1):
         return "delayed"
     return "stale"
+
+
+@dataclass(frozen=True)
+class DisplayPublished:
+    """화면에 내보낼 발행일. 원문 값과 다를 수 있다."""
+
+    date: date | None
+    at: datetime | None
+    precision: str  # date | datetime | unknown
+    adjusted: bool  # 원문 날짜가 미래라 처음 본 시각으로 바꿨는가
+
+
+def is_future_published(
+    *,
+    published_date: date | None,
+    published_at: datetime | None,
+    now: datetime,
+) -> bool:
+    """원문 발행일이 아직 오지 않았는가.
+
+    시각을 아는 글은 시각으로, 날짜만 아는 글은 표시 기준인 Asia/Seoul 날짜로 본다.
+    """
+    stamp = as_utc(published_at)
+    if stamp is not None:
+        return stamp > now
+    if published_date is None:
+        return False
+    return published_date > now.astimezone(KST).date()
+
+
+def display_published(
+    *,
+    published_date: date | None,
+    published_at: datetime | None,
+    published_precision: str | None,
+    first_visible_at: datetime | None,
+    now: datetime,
+) -> DisplayPublished:
+    """화면에 보일 발행일을 정한다.
+
+    게시판이 고정 공지를 맨 위에 붙이려고 2099-12-31 같은 값을 넣는 일이 있다.
+    그 날짜를 그대로 보이면 목록 꼭대기에 몇 해 뒤 날짜가 박힌다. 사용자 결정
+    (2026-09-07)에 따라 그런 글도 공개하되, **보이는 날짜는 우리가 그 글을 처음 본
+    시각**으로 둔다. 원문 날짜는 버리지 않고 계약의 ``original_published_*`` 로 함께 준다.
+    데이터베이스의 원문 값은 건드리지 않는다 — 이 판정은 내보낼 때만 한다.
+    """
+    if first_visible_at is not None and is_future_published(
+        published_date=published_date, published_at=published_at, now=now
+    ):
+        seen = as_utc(first_visible_at)
+        return DisplayPublished(
+            date=seen.astimezone(KST).date(), at=seen, precision="datetime", adjusted=True
+        )
+    return DisplayPublished(
+        date=published_date,
+        at=published_at,
+        precision=published_precision or "unknown",
+        adjusted=False,
+    )

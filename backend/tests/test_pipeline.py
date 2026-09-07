@@ -296,8 +296,8 @@ def test_hidden_notice_disappears_from_static_files(seeded, settings, store, boa
         _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden_id}.json")
 
 
-def test_publish_window_hides_old_and_future_notices(seeded, settings, store, board_fixture):
-    """수집 범위 시작일보다 오래된 글과 발행일이 미래인 글은 공개하지 않는다.
+def test_publish_window_hides_old_notices(seeded, settings, store, board_fixture):
+    """수집 범위 시작일보다 오래된 글은 공개하지 않는다.
 
     저장은 그대로 두고 공개만 막는다. 경계는 표시 기준인 Asia/Seoul 날짜로 판정하므로
     3월 1일 오전 한국시간(= 2월 28일 UTC) 글은 남아야 한다.
@@ -334,29 +334,110 @@ def test_publish_window_hides_old_and_future_notices(seeded, settings, store, bo
     listed = {n["id"] for n in page["data"]}
     indexed = {e["id"] for e in index["entries"]}
     assert old_one.id not in listed and old_one.id not in indexed
-    assert future_one.id not in listed and future_one.id not in indexed
     assert undated_one.id not in listed and undated_one.id not in indexed
+    # 미래 날짜 글은 공개한다(사용자 결정 2026-09-07). 자세한 검사는 아래 전용 검사에 있다.
+    assert future_one.id in listed and future_one.id in indexed
     assert edge_one.id in listed and edge_one.id in indexed
     assert dated_one.id in listed and dated_one.id in indexed
     # 표본의 나머지 글은 날짜가 제각각이다. 규칙대로 셈한 값과 맞는지 본다.
-    today = datetime.now(UTC).astimezone(KST).date()
 
     def counted(n: m.Notice) -> bool:
         if n.published_at is not None:
             floor = datetime(2026, 2, 28, 15, 0, tzinfo=UTC)
-            return floor <= n.published_at.replace(tzinfo=UTC) <= datetime.now(UTC)
-        return n.published_date is not None and date(2026, 3, 1) <= n.published_date <= today
+            return n.published_at.replace(tzinfo=UTC) >= floor
+        return n.published_date is not None and n.published_date >= date(2026, 3, 1)
 
     expected = sum(1 for n in notices if counted(n))
     assert result.notices == expected
 
     # 상세 파일도 함께 사라진다. 목록에만 없고 주소로는 열리는 상태를 만들지 않는다.
-    for hidden in (old_one.id, future_one.id, undated_one.id):
+    for hidden in (old_one.id, undated_one.id):
         with pytest.raises(FileNotFoundError):
             _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden}.json")
 
     # 원문은 지우지 않는다. 범위가 바뀌면 다시 공개할 수 있어야 한다.
     assert session.get(m.Notice, old_one.id) is not None
+
+
+def test_future_dated_notice_is_published_as_first_seen(seeded, settings, store, board_fixture):
+    """원문 날짜가 미래인 글도 공개하고, 보이는 날짜는 처음 본 시각으로 둔다.
+
+    게시판이 고정 공지를 맨 위에 붙이려고 2099-12-31 같은 값을 넣는다. 사용자 결정
+    (2026-09-07)에 따라 그런 글도 공개하되, 화면에 보이는 날짜는 우리가 그 글을 처음
+    본 시각이다. 원문 날짜는 버리지 않고 original_published_* 로 함께 준다. 정렬도
+    보이는 날짜를 따라야 하므로 2099년 글이 목록 꼭대기에 남아서는 안 된다.
+    """
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+
+    notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+    assert len(notices) >= 3
+    future_at, future_day, normal = notices[0], notices[1], notices[2]
+    for notice in notices[3:]:
+        notice.status = "hidden"
+
+    seen = datetime(2026, 9, 6, 1, 0, tzinfo=UTC)
+    # 시각까지 미래인 글(운영에서 본 12건이 모두 이 모양이다).
+    future_at.published_date = date(2099, 12, 31)
+    future_at.published_at = datetime(2099, 12, 31, 0, 30, tzinfo=UTC)
+    future_at.published_precision = "datetime"
+    future_at.first_visible_at = seen
+    # 날짜만 알고 그 날짜가 미래인 글.
+    future_day.published_date = date(2030, 10, 23)
+    future_day.published_at = None
+    future_day.published_precision = "date"
+    future_day.first_visible_at = seen
+    # 견줄 평범한 글. 미래 글보다 나중에 처음 봤으니 목록에서 위에 있어야 한다.
+    normal.published_date = date(2026, 9, 7)
+    normal.published_at = datetime(2026, 9, 7, 1, 0, tzinfo=UTC)
+    normal.published_precision = "datetime"
+    normal.first_visible_at = datetime(2026, 9, 7, 2, 0, tzinfo=UTC)
+    session.commit()
+
+    windowed = replace(settings, initial_window_start=date(2026, 3, 1))
+    result = export_static(windowed, run_id="run-future01", store=store)
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
+    base = pointer["base_path"]
+    page = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/page/1.json"))
+    index = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/index.json"))
+    status = json.loads(_read_export(store, settings.r2.bucket_public, "v1/status.json"))
+
+    listed = {n["id"]: n for n in page["data"]}
+    indexed = {e["id"]: e for e in index["entries"]}
+    assert set(listed) == {future_at.id, future_day.id, normal.id}
+    assert result.notices == 3
+    # 공개 총계도 같은 기준이어야 한다. 목록에는 있는데 숫자에는 없는 상태를 만들지 않는다.
+    assert status["notices_total"] == 3
+
+    for notice, original_at in ((future_at, "2099-12-31T00:30:00Z"), (future_day, None)):
+        shown = listed[notice.id]
+        assert shown["published_adjusted"] is True
+        assert shown["published_date"] == "2026-09-06"
+        assert shown["published_at"] == "2026-09-06T01:00:00Z"
+        assert shown["published_precision"] == "datetime"
+        # 원문 날짜는 버리지 않는다.
+        assert shown["original_published_date"] == notice.published_date.isoformat()
+        assert shown["original_published_at"] == original_at
+        # 색인도 같은 값을 실어야 화면이 다시 세울 때 목록과 순서가 어긋나지 않는다.
+        assert indexed[notice.id]["d"] == "2026-09-06"
+        assert indexed[notice.id]["p"] == "2026-09-06T01:00:00Z"
+        # 상세 파일도 같은 값을 준다.
+        detail = json.loads(
+            _read_export(store, settings.r2.bucket_public, f"{base}/notices/{notice.id}.json")
+        )["data"]
+        assert detail["published_adjusted"] is True
+        assert detail["published_date"] == "2026-09-06"
+
+    # 미래 날짜 글이 꼭대기를 차지하지 않는다. 나중에 본 평범한 글이 위다.
+    assert [n["id"] for n in page["data"]][0] == normal.id
+    assert listed[normal.id]["published_adjusted"] is False
+    assert listed[normal.id]["original_published_date"] is None
+
+    # DB 의 원문 날짜는 그대로다. 내보낼 때만 바꾼다.
+    session.expire_all()
+    assert session.get(m.Notice, future_at.id).published_date == date(2099, 12, 31)
+    assert session.get(m.Notice, future_day.id).published_date == date(2030, 10, 23)
 
 
 def test_revision_pointer_switches_only_after_files_exist(seeded, settings, store, board_fixture):

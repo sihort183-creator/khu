@@ -156,6 +156,12 @@ class Notice(Strict):
     published_date: date | None = None
     published_at: datetime | None = None
     published_precision: Literal["date", "datetime", "unknown"]
+    # 원문 발행일이 아직 오지 않은 날짜일 때(게시판이 고정 공지에 2099-12-31 같은 값을
+    # 쓴다) 위의 published_* 는 우리가 그 글을 처음 본 시각으로 바뀐다. 그때만 아래 셋이
+    # 채워진다. 화면은 이 표시를 보고 "원문 날짜가 미래라 처음 본 날로 표시"라고 알릴 수 있다.
+    published_adjusted: bool = False
+    original_published_date: date | None = None
+    original_published_at: datetime | None = None
     first_visible_at: datetime
     updated_at: datetime
     deadline: Deadline | None = None

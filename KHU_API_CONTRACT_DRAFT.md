@@ -68,6 +68,8 @@
 | `source_count`(원문 출처 개수) | 현재 연결된 공개 원본 수 |
 | `published_date`(원문 등록일), `published_at`(정확한 원문 등록 시각) | 정확한 시각을 모르면 후자는 정보 없음 |
 | `published_precision`(등록일 정밀도) | `date`(날짜), `datetime`(시각 포함), `unknown`(미확정) |
+| `published_adjusted`(등록일 대체 표시) | 참이면 위의 `published_*` 는 원문 값이 아니라 **서비스가 그 글을 처음 본 시각**이다. 원문 등록일이 아직 오지 않은 날짜일 때만 참이다. 게시판이 고정 공지를 맨 위에 붙이려고 `2099-12-31` 같은 값을 넣는 경우가 있다. 기본값 거짓 |
+| `original_published_date`(원문 등록일 원값), `original_published_at`(원문 등록 시각 원값) | `published_adjusted` 가 참일 때만 채워진다. 원문에 적힌 미래 날짜를 버리지 않고 그대로 전한다. 거짓이면 둘 다 정보 없음 |
 | `first_visible_at`(최초 노출 시각) | 기본 정렬 기준. 재수집·연락처 갱신으로 바뀌지 않음 |
 | `updated_at`(내용 갱신 시각) | 서비스가 의미 있는 내용 변경을 반영한 시각 |
 | `deadline`(마감 정보) | 미확정이면 정보 없음. 있으면 날짜·선택적 시각·정밀도·원문 근거 |
@@ -100,6 +102,9 @@
       "published_date": "2026-09-03",
       "published_at": null,
       "published_precision": "date",
+      "published_adjusted": false,
+      "original_published_date": null,
+      "original_published_at": null,
       "first_visible_at": "2026-09-03T01:00:00Z",
       "updated_at": "2026-09-03T01:00:00Z",
       "deadline": null,

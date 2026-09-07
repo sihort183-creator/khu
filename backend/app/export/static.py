@@ -49,7 +49,14 @@ from app.contracts.vocab import (
     coded,
 )
 from app.domain.body_html import sanitize_body_html
-from app.domain.dates import KST, as_utc, freshness_code, utcnow
+from app.domain.dates import (
+    KST,
+    as_utc,
+    display_published,
+    freshness_code,
+    is_future_published,
+    utcnow,
+)
 from app.domain.images import extract_images, poster_image
 from app.storage import models as m
 from app.storage.db import session_scope
@@ -242,6 +249,8 @@ def _build_notice(
 ) -> api.Notice:
     primary = next((c for c in categories if c.is_primary), None)
     secondary = [c for c in categories if not c.is_primary]
+    # 원문 날짜가 미래면 보이는 날짜만 "처음 본 시각"으로 바꾼다. 저장은 그대로 둔다.
+    shown = _shown_published(notice, now)
 
     audiences: list[api.Audience] = []
     for row, campus_name, org_name in audience_rows:
@@ -277,9 +286,12 @@ def _build_notice(
         audience_note=notice.audience_note,
         primary_source=source_ref,
         source_count=source_count,
-        published_date=notice.published_date,
-        published_at=notice.published_at,
-        published_precision=notice.published_precision or "unknown",
+        published_date=shown.date,
+        published_at=shown.at,
+        published_precision=shown.precision,
+        published_adjusted=shown.adjusted,
+        original_published_date=notice.published_date if shown.adjusted else None,
+        original_published_at=as_utc(notice.published_at) if shown.adjusted else None,
         first_visible_at=notice.first_visible_at,
         updated_at=notice.updated_at,
         deadline=deadline,
@@ -342,10 +354,28 @@ def newest_first(
     )
 
 
-def _notice_order(notice: m.Notice) -> tuple:
-    return newest_first(
+def _shown_published(notice: m.Notice, now: datetime):
+    """이 공지를 화면에 어떤 발행일로 내보낼지 정한다."""
+    return display_published(
         published_date=notice.published_date,
         published_at=notice.published_at,
+        published_precision=notice.published_precision,
+        first_visible_at=notice.first_visible_at,
+        now=now,
+    )
+
+
+def _notice_order(notice: m.Notice, now: datetime) -> tuple:
+    """정렬도 화면에 보이는 날짜를 따른다.
+
+    목록 페이지와 색인(IndexEntry)이 같은 키를 써야 화면이 걸러낸 뒤 다시 세워도
+    같은 순서가 나온다. 색인에는 내보낸 값(= 보이는 날짜)이 실리므로 여기서도 같은
+    값으로 세운다. 원문 날짜로 세우면 2099년 글이 영원히 맨 위에 남는다.
+    """
+    shown = _shown_published(notice, now)
+    return newest_first(
+        published_date=shown.date,
+        published_at=shown.at,
         first_visible_at=notice.first_visible_at,
         notice_id=notice.id,
     )
@@ -396,10 +426,14 @@ def _load_notices(
 
     floor = window_floor(window_start)
 
-    today = now.astimezone(KST).date()
-
     def within_window(notice: m.Notice) -> bool:
         """공개 범위 안인지 판정한다."""
+        if is_future_published(
+            published_date=notice.published_date, published_at=notice.published_at, now=now
+        ):
+            # 사용자 결정(2026-09-07): 미래 날짜 글도 공개한다. 보이는 날짜는 우리가 처음
+            # 본 시각이 되고(_shown_published), 그 시각은 언제나 범위 안이다.
+            return True
         # sqlite 는 시간대 없이 돌려주므로 먼저 UTC 로 정규화한다.
         published = as_utc(notice.published_at)
         if published is None:
@@ -410,17 +444,12 @@ def _load_notices(
                 # 정말로 발행일을 모르면 범위 안이라고 볼 근거가 없다. 사용자 결정(2026-09-07)에
                 # 따라 공개하지 않는다. 원문은 남으므로 날짜를 알아내면 다시 공개된다.
                 return window_start is None
-            if stamp > today:
-                return False
             return window_start is None or stamp >= window_start
-        if published > now:
-            # 원문에 2099년 같은 값이 있다. 아직 오지 않은 날짜는 공개하지 않는다.
-            return False
         return floor is None or published >= floor
 
     rows = [row for row in rows if within_window(row[0])]
 
-    rows.sort(key=lambda row: _notice_order(row[0]), reverse=True)
+    rows.sort(key=lambda row: _notice_order(row[0], now), reverse=True)
 
     built = []
     for notice, item, revision, source in rows:
@@ -1040,22 +1069,22 @@ def refresh_public_status(
             .where(m.Notice.status == "visible", m.Source.is_public.is_(True))
         )
         window_start = cfg.initial_window_start
-        today = now.astimezone(KST).date()
         # 시각을 아는 글은 published_at 으로, 날짜만 아는 글은 published_date 로 판정한다.
         # 정말로 발행일을 모르는 글만 총계에서 뺀다(_load_notices 의 within_window 와 같은 규칙).
+        # 위쪽 경계는 두지 않는다. 원문 날짜가 미래인 글도 공개하기 때문이다(사용자 결정
+        # 2026-09-07). 그런 글의 보이는 날짜는 처음 본 시각이라 언제나 범위 안이다.
         by_date = and_(
             m.Notice.published_at.is_(None),
             m.Notice.published_date.is_not(None),
-            m.Notice.published_date <= today,
         )
         if floor is None:
             notices_query = notices_query.where(
-                or_(m.Notice.published_at <= now, by_date)
+                or_(m.Notice.published_at.is_not(None), by_date)
             )
         else:
             notices_query = notices_query.where(
                 or_(
-                    m.Notice.published_at.between(floor, now),
+                    m.Notice.published_at >= floor,
                     and_(by_date, m.Notice.published_date >= window_start),
                 )
             )
