@@ -168,15 +168,68 @@ def test_campus_mention_keeps_the_source_organization():
 
 
 def test_university_wide_wording_stays_university_wide():
-    """스스로 전교생 대상이라 밝힌 글을 학과 공지로 좁히지 않는다."""
+    """스스로 전교생 대상이라 밝힌 글을 학과 공지로 좁히지 않는다.
+
+    진짜 전교 공지가 전교 대상을 잃으면 조직을 고른 사람 모두에게서 사라진다.
+    성적입력 안내가 그런 글이다. 전교 대상은 무슨 일이 있어도 남는다.
+    """
     default = (aud.AudienceTarget("organization", "org-swcon", "소프트웨어융합학과"),)
     decision = aud.decide(
         "2026학년도 1학기 성적입력 및 공시(정정)기간 안내",
-        "재학생 전원이 확인해야 합니다.",
+        "기말 강의평가 실시 여부와 상관없이 전체 학생 성적 열람 가능",
         source_defaults=default,
         campus_lookup=_campus_map(),
     )
-    assert [target.type for target in decision.targets] == ["university"]
+    keys = {target.key() for target in decision.targets}
+    assert "university" in keys
+    # 올라온 학과와의 연결도 함께 남는다. 전교 공지라고 조직을 버리지 않는다.
+    assert keys == {"university", "org:org-swcon"}
+
+
+def test_university_wide_wording_keeps_the_source_organization():
+    """전교생 표현이 본문에 스쳐도 출처 학과를 잃지 않는다.
+
+    2026-09-07 실제로 의과대학 게시판의 "[의학4] 선택실습" 글이 본문의
+    "의학과 4학년 … 재학생 전원" 때문에 전교 공지가 되고 의과대학과의 연결을
+    잃었다. 의과대학을 고른 사람에게서 사라졌다. 그 회귀를 막는다.
+    """
+    default = (aud.AudienceTarget("organization", "org-med", "의과대학"),)
+    decision = aud.decide(
+        "[의학4] 선택실습(SDE, 학생설계선택과정) 안내",
+        "1. 대상: 2026학년도 의학과 4학년(27년 2월 졸업예정자) 재학생 전원",
+        source_defaults=default,
+        campus_lookup=_campus_map(),
+    )
+    keys = {target.key() for target in decision.targets}
+    assert "org:org-med" in keys
+
+
+def test_university_wide_wording_does_not_add_targets_to_a_broad_source():
+    """출처 기본 대상이 이미 넓으면 더할 조직이 없다. 대학 전체 하나로 남는다."""
+    for default in (
+        (aud.AudienceTarget("university", None, "대학 전체"),),
+        (aud.AudienceTarget("campus", "campus-seoul", "서울캠퍼스"),),
+    ):
+        decision = aud.decide(
+            "포털시스템 개선 안내",
+            "전 구성원 대상입니다.",
+            source_defaults=default,
+            campus_lookup=_campus_map(),
+        )
+        assert [target.key() for target in decision.targets] == ["university"]
+
+
+def test_university_wide_branch_never_drops_a_target():
+    """전교 갈래는 순수 보태기다. 출처 기본 대상의 조직은 하나도 잃지 않는다."""
+    default = (
+        aud.AudienceTarget("organization", "org-a", "가학과"),
+        aud.AudienceTarget("organization", "org-b", "나학과"),
+    )
+    decision = aud.decide(
+        "안내", "전 구성원 공지", source_defaults=default, campus_lookup=_campus_map()
+    )
+    keys = {target.key() for target in decision.targets}
+    assert keys == {"org:org-a", "org:org-b", "university"}
 
 
 def test_both_campuses_mentioned_does_not_narrow():

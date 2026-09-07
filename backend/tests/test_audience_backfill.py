@@ -1,10 +1,11 @@
 """쌓인 공지의 대상 범위를 저장된 값으로 다시 계산하는 작업 검사(8.2절).
 
-2026-09-07 게시물이 캠퍼스를 언급하면 출처 조직을 통째로 버리던 규칙을 고쳤다.
+2026-09-07 게시물이 캠퍼스나 전교생을 언급하면 출처 조직을 통째로 버리던 규칙을 고쳤다.
 고친 규칙은 새로 들어오는 글에만 걸리고, 이미 쌓인 공지는 상세 재확인이 돌아오는
 최대 14일 뒤에야 반영된다. 이 작업이 그 기다림을 없앤다. 여기서 고정하는 것은
-두 가지다. 학과 게시판 글이 캠퍼스를 언급해도 학과를 잃지 않는다는 것,
-그리고 스스로 전교생 대상이라 밝힌 글은 다시 계산해도 그대로라는 것이다.
+세 가지다. 학과 게시판 글이 캠퍼스를 언급해도 학과를 잃지 않는다는 것,
+전교생 표현이 스쳐도 학과를 잃지 않는다는 것,
+그리고 진짜 전교 공지는 전교 대상을 그대로 지킨다는 것이다.
 """
 
 from __future__ import annotations
@@ -141,12 +142,16 @@ def test_dry_run_counts_changes_without_touching_stored_audiences(db, seeded):
     stats = run_audience_backfill(db, apply=False, sample_limit=5)
 
     assert stats["scanned"] == 3
-    assert stats["changed"] == 1
-    assert stats["unchanged"] == 2
-    assert stats["transitions"] == {"campus -> campus+organization": 1}
+    assert stats["changed"] == 2
+    assert stats["unchanged"] == 1
+    assert stats["transitions"] == {
+        "campus -> campus+organization": 1,
+        "university -> organization+university": 1,
+    }
     assert stats["applied"] is False
     # 모의 실행은 세기만 한다. 저장된 대상은 그대로다.
     assert _keys(db, seeded["campus_only"]) == {"campus:campus-global"}
+    assert _keys(db, seeded["university"]) == {"university"}
 
 
 def test_campus_mention_no_longer_erases_the_department(db, seeded):
@@ -157,12 +162,13 @@ def test_campus_mention_no_longer_erases_the_department(db, seeded):
     assert _keys(db, seeded["campus_only"]) == {"campus:campus-global", "org:org-swcon"}
 
 
-def test_genuine_university_wide_notice_is_left_alone(db, seeded):
+def test_university_wide_notice_keeps_university_and_regains_the_department(db, seeded):
     run_audience_backfill(db, apply=True, batch_id="b1", reason="검사")
     db.flush()
 
-    # 전교 공지를 학과 공지로 좁히면 고치기 전보다 나쁘다. 그대로 두는 것을 고정한다.
-    assert _keys(db, seeded["university"]) == {"university"}
+    # 전교 공지를 학과 공지로 좁히면 고치기 전보다 나쁘다. 전교 대상은 그대로 남는다.
+    # 거기에 올라온 학과를 되찾는다. 학과를 고른 사람에게도 보이고, 전교 목록에도 남는다.
+    assert _keys(db, seeded["university"]) == {"university", "org:org-swcon"}
     assert _keys(db, seeded["plain"]) == {"org:org-swcon"}
 
 
@@ -186,12 +192,16 @@ def test_applied_change_is_recorded_and_revertible(db, seeded):
             )
         ).scalars()
     )
-    assert [log.target_id for log in logs] == [seeded["campus_only"]]
-    assert logs[0].before == {"audiences": ["campus:campus-global"]}
+    # 캠퍼스 갈래와 전교 갈래 둘 다 한 묶음에 기록된다. 되돌리기에 코드 추가가 필요 없다.
+    by_id = {log.target_id: log for log in logs}
+    assert set(by_id) == {seeded["campus_only"], seeded["university"]}
+    assert by_id[seeded["campus_only"]].before == {"audiences": ["campus:campus-global"]}
+    assert by_id[seeded["university"]].before == {"audiences": ["university"]}
 
     revert_audience_backfill(db, batch_id="b1", apply=True)
     db.flush()
     assert _keys(db, seeded["campus_only"]) == {"campus:campus-global"}
+    assert _keys(db, seeded["university"]) == {"university"}
 
 
 def test_revert_dry_run_reports_without_restoring(db, seeded):
@@ -200,8 +210,9 @@ def test_revert_dry_run_reports_without_restoring(db, seeded):
 
     stats = revert_audience_backfill(db, batch_id="b1", apply=False)
 
-    assert stats == {"batch": "b1", "entries": 1, "restored": 1, "unusable": 0}
+    assert stats == {"batch": "b1", "entries": 2, "restored": 2, "unusable": 0}
     assert _keys(db, seeded["campus_only"]) == {"campus:campus-global", "org:org-swcon"}
+    assert _keys(db, seeded["university"]) == {"university", "org:org-swcon"}
 
 
 def test_second_pass_changes_nothing(db, seeded):
@@ -222,7 +233,10 @@ def test_ops_command_applies_then_reverts(db, seeded, capsys):
     printed = capsys.readouterr().out
     batch = printed.rsplit("--revert ", 1)[1].strip().splitlines()[0]
     assert _keys(db, seeded["campus_only"]) == {"campus:campus-global", "org:org-swcon"}
+    # 전교 갈래도 같은 명령으로 처리되고 같은 묶음으로 되돌아간다.
+    assert _keys(db, seeded["university"]) == {"university", "org:org-swcon"}
 
     assert ops.main(["notice", "reaudience", "--revert", batch]) == 0
     db.expire_all()
     assert _keys(db, seeded["campus_only"]) == {"campus:campus-global"}
+    assert _keys(db, seeded["university"]) == {"university"}

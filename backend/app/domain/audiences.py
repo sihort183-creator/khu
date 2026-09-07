@@ -77,8 +77,18 @@ def decide(
         note = "원문에 신청 자격·대상 제한 표현이 있습니다. 실제 자격은 원문에서 확인하세요."
 
     if says_university and not explicit_campus:
+        # 게시물이 스스로 전교생 대상이라 밝히면 대학 전체를 더한다. 캠퍼스 갈래와 같이
+        # 출처 조직은 지우지 않는다. 지우면 의과대학 게시판의 "의학과 4학년 … 재학생 전원"
+        # 글이 의과대학과의 연결을 잃고 전교 공지가 되어, 의과대학을 고른 사람에게서
+        # 사라진다. 2026-09-07 실제로 그렇게 보였다. 조직을 남기면 진짜 전교 공지도
+        # 잃는 것이 없다 — 성적입력 안내는 전교 대상을 그대로 지키면서 올라온 학과와의
+        # 연결까지 얻는다.
+        # 캠퍼스 갈래의 예외는 여기서도 그대로 성립한다. 기본 대상이 대학 전체나
+        # 캠퍼스처럼 넓으면 조직이 아니라 걸러지고, 남는 것은 대학 전체 하나뿐이다.
+        # 대학 전체보다 넓은 대상은 없으므로 따로 좁힐 것이 없다.
+        keep = tuple(target for target in source_defaults if target.type == "organization")
         return AudienceDecision(
-            targets=(AudienceTarget(type="university", id=None, name="대학 전체"),),
+            targets=keep + (AudienceTarget(type="university", id=None, name="대학 전체"),),
             note=note,
             narrowed=False,
         )
