@@ -891,15 +891,21 @@ def recent_items_for_dedupe(
 
 
 def iter_item_bodies_for_dedupe(session: Session, *, chunk: int = 1000):
-    """공개 중인 공지의 원본 식별자와 본문을 순서대로 흘려준다.
+    """공개 중인 공지의 원본 식별자·본문·본문 HTML·원문 주소를 순서대로 흘려준다.
 
-    전체 중복 판정이 본문 지문으로 묶을 때만 쓴다. 본문을 한꺼번에 들고 있으면
-    수십 MB 가 되므로 keyset 방식으로 한 덩이씩만 읽고 지문만 남긴다.
+    전체 중복 판정이 본문 지문과 포스터 묶음으로 묶을 때만 쓴다. 본문을 한꺼번에
+    들고 있으면 수십 MB 가 되므로 keyset 방식으로 한 덩이씩만 읽고 열쇠만 남긴다.
+    포스터 열쇠는 상대 주소를 절대 주소로 만들어야 해서 원문 주소가 함께 필요하다.
     """
     after = ""
     while True:
         rows = session.execute(
-            select(m.SourceItem.id, m.SourceItemRevision.body_text)
+            select(
+                m.SourceItem.id,
+                m.SourceItemRevision.body_text,
+                m.SourceItemRevision.body_html,
+                m.SourceItem.canonical_url,
+            )
             .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
             .join(
                 m.NoticeSource,

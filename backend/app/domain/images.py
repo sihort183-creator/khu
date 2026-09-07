@@ -14,7 +14,8 @@ https 인 화면에서 그대로 쓰면 브라우저가 막는다(mixed content)
 from __future__ import annotations
 
 import base64
-from urllib.parse import urljoin, urlsplit
+import re
+from urllib.parse import unquote, urljoin, urlsplit
 
 from lxml import html as lxml_html
 
@@ -76,6 +77,53 @@ def extract_images(
         if len(found) >= MAX_IMAGES:
             break
     return found
+
+
+# 학교 통합 편집기가 그림을 올리는 경로. 마지막 앞 칸의 숫자가 올림 폴더 번호다.
+_CROSS_PATH = re.compile(r"^/upload/cross/images/(\d+)/(.+)$")
+# 편집기가 이름을 새로 지어 붙인 파일. 같은 그림이라도 올릴 때마다 값이 달라진다.
+_CMS_FILENAME = re.compile(r"^\d{17}_[0-9a-z]{8}$")
+# 같은 파일을 다시 올리면 편집기가 뒤에 _1 _2 를 붙인다. 그것만 떼어 낸다.
+_COPY_SUFFIX = re.compile(r"(?:_\d{1,2})+$")
+# 이름이 아니라 자리표시자다. 서로 다른 공지가 같은 값을 쓴다(실측: unnamed 65건, image001 48건).
+_GENERIC_FILENAMES = frozenset({"unnamed", "image", "image001", "image002", "img", "poster", "본문"})
+
+
+def poster_keys(body_html: str | None, *, base_url: str | None = None) -> frozenset[str]:
+    """포스터 그림에서 묶음 열쇠를 뽑는다. 병합 근거가 아니라 보조 신호다.
+
+    두 가지를 따로 낸다. 세기가 다르므로 섞어 쓰면 안 된다.
+
+    - ``bucket:<호스트>/<폴더번호>`` — 올림 폴더 번호. **같은 포스터라는 뜻이 아니다.**
+      실측으로 공지 7,671건이 폴더 462개에 들어가고 한 폴더에 서로 무관한 공지가
+      20~60건씩 섞인다. 번호는 날짜순으로 커진다(000992=1월, 001064=4월, 001152=7월,
+      001198=8월 말). 즉 이것은 "며칠 안에 같은 편집기로 올렸다"는 뜻일 뿐이다.
+      제목이 완전히 같은 다른 출처 짝 6,214개 중 폴더가 같은 것은 2,100개(34%)뿐이다.
+    - ``file:<호스트>/<폴더번호>/<이름>`` — 올린 파일 이름에서 복사본 꼬리(_1, _2)와
+      확장자를 뗀 값. 학과가 같은 첨부를 그대로 다시 올리면 이 값이 같다
+      (실측: 붙임4_학위지도교수_신청_안내문(학사공지) 와 ...(학사공지)_1 이 같은 공지).
+      편집기가 새로 지은 이름과 unnamed·image001 같은 자리표시자는 뺀다.
+
+    두 열쇠 모두 단독으로는 같은 공지라는 증거가 못 된다(9.1절).
+    """
+    keys: set[str] = set()
+    for path in extract_images(body_html, base_url=base_url, proxy_base=""):
+        # extract_images 는 중계 경로를 주므로 원래 주소로 되돌린다.
+        token = path.removeprefix(PROXY_PREFIX)
+        try:
+            url = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4)).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            continue
+        parts = urlsplit(url)
+        matched = _CROSS_PATH.match(unquote(parts.path))
+        if not matched:
+            continue
+        host, folder, filename = parts.hostname or "", matched.group(1), matched.group(2)
+        keys.add(f"bucket:{host}/{folder}")
+        stem = _COPY_SUFFIX.sub("", filename.rsplit(".", 1)[0]).strip().lower()
+        if stem and len(stem) >= 6 and stem not in _GENERIC_FILENAMES and not _CMS_FILENAME.match(stem):
+            keys.add(f"file:{host}/{folder}/{stem}")
+    return frozenset(keys)
 
 
 def poster_image(body_text: str | None, images: list[str]) -> str | None:

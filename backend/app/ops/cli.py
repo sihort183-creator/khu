@@ -541,6 +541,10 @@ def notice_dedupe(args: argparse.Namespace) -> int:
 
     유지 수집의 중복 판정은 가장 최근에 본 몇백 건만 본다. 백필로 한 번에 들어온
     과거 공지는 그 창에 들어오지 못해 판정을 받지 못한 채 남는다. 그것을 메운다.
+
+    본문 지문 묶음과 포스터 묶음을 둘 다 돌린다. 포스터 묶음은 본문 글자가 없어
+    지문이 안 나오는 공지를 검토 대상으로 올릴 뿐이고, 자동 병합은 지문 묶음에서만
+    나온다. 결과의 poster_blocks 는 포스터로 묶인 묶음 수다.
     """
     from app.run.collect import run_dedupe_backfill
 
@@ -666,10 +670,10 @@ def build_parser() -> argparse.ArgumentParser:
     hide.add_argument("--reason", required=True)
     hide.set_defaults(func=notice_hide)
 
-    dedupe = notice.add_parser("dedupe", help="쌓인 전체 공지에 중복 병합을 한 번 적용")
+    dedupe = notice.add_parser("dedupe", help="쌓인 전체 공지에 중복 판정(지문 병합 + 포스터 검토)을 한 번 적용")
     dedupe.add_argument("--reason", default="초기 수집 백필 뒤 일괄 중복 병합")
     dedupe.add_argument("--dry-run", action="store_true", help="저장하지 않고 결과만 센다")
-    dedupe.add_argument("--max-block", type=int, default=400, help="한 지문 묶음의 상한")
+    dedupe.add_argument("--max-block", type=int, default=400, help="한 묶음(지문·포스터)의 상한")
     dedupe.set_defaults(func=notice_dedupe)
 
     export = sub.add_parser("export", help="정적 파일 다시 만들기")

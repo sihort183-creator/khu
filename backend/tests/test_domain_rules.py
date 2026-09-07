@@ -258,3 +258,65 @@ def test_campus_mention_does_not_erase_the_department():
     kinds = {(t.type, t.id) for t in decision.targets}
     assert ("organization", "org-eng") in kinds
     assert any(kind == "campus" for kind, _ in kinds)
+
+
+# ------------------------------------------------- 포스터 묶음(9.1절 보조 신호)
+
+POSTER = frozenset({"bucket:com.khu.ac.kr/001187", "file:com.khu.ac.kr/001187/붙임4_안내문"})
+
+
+def test_shared_poster_never_merges_by_itself():
+    """포스터 묶음만으로는 절대 병합하지 않는다.
+
+    올림 폴더 번호는 같은 포스터라는 뜻이 아니라 편집기의 날짜 칸이다. 실측으로
+    한 폴더에 서로 무관한 공지가 20~60건씩 들어 있다. 제목까지 완전히 같아도
+    본문이라는 뒷받침이 없으므로 검토까지만 간다.
+    """
+    left = _candidate("a", "s1", "2026학년도 2학기 학위지도교수 신청 안내", "", poster_keys=POSTER)
+    right = _candidate("b", "s2", "2026학년도 2학기 학위지도교수 신청 안내", "", poster_keys=POSTER)
+    decision = dd.compare(left, right)
+    assert decision.decision == "review"
+    assert decision.signals["shared_poster_buckets"] == 1
+    assert decision.signals["shared_poster_files"] == 1
+
+
+def test_same_poster_bucket_with_clearly_different_titles_stays_distinct():
+    """같은 폴더에 있어도 제목이 확실히 다르면 묶지 않는다.
+
+    실측: 폴더 001198 한 곳에 '울산연구원 장학생 선발'과 '현대모비스 신입 채용'이
+    함께 들어 있다. 며칠 안에 올라왔다는 것 말고는 공통점이 없다.
+    """
+    left = _candidate("a", "s1", "하반기 울산연구원 장학생 선발 안내", "", poster_keys=POSTER)
+    right = _candidate("b", "s2", "현대모비스 신입 채용 모집", "", poster_keys=POSTER)
+    assert dd.compare(left, right).decision == "distinct"
+
+
+def test_same_poster_bucket_with_slightly_different_titles_is_not_promoted():
+    """제목 문턱은 본문 문턱보다 높다. 0.86~0.95 사이는 포스터 근거로 올리지 않는다."""
+    left = _candidate("a", "s1", "2026학년도 1학기 교내장학 신청 안내", "", poster_keys=POSTER)
+    right = _candidate("b", "s2", "2026학년도 1학기 교내장학 신청 방법", "", poster_keys=POSTER)
+    decision = dd.compare(left, right)
+    assert decision.decision != "merge"
+    assert decision.reason != "포스터 묶음 공유 + 제목 거의 일치"
+
+
+def test_same_poster_bucket_different_year_or_round_does_not_merge():
+    """학년도·회차가 다르면 포스터가 같아도 병합도 포스터 검토도 아니다."""
+    year_left = _candidate("a", "s1", "2025학년도 장학 신청 안내", "", poster_keys=POSTER)
+    year_right = _candidate("b", "s2", "2026학년도 장학 신청 안내", "", poster_keys=POSTER)
+    year = dd.compare(year_left, year_right)
+    assert year.decision != "merge"
+    assert year.signals["marker_conflicts"] == ["year"]
+
+    round_left = _candidate("c", "s1", "모두의 창업 1차 모집 안내", "", poster_keys=POSTER)
+    round_right = _candidate("d", "s2", "모두의 창업 2차 모집 안내", "", poster_keys=POSTER)
+    rounds = dd.compare(round_left, round_right)
+    assert rounds.decision != "merge"
+    assert rounds.signals["marker_conflicts"] == ["round"]
+
+
+def test_poster_signal_does_not_lower_the_body_merge_bar():
+    """포스터가 같다고 본문 조건을 깎지 않는다. 짧은 본문은 여전히 검토다."""
+    left = _candidate("a", "s1", "안내", "붙임 참조", poster_keys=POSTER)
+    right = _candidate("b", "s2", "안내", "붙임 참조", poster_keys=POSTER)
+    assert dd.compare(left, right).decision != "merge"

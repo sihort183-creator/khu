@@ -5,6 +5,8 @@
 - 본문 해시가 같아도 공통 서식만 있는 글은 제외한다.
 - 유사 제목·본문 후보는 자동 병합하지 않고 운영 검토(review)로 보낸다.
 - 첨부·이미지 해시는 보조 신호이며 단독 병합 근거가 아니다.
+- 포스터 묶음(images.poster_keys)도 마찬가지다. 올림 폴더 번호는 같은 포스터라는
+  뜻이 아니라 편집기의 날짜 칸이라는 것이 실측으로 확인됐다. 검토까지만 올린다.
 """
 
 from __future__ import annotations
@@ -21,6 +23,16 @@ MIN_BODY_CHARS_FOR_AUTO_MERGE = 200
 
 # 이 정도 유사하면 검토 대상으로 올린다. 확정 임계값이 아니다(9.1절).
 REVIEW_TITLE_SIMILARITY = 0.86
+
+# 포스터 묶음이 겹칠 때 검토로 올릴 제목 문턱. 본문 문턱(0.5)보다 훨씬 높다.
+#
+# 본문 지문은 내용이 같다는 직접 증거지만 포스터 묶음은 아니다. 올림 폴더 번호는
+# 편집기의 날짜 칸일 뿐이고(폴더 462개에 공지 7,671건, 한 폴더에 무관한 공지 20~60건),
+# 제목이 같은 다른 출처 짝의 34%만 폴더를 공유한다. 그래서 뒷받침이 약한 만큼
+# 제목을 거의 완전히 같은 수준으로 요구한다. 본문이 있는 짝으로 실측했을 때
+# 폴더+제목 0.95 는 86짝 중 2짝이 실제로 다른 공지였다(제목만 쓰면 200짝 중 10짝).
+# 남은 2%를 없앨 방법이 없으므로 이 조합은 병합이 아니라 검토까지만 간다.
+POSTER_REVIEW_TITLE_SIMILARITY = 0.95
 
 # 본문에 이것만 있으면 내용이 아니라 서식이다.
 BOILERPLATE = re.compile(
@@ -100,6 +112,10 @@ class Candidate:
     published_date: object | None = None
     audience_keys: frozenset[str] = frozenset()
     attachment_hashes: frozenset[str] = frozenset()
+    # 본문 포스터에서 뽑은 묶음 열쇠(images.poster_keys). 첨부 해시와 자리를 나눈 이유는
+    # 세기가 다르기 때문이다. 첨부 해시는 파일 내용이 같다는 뜻이지만 포스터 열쇠는
+    # "같은 편집기에 며칠 안에 올렸다" 또는 "같은 이름의 파일을 다시 올렸다"에 그친다.
+    poster_keys: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -153,6 +169,7 @@ def compare(left: Candidate, right: Candidate) -> Decision:
         and not (left.audience_keys & right.audience_keys)
     )
     shared_attachments = sorted(left.attachment_hashes & right.attachment_hashes)
+    shared_posters = sorted(left.poster_keys & right.poster_keys)
 
     signals: dict[str, object] = {
         "title_similarity": round(similarity, 4),
@@ -161,6 +178,10 @@ def compare(left: Candidate, right: Candidate) -> Decision:
         "marker_conflicts": conflicts,
         "audience_conflict": audience_conflict,
         "shared_attachments": len(shared_attachments),
+        # 검토하는 사람이 무엇을 근거로 올라온 짝인지 알아야 한다. 파일 이름이 같은
+        # 쪽(file:)이 폴더만 같은 쪽(bucket:)보다 훨씬 세다.
+        "shared_poster_files": sum(1 for key in shared_posters if key.startswith("file:")),
+        "shared_poster_buckets": sum(1 for key in shared_posters if key.startswith("bucket:")),
     }
 
     if conflicts or audience_conflict:
@@ -177,6 +198,11 @@ def compare(left: Candidate, right: Candidate) -> Decision:
 
     if body_equal and not long_enough:
         return Decision("review", similarity, signals, reason="본문은 같으나 너무 짧음")
+
+    if shared_posters and similarity >= POSTER_REVIEW_TITLE_SIMILARITY:
+        # 포스터 공지는 본문 지문이 없어 자동 병합의 필요 조건을 절대 못 채운다.
+        # 그대로 두면 판정 자체를 못 받으므로 검토로 올린다. 병합은 하지 않는다.
+        return Decision("review", similarity, signals, reason="포스터 묶음 공유 + 제목 거의 일치")
 
     if similarity >= REVIEW_TITLE_SIMILARITY:
         return Decision("review", similarity, signals, reason="제목 유사")

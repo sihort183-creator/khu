@@ -7,6 +7,7 @@ from app.domain.images import (
     extract_images,
     is_allowed_image_host,
     poster_image,
+    poster_keys,
     proxy_path,
 )
 
@@ -84,3 +85,41 @@ def test_relay_base_makes_the_address_absolute():
         proxy_base="https://api.example.com/",
     )
     assert images[0].startswith("https://api.example.com/v1/img/")
+
+
+# ------------------------------------------------------------- 포스터 묶음 열쇠
+
+CROSS = "http://com.khu.ac.kr/upload/cross/images/001187/"
+
+
+def test_poster_keys_separate_upload_bucket_from_file_name():
+    """폴더 번호와 파일 이름은 세기가 다르므로 따로 낸다."""
+    html = f'<img src="{CROSS}%EB%B6%99%EC%9E%844_%EC%95%88%EB%82%B4%EB%AC%B8.png">'
+    keys = poster_keys(html, base_url=BASE)
+    assert "bucket:com.khu.ac.kr/001187" in keys
+    assert "file:com.khu.ac.kr/001187/붙임4_안내문" in keys
+
+
+def test_reuploaded_copy_of_the_same_file_gets_the_same_key():
+    """학과가 같은 첨부를 다시 올리면 편집기가 _1 을 붙인다. 그것은 같은 파일이다."""
+    first = poster_keys(f'<img src="{CROSS}notice_poster.png">', base_url=BASE)
+    second = poster_keys(f'<img src="{CROSS}notice_poster_1.png">', base_url=BASE)
+    assert first & second
+
+
+def test_editor_generated_and_placeholder_names_make_no_file_key():
+    """편집기가 새로 지은 이름과 unnamed 는 서로 다른 공지가 같이 쓴다.
+
+    실측으로 unnamed 가 65건, image001 이 48건이었다. 파일 이름 열쇠로 쓰면 안 된다.
+    """
+    for name in ("20260820091521570_7DEJ8I8D.png", "unnamed.jpg", "image001.jpg"):
+        keys = poster_keys(f'<img src="{CROSS}{name}">', base_url=BASE)
+        assert keys == {"bucket:com.khu.ac.kr/001187"}
+
+
+def test_non_cross_images_and_outside_hosts_make_no_poster_key():
+    assert poster_keys('<img src="https://www.khu.ac.kr/crosseditor/images/emoticon/a.gif">',
+                       base_url=BASE) == frozenset()
+    assert poster_keys('<img src="https://evil.example.com/upload/cross/images/001/x.png">',
+                       base_url=BASE) == frozenset()
+    assert poster_keys(None) == frozenset()

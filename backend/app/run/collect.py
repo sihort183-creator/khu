@@ -33,6 +33,7 @@ from app.domain import audiences as audience_rules
 from app.domain import categories as category_rules
 from app.domain import dates as date_rules
 from app.domain import dedupe as dedupe_rules
+from app.domain.images import poster_keys
 from app.export.static import ExportResult, export_static, refresh_public_status
 from app.ingestion import get_adapter
 from app.ingestion.base import FetchedDetail, ListedItem, ParseError, RestrictedError
@@ -545,6 +546,7 @@ def _to_candidate(item: m.SourceItem, revision: m.SourceItemRevision) -> dedupe_
         title=revision.title,
         body_text=revision.body_text,
         published_date=revision.published_date,
+        poster_keys=poster_keys(revision.body_html, base_url=item.canonical_url),
     )
 
 
@@ -619,45 +621,67 @@ def run_dedupe_backfill(
     전체 짝짓기는 13,700건 기준 9,400만 번 비교라 쓸 수 없다. 자동 병합의 필요 조건은
     본문 지문 일치(compare 의 body_equal)이므로 지문으로 먼저 묶고 같은 지문 안에서만
     비교한다. 지문이 다른 짝은 compare 가 절대 merge 를 내지 않으므로 병합 결과는
-    전체 비교와 같다. 지문이 없는 글(본문이 없거나 서식뿐인 글)은 애초에 자동 병합
-    대상이 아니라 건너뛴다. 제목만 비슷한 review 후보는 이 작업의 몫이 아니다.
+    전체 비교와 같다.
+
+    지문이 없는 글(본문이 없거나 서식뿐인 글)은 자동 병합 대상이 아니지만 그렇다고
+    아무 판정도 못 받으면 곤란하다. 공개 공지 13,707건 중 절반 가까이가 포스터 그림
+    한 장뿐이라 지문 묶음에 아예 들어오지 못한다. 그래서 포스터 묶음(images.poster_keys)
+    으로도 한 번 더 묶어 비교한다. 이 묶음에서 나오는 판정은 review 가 최대다.
+    compare 가 merge 를 내려면 여전히 본문 지문이 같아야 하고, 그런 짝은 이미 지문
+    묶음에 들어 있으므로 **이 추가 묶음이 병합을 새로 만들지는 않는다.**
     """
     blocks: dict[str, list[str]] = {}
+    poster_blocks: dict[str, list[str]] = {}
     scanned = 0
-    for item_id, body_text in repo.iter_item_bodies_for_dedupe(session, chunk=chunk):
+    for item_id, body_text, body_html, canonical_url in repo.iter_item_bodies_for_dedupe(
+        session, chunk=chunk
+    ):
         scanned += 1
         fingerprint = dedupe_rules.body_fingerprint(body_text)
-        if fingerprint is None:
-            continue
-        blocks.setdefault(fingerprint, []).append(item_id)
+        if fingerprint is not None:
+            blocks.setdefault(fingerprint, []).append(item_id)
+        for key in poster_keys(body_html, base_url=canonical_url):
+            poster_blocks.setdefault(key, []).append(item_id)
 
     router = _MergeRouter()
     recorded = merged = compared = blocked = 0
-    for fingerprint, item_ids in blocks.items():
+    # 지문 묶음을 먼저 돌린다. 병합은 여기서만 나오고, 포스터 묶음은 그 결과 위에서
+    # 남은 짝만 검토로 올린다. 순서를 바꾸면 이미 합쳐진 짝을 다시 검토로 쌓는다.
+    seen_pairs: set[tuple[str, str]] = set()
+    for block_key, item_ids in list(blocks.items()) + list(poster_blocks.items()):
         if len(item_ids) < 2:
             continue
         if len(item_ids) > max_block:
             # 같은 서식을 그대로 쓰는 게시판이 있으면 한 묶음이 지나치게 커질 수 있다.
             # 그런 묶음은 자동으로 다루지 않고 운영이 따로 본다.
             blocked += 1
-            log.warning("중복 묶음이 너무 큽니다(%d건) 지문=%s", len(item_ids), fingerprint[:12])
+            log.warning("중복 묶음이 너무 큽니다(%d건) 열쇠=%s", len(item_ids), block_key[:24])
             continue
         rows = repo.items_for_dedupe(session, item_ids)
         candidates = [(_to_candidate(item, revision), notice) for item, revision, notice in rows]
 
         def pairs(candidates=candidates):
+            # 한 원본이 지문 묶음과 포스터 묶음 여러 곳에 동시에 들어간다. 같은 짝을
+            # 두 번 판정하면 결과는 같지만 헛일이므로 한 번만 본다.
+            nonlocal compared
             for index, (left, left_notice) in enumerate(candidates):
                 for right, right_notice in candidates[index + 1 :]:
+                    key = (left.item_id, right.item_id) if left.item_id < right.item_id else (
+                        right.item_id, left.item_id
+                    )
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+                    compared += 1
                     yield left, left_notice, right, right_notice
 
-        pair_count = len(candidates) * (len(candidates) - 1) // 2
-        compared += pair_count
         block_recorded, block_merged = _judge_pairs(session, pairs(), router=router)
         recorded += block_recorded
         merged += block_merged
     return {
         "scanned": scanned,
         "blocks": sum(1 for ids_ in blocks.values() if len(ids_) > 1),
+        "poster_blocks": sum(1 for ids_ in poster_blocks.values() if len(ids_) > 1),
         "oversized_blocks": blocked,
         "compared": compared,
         "recorded": recorded,
