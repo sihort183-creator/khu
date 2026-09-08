@@ -6,6 +6,7 @@ import { useCatalog } from "@/lib/queries";
 import { campusOptions } from "@/lib/campus";
 import { IconSearch, IconUser } from "./icons";
 import { FEATURES } from "@/lib/features";
+import { ThemeButton } from "./ThemeToggle";
 
 // 2026-09-08 사용자 지시: "전체 공지를 기본으로, 가장 좌측으로 밀고." 그래서 전체 공지가
 // '/'(첫 화면)이고 맨 왼쪽이다. 공지 상세(/notices/...)는 어느 탭에서 들어가든 같은 글이라
@@ -64,6 +65,8 @@ export function Header() {
         <button className="relative grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 hover:bg-bg" title="검색" aria-label="공지 검색" onClick={() => router.push("/?focus=q")}>
           <IconSearch width={19} height={19} />
         </button>
+        {/* 넓은 화면에서는 오른쪽 "내 설정" 상자에 같은 단추가 있다. 좁은 화면에만 둔다. */}
+        <span className="contents lg:hidden"><ThemeButton /></span>
         <button className="relative grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 hover:bg-bg" title="내 학과 설정" aria-label="내 학과 설정" onClick={() => update({ onboarded: false })}>
           <IconUser width={19} height={19} />
         </button>

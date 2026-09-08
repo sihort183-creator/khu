@@ -52,7 +52,6 @@ function Contacts() {
           <ContactCard key={ct.id} contact={ct} highlight={ct.id === focus} />
         ))}
       </div>
-      <p className="mt-3 text-xs text-gray">각 기관 홈페이지에 공개된 연락처를 모은 것입니다. 표시된 값의 근거와 확인 시각은 카드에 있습니다. 변경된 정보는 제보해 주세요.</p>
     </Shell>
   );
 }

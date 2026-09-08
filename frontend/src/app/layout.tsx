@@ -4,7 +4,6 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Onboarding } from "@/components/Onboarding";
 import { BackToTop } from "@/components/BackToTop";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { THEME_SCRIPT } from "@/lib/theme";
 
 const noto = Noto_Sans_KR({
@@ -34,9 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <p className="text-xs text-gray-2">
             경희공지는 학생이 만든 비공식 서비스입니다. 공지가 올라오기까지 최대 3시간 지연되거나 누락될 수 있으니 중요한 공지는 원문에서 확인하세요. 공지 원문과 저작권은 각 게시 기관에 있습니다.
           </p>
-          <div className="mt-2.5">
-            <ThemeToggle />
-          </div>
         </footer>
         <Onboarding />
         <BackToTop />

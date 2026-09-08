@@ -971,16 +971,32 @@ export async function listSources(params: { campus_id?: string; q?: string } = {
 export async function listContacts(params: { campus_id?: string; q?: string; organization_id?: string[] } = {}): Promise<ListResponse<Contact>> {
   if (!useMock) {
     const pointer = await staticLatest();
-    const all: Contact[] = [];
-    let pageNumber = 1;
-    let firstPage: ListResponse<Contact> | null = null;
-    while (true) {
-      const page = await staticGet<ListResponse<Contact>>(`contacts/page/${pageNumber}.json`, pointer);
+    // 연락처는 983건이 50건씩 20장이다. 한 장씩 차례로 받으면 요청 왕복 20번이 줄을 서서
+    // 10초를 넘겼다(2026-09-08 실측). 첫 장을 받아 장 크기를 알고 나면 나머지는 한꺼번에 받는다.
+    // 전체 건수는 latest.json 의 contacts_total 이 준다.
+    const fetchPage = async (n: number) => {
+      const page = await staticGet<ListResponse<Contact>>(`contacts/page/${n}.json`, pointer);
       if (page.page.dataset_revision !== pointer.revision) throw feedChanged();
-      firstPage ??= page;
-      all.push(...page.data);
-      if (!page.page.has_next) break;
-      pageNumber += 1;
+      return page;
+    };
+    const firstPage = await fetchPage(1);
+    const all: Contact[] = [...firstPage.data];
+    if (firstPage.page.has_next && firstPage.data.length > 0) {
+      const total = Number(pointer.contacts_total) || 0;
+      const pages = total > 0 ? Math.ceil(total / firstPage.data.length) : 0;
+      if (pages > 1) {
+        const rest = await Promise.all(Array.from({ length: pages - 1 }, (_, i) => fetchPage(i + 2)));
+        for (const page of rest) all.push(...page.data);
+      } else {
+        // 건수를 모르면 예전처럼 한 장씩 따라간다.
+        let n = 2;
+        let page = firstPage;
+        while (page.page.has_next) {
+          page = await fetchPage(n);
+          all.push(...page.data);
+          n += 1;
+        }
+      }
     }
     const data = all.filter((contact) =>
       (!params.campus_id || contact.campuses.some((campus) => campus.id === params.campus_id))
