@@ -50,15 +50,32 @@ export default function NoticePage() {
 
       {n && (
         <Box>
-          <div className="flex items-center border-b border-line-2 px-3.5 py-2.5 text-[13px] text-gray">
+          {/* 원문 보기는 본문 아래에도 있지만, 본문이 있는 공지는 거기까지 1,000px 넘게
+              내려야 한다(2026-09-08 모바일 실측 977~1205px). 그래서 이 줄 오른쪽에 하나 더
+              둔다. 주소는 아래 큰 단추와 같은 n.original_url — 대표 출처의 원문이다.
+              줄 높이를 min-h-11 로 잡아 링크의 누르는 자리 44px 이 잘리지 않게 한다. */}
+          <div className="flex min-h-11 items-center border-b border-line-2 px-3.5 py-2 text-[13px] text-gray">
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <MediumIcon code={n.primary_source.medium.code} width={13} height={13} />
               <span className="truncate">{n.primary_source.name}</span>
             </span>
             <span className="ml-auto inline-flex flex-none items-center gap-1 text-xs">
               <span className={`h-1.5 w-1.5 rounded-full ${n.freshness.code === "fresh" ? "bg-ok" : "bg-warn"}`} />
-              {n.freshness.label} · {relativeTime(n.freshness.last_checked_at)}
+              {/* 375px 에서는 이 줄에 게시판 이름·확인 상태·원문 링크가 함께 선다. 셋을 다
+                  적으면 게시판 이름이 "건축공학과 학…"으로 잘린다. 상태 글자("최근 확인됨")는
+                  왼쪽 점 색이 이미 말해 주므로 좁은 화면에서만 접고 시각은 남긴다. */}
+              <span className="hidden sm:inline">{n.freshness.label} · </span>
+              {relativeTime(n.freshness.last_checked_at)}
             </span>
+            <a
+              href={n.original_url}
+              target="_blank"
+              rel="noreferrer"
+              className="relative ml-2.5 inline-flex flex-none items-center gap-1 text-xs font-medium text-navy before:absolute before:inset-x-[-8px] before:top-1/2 before:h-11 before:-translate-y-1/2 hover:underline"
+            >
+              원문 보기
+              <IconExternal width={11} height={11} />
+            </a>
           </div>
 
           <article className="px-[18px] py-4">
