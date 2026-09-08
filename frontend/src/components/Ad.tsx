@@ -1,5 +1,9 @@
 // 광고 슬롯. 초기에는 자체 배너 1개만 두고 네트워크 연동은 뒤로 미룬다.
+import { FEATURES } from "@/lib/features";
+
 export function Ad({ vertical = false }: { vertical?: boolean }) {
+  // 광고 자리는 스위치가 꺼져 있으면 아무것도 그리지 않는다(코드는 남긴다).
+  if (!FEATURES.ads) return null;
   return (
     <div
       className={`flex gap-3 border-line-2 bg-cream px-4 py-2.5 text-[13px] ${

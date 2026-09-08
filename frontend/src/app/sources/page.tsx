@@ -13,7 +13,9 @@
 // 화면이 쓰는 값은 status.code 와 last_success_at 둘뿐이고, 둘 다 공개 파일에 있다
 // (2026-09-08 실측: 게시판 514개 = active 451 · pending 47 · retired 16,
 //  active 451개 전부 last_success_at 이 있고 pending 은 하나도 없다).
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FEATURES } from "@/lib/features";
 import type { Source } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useSources } from "@/lib/queries";
@@ -41,7 +43,17 @@ function stateLine(s: Source): { text: string; tone: string } {
   }
 }
 
+// 출처 탭이 꺼져 있으면 이 화면은 첫 화면으로 넘긴다. 코드는 그대로 남긴다.
 export default function SourcesPage() {
+  const router = useRouter();
+  useEffect(() => {
+    if (!FEATURES.sourcesTab) router.replace("/");
+  }, [router]);
+  if (!FEATURES.sourcesTab) return null;
+  return <SourcesPageInner />;
+}
+
+function SourcesPageInner() {
   const { settings, toggleSource } = useSettings();
   const { sources, loading } = useSources(settings.campus_id);
   const [q, setQ] = useState("");

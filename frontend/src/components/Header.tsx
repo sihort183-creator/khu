@@ -5,6 +5,7 @@ import { useSettings } from "@/lib/settings";
 import { useCatalog } from "@/lib/queries";
 import { campusOptions } from "@/lib/campus";
 import { IconSearch, IconUser } from "./icons";
+import { FEATURES } from "@/lib/features";
 
 // 2026-09-08 사용자 지시: "전체 공지를 기본으로, 가장 좌측으로 밀고." 그래서 전체 공지가
 // '/'(첫 화면)이고 맨 왼쪽이다. 공지 상세(/notices/...)는 어느 탭에서 들어가든 같은 글이라
@@ -14,7 +15,8 @@ const TABS = [
   { href: "/mine", label: "내 공지" },
   { href: "/sources", label: "출처" },
   { href: "/contacts", label: "연락처" },
-];
+  // 출처 탭은 기능 스위치가 꺼져 있으면 그리지 않는다(코드는 남긴다).
+].filter((tab) => tab.href !== "/sources" || FEATURES.sourcesTab);
 
 export function Header() {
   const pathname = usePathname();
