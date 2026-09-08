@@ -5,6 +5,9 @@ name = "khu-notice-api"
 main = "src/index.js"
 compatibility_date = "2026-06-01"
 workers_dev = true
+# 대시보드에서 넣은 변수·비밀값을 배포가 지우지 않게 한다. 2026-09-08 12:51 배포가
+# 사용자가 넣은 KHU_GITHUB_TOKEN 을 지워 버렸다.
+keep_vars = true
 
 # 산 도메인(경희공지.info, punycode xn--289a5d743g7dm.info). Cloudflare 가 DNS 와 인증서를 스스로 만든다.
 # workers.dev 주소도 그대로 둔다.
