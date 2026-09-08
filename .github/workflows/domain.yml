@@ -37,6 +37,8 @@ jobs:
               --data "{\"name\":\"$DOMAIN\",\"account\":{\"id\":\"$CLOUDFLARE_ACCOUNT_ID\"},\"type\":\"full\"}")
             sel='.result'
           fi
+          echo "조회 응답: $(echo "$existing" | jq -c '{success, errors}')"
+          echo "등록 응답: $(echo "$zone" | jq -c '{success, errors, status: .result.status}')"
           ok=$(echo "$zone" | jq -r '.success')
           if [ "$ok" != "true" ]; then
             {
