@@ -1,0 +1,57 @@
+name: 도메인 등록
+
+# 산 도메인을 Cloudflare 계정에 등록하고, 판매처에 넣을 네임서버 2개를 요약에 적는다.
+# 배포용 토큰(CLOUDFLARE_API_TOKEN)에 Zone 권한이 없으면 실패하고 그 사실을 요약에 남긴다.
+# 이미 등록된 도메인이면 네임서버만 다시 적는다. 지우는 동작은 없다.
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: "등록할 도메인 (한글이면 punycode 로 바꿔 넣는다)"
+        required: true
+        default: "xn--289a5d743g7dm.info"
+
+permissions:
+  contents: read
+
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.KHU_R2_ACCOUNT_ID }}
+      DOMAIN: ${{ inputs.domain }}
+    steps:
+      - name: 등록 또는 조회
+        run: |
+          set -uo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json")
+          existing=$(curl -s "${auth[@]}" "$api/zones?name=$DOMAIN&account.id=$CLOUDFLARE_ACCOUNT_ID")
+          if [ "$(echo "$existing" | jq -r '.result | length')" = "1" ]; then
+            zone="$existing"; sel='.result[0]'
+            echo "이미 등록된 도메인입니다." >> "$GITHUB_STEP_SUMMARY"
+          else
+            zone=$(curl -s "${auth[@]}" -X POST "$api/zones" \
+              --data "{\"name\":\"$DOMAIN\",\"account\":{\"id\":\"$CLOUDFLARE_ACCOUNT_ID\"},\"type\":\"full\"}")
+            sel='.result'
+          fi
+          ok=$(echo "$zone" | jq -r '.success')
+          if [ "$ok" != "true" ]; then
+            {
+              echo "### 등록 실패"
+              echo '```'
+              echo "$zone" | jq -r '.errors[] | "\(.code) \(.message)"'
+              echo '```'
+              echo "배포용 토큰에 Zone 권한이 없으면 여기서 막힙니다. 대시보드에서 Domains → Add a domain 으로 등록해야 합니다."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          {
+            echo "### $DOMAIN"
+            echo "- 상태: $(echo "$zone" | jq -r "$sel.status")"
+            echo "- 판매처(호스팅kr)에 넣을 네임서버:"
+            echo "$zone" | jq -r "$sel.name_servers[]" | sed 's/^/  - `/; s/$/`/'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "$zone" | jq -r "$sel.name_servers[]"
