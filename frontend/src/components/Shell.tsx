@@ -4,12 +4,11 @@
 // 선택기를 본문 맨 위에 접힌 상자로 한 번 더 둔다(둘은 같은 저장값을 본다).
 import { useState } from "react";
 import type { Coded } from "@/lib/types";
-import { useOrganizationSelection, useSettings } from "@/lib/settings";
+import { useOrganizationSelection } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
-import { campusShortLabel } from "@/lib/campus";
 import { categoryStyle } from "@/lib/category";
 import { Ad } from "./Ad";
-import { ThemeSegments } from "./ThemeToggle";
+import { MySettingsBody } from "./MySettings";
 import { IconChevron } from "./icons";
 import { OrganizationPicker, organizationScopeLabel } from "./OrganizationPicker";
 
@@ -22,13 +21,11 @@ interface Props {
 }
 
 export function Shell({ children, categories, orgPicker }: Props) {
-  const { settings, update } = useSettings();
   const catalog = useCatalog();
   const orgs = useOrganizations();
   const org = useOrganizationSelection(orgs);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const campus = campusShortLabel(catalog?.campuses, settings.campus_id);
   const scope = organizationScopeLabel(orgs, org.selected);
 
   return (
@@ -78,20 +75,9 @@ export function Shell({ children, categories, orgPicker }: Props) {
       </main>
 
       <aside className="hidden lg:sticky lg:top-[112px] lg:block lg:self-start">
+        {/* 알맹이는 헤더의 사람 아이콘 패널과 한 벌을 쓴다(MySettings.tsx) */}
         <Box title="내 설정">
-          <div className="px-3.5 py-3 text-[13px]">
-            <dl className="grid grid-cols-[56px_1fr] gap-y-1">
-              <dt className="text-gray">캠퍼스</dt>
-              <dd className="font-medium">{campus || "-"}</dd>
-              <dt className="text-gray">조직</dt>
-              <dd className="break-keep font-medium">{scope}</dd>
-              <dt className="self-center text-gray">화면</dt>
-              <dd className="flex items-center"><ThemeSegments /></dd>
-            </dl>
-            <button onClick={() => update({ onboarded: false })} className="mt-2.5 w-full rounded-lg border border-line bg-card py-1.5 text-[13px] text-ink-2 hover:border-gray">
-              소속 다시 고르기
-            </button>
-          </div>
+          <MySettingsBody />
         </Box>
         <div className="mt-3">
           <Ad vertical />

@@ -44,16 +44,10 @@ function AllFeed() {
   // replaceState 로 같은 자리를 고쳐 쓴다 — 새 기록을 쌓지 않으므로 뒤로 가기는 검색을
   // 시작하기 전 화면으로 한 번에 간다.
   const q = (params.get("q") ?? "").trim().slice(0, 100);
-  // '지우기'를 눌러 검색어가 없어져도 상자는 열어 둔다. 다시 치려고 지운 것이기 때문이다.
-  const [reopened, setReopened] = useState(false);
   const qRef = useRef<HTMLInputElement>(null);
 
-  // 375px 에서 검색 상자는 40px + 여백 10px 을 늘 먹는데, 첫 화면에서 검색하는 사람은
-  // 드물다. 그래서 모바일에서는 접어 두고 헤더 돋보기(?focus=q)로만 편다. 검색어가
-  // 있으면(주소로 들어왔든 방금 쳤든) 편 채로 둔다 — 무엇이 걸러졌는지 안 보이면 안 된다.
-  // 상태로 두지 않고 주소에서 바로 끌어낸다. 그래야 돋보기를 누른 그 그림에서 이미
-  // 펼쳐져 있어 아래 focus() 가 먹는다(접혀 있으면 display:none 이라 초점이 안 간다).
-  const searchOpen = reopened || !!q || params.get("focus") === "q";
+  // 검색 상자는 늘 보인다(2026-09-08 사용자 결정: 헤더 돋보기를 빼고 상자는 그대로).
+  // ?focus=q 는 옛 링크 호환으로 초점만 준다.
 
   useEffect(() => {
     if (params.get("focus") === "q") qRef.current?.focus();
@@ -96,7 +90,7 @@ function AllFeed() {
           e.preventDefault();
           search((qRef.current?.value ?? "").trim().slice(0, 100));
         }}
-        className={`mb-2.5 items-center gap-2 rounded-[10px] border border-line bg-card px-[13px] py-[9px] focus-within:border-navy ${searchOpen ? "flex" : "hidden lg:flex"}`}
+        className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-card px-[13px] py-[9px] focus-within:border-navy"
       >
         <IconSearch className="text-gray" width={15} height={15} />
         {/* 값을 React 상태로 붙들지 않는다. key 를 주소의 검색어로 두어, 뒤로 가기로 주소가
@@ -105,10 +99,7 @@ function AllFeed() {
         {q && (
           <button
             type="button"
-            onClick={() => {
-              setReopened(true);
-              search("");
-            }}
+            onClick={() => search("")}
             className="shrink-0 text-xs text-gray"
           >
             지우기

@@ -1,12 +1,11 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSettings } from "@/lib/settings";
 import { useCatalog } from "@/lib/queries";
 import { campusOptions } from "@/lib/campus";
-import { IconSearch, IconUser } from "./icons";
 import { FEATURES } from "@/lib/features";
-import { ThemeButton } from "./ThemeToggle";
+import { SettingsMenu } from "./SettingsMenu";
 
 // 2026-09-08 사용자 지시: "전체 공지를 기본으로, 가장 좌측으로 밀고." 그래서 전체 공지가
 // '/'(첫 화면)이고 맨 왼쪽이다. 공지 상세(/notices/...)는 어느 탭에서 들어가든 같은 글이라
@@ -21,7 +20,6 @@ const TABS = [
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const { settings, update } = useSettings();
   // 목록을 받기 전에 '공통' 하나만 뜨는 어색한 순간을 막는다(예전에도 받기 전엔 토글이 없었다).
   const catalogCampuses = useCatalog()?.campuses;
@@ -60,16 +58,9 @@ export function Header() {
             );
           })}
         </div>
-        {/* 아이콘 상자는 34px 이라 손가락에 좁다. 모양은 그대로 두고 before: 로 누르는 자리만
-            44×44 로 넓힌다. 좌우 여백이 12px 이라 서로 겹치지 않는다. */}
-        <button className="relative grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 hover:bg-bg" title="검색" aria-label="공지 검색" onClick={() => router.push("/?focus=q")}>
-          <IconSearch width={19} height={19} />
-        </button>
-        {/* 넓은 화면에서는 오른쪽 "내 설정" 상자에 같은 단추가 있다. 좁은 화면에만 둔다. */}
-        <span className="contents lg:hidden"><ThemeButton /></span>
-        <button className="relative grid h-[34px] w-[34px] shrink-0 place-items-center rounded-lg text-ink-2 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 hover:bg-bg" title="내 학과 설정" aria-label="내 학과 설정" onClick={() => update({ onboarded: false })}>
-          <IconUser width={19} height={19} />
-        </button>
+        {/* 돋보기는 뺐다(2026-09-08 사용자 결정). 검색 상자는 목록 위에 늘 보인다. */}
+        {/* 달 단추는 뺐다. 화면 밝기는 사람 아이콘 패널 안 '화면'(해|달|기기)에서 고른다. */}
+        <SettingsMenu />
       </div>
       <nav className="border-t border-line-2">
         <div className="no-scrollbar mx-auto flex max-w-[1180px] overflow-x-auto px-2">
