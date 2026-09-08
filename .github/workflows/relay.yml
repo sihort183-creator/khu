@@ -1,0 +1,52 @@
+name: 다음 회차 예약
+
+# GitHub 예약(cron)이 몇 시간씩 빠지는 일이 잦다(2026-09-07~08 실측). 수집 회차가 끝나면
+# 이 작업이 다음 정시 17분까지 기다렸다가 스스로 다음 회차를 띄운다. 사람 토큰이 필요 없고
+# (github.token 으로 workflow_dispatch 가 된다), 공개 저장소라 기다리는 시간도 무료다.
+#
+# 겹침 방지: 띄우기 직전에 돌고 있거나 줄 서 있는 회차가 있으면 건너뛴다. 예약이 정상으로
+# 오는 시각이면 그쪽이 먼저 떠 있으므로 두 번 돌지 않는다. 이 작업 자체는 하나만 남긴다
+# (cancel-in-progress). 사슬이 끊기면(이 작업이 실패) 예약이나 수집 감시가 다시 잇는다.
+on:
+  workflow_run:
+    workflows: ["공지 수집"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: khu-relay
+  cancel-in-progress: true
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: 다음 정시 17분까지 기다린다
+        run: |
+          now=$(date -u +%s)
+          # 이번 시각의 17분. 이미 지났으면 다음 시각의 17분. 최소 3분은 둔다(공개 파일 마무리 여유).
+          target=$(( now - now % 3600 + 17*60 ))
+          if [ $(( target - now )) -lt 180 ]; then target=$(( target + 3600 )); fi
+          wait=$(( target - now ))
+          echo "기다림 $((wait/60))분 → $(date -u -d @$target +%H:%M)Z ($(TZ=Asia/Seoul date -d @$target +%H:%M) KST)"
+          sleep "$wait"
+
+      - name: 돌고 있는 회차가 없으면 띄운다
+        run: |
+          busy=$(gh run list --workflow=collect.yml --status in_progress --limit 1 --json databaseId -q 'length')
+          queued=$(gh run list --workflow=collect.yml --status queued --limit 1 --json databaseId -q 'length')
+          pending=$(gh run list --workflow=collect.yml --status pending --limit 1 --json databaseId -q 'length')
+          if [ "$busy" != "0" ] || [ "$queued" != "0" ] || [ "$pending" != "0" ]; then
+            echo "이미 회차가 있어 띄우지 않습니다 (진행 $busy · 대기 $queued · 보류 $pending)" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh workflow run collect.yml --ref main
+          echo "다음 회차를 띄웠습니다 ($(TZ=Asia/Seoul date +%H:%M) KST)" | tee -a "$GITHUB_STEP_SUMMARY"
