@@ -93,7 +93,7 @@ function AllFeed() {
         )}
       </div>
 
-      {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.toggle} />}
+      {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.choose} />}
       <NoticeList notices={feed.items} label={label} loading={feed.loading} error={feed.error} hasNext={feed.hasNext} onMore={feed.more} onRetry={feed.retry} />
     </Shell>
   );

@@ -29,6 +29,23 @@ export function useCategorySelection(allCodes: readonly string[] = []) {
       return next;
     });
   }, []);
+  /**
+   * 위쪽 칩용. 칩은 "이것만 보기"다. 전체 상태에서 하나를 누르면 그것만 남고,
+   * 이미 고른 것을 다시 누르면 빠지며, 마지막 하나가 빠지면 전체로 돌아간다.
+   * (왼쪽 체크박스의 toggle 은 "이것만 빼기"라 전체 상태에서 반대로 움직인다.)
+   */
+  const choose = useCallback((code: string | null) => {
+    setSelected((prev) => {
+      if (code === null) return new Set();
+      if (prev.size === 0) return new Set([code]);
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      const everything = all.current;
+      if (everything.length > 0 && everything.every((c) => next.has(c))) return new Set();
+      return next;
+    });
+  }, []);
   const codes = useMemo(() => [...selected].sort(), [selected]);
-  return { selected, toggle, codes };
+  return { selected, toggle, choose, codes };
 }

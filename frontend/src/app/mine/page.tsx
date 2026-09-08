@@ -43,7 +43,7 @@ export default function MyFeedPage() {
 
   return (
     <Shell categories={{ selected: cats.selected, toggle: cats.toggle }} orgPicker>
-      {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.toggle} />}
+      {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.choose} />}
       <NoticeList notices={feed.items} label={label} loading={!ready || feed.loading} error={feed.error} hasNext={feed.hasNext} onMore={feed.more} onRetry={feed.retry} />
     </Shell>
   );
