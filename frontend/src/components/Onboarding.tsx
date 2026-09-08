@@ -101,7 +101,7 @@ function OnboardingDialog() {
   const titles = ["캠퍼스를 선택하세요", "단과대·대학원을 선택하세요", "학과·전공을 선택하세요"];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-auto border-t-4 border-red bg-white" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+    <div className="fixed inset-0 z-50 overflow-auto border-t-4 border-red bg-card" role="dialog" aria-modal="true" aria-labelledby="onb-title">
       <div className="mx-auto max-w-[440px] px-6 py-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="https://www.khu.ac.kr/upload/cross/images/000001/imgSub0401.jpg" alt="경희대학교" className="mb-6 h-11" />
@@ -140,7 +140,7 @@ function OnboardingDialog() {
           ))}
 
         {loaded && step > 0 && (
-          <div className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-white px-[13px] py-[11px] focus-within:border-navy">
+          <div className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-card px-[13px] py-[11px] focus-within:border-navy">
             <IconSearch className="shrink-0 text-gray" width={15} height={15} />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름으로 찾기" aria-label="조직 검색" className="w-full min-w-0 bg-transparent text-sm outline-none" />
           </div>
@@ -193,7 +193,7 @@ function OnboardingDialog() {
 
 function Opt({ children, sub, onClick }: { children: React.ReactNode; sub?: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="mb-2 flex w-full items-center gap-2 rounded-[10px] border border-line bg-white px-4 py-[13px] text-left text-[15px] transition-colors hover:border-red hover:bg-[#FFFBFB]">
+    <button onClick={onClick} className="mb-2 flex w-full items-center gap-2 rounded-[10px] border border-line bg-card px-4 py-[13px] text-left text-[15px] transition-colors hover:border-red hover:bg-tint-red-3">
       <span className="min-w-0 flex-1 break-keep">{children}</span>
       {sub && <small className="shrink-0 text-xs text-gray-2">{sub}</small>}
     </button>

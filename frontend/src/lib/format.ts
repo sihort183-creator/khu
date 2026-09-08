@@ -41,6 +41,26 @@ export function relativeTime(iso: string | null, now = Date.now()): string {
   return `${d}일 전`;
 }
 
+/**
+ * 게시판을 마지막으로 확인한 시각. "어제 14:20 확인" 꼴이다.
+ *
+ * 출처 화면에서 학생이 알고 싶은 것은 "이 게시판이 지금 살아 있나"뿐이다. 운영 용어
+ * (수집·백필·범위) 대신 사람이 읽는 시각 한 줄만 보여 준다. 값이 없으면 아직 한 번도
+ * 못 본 게시판이다.
+ */
+export function lastCheckedLabel(iso: string | null, now = new Date()): string {
+  if (!iso) return "아직 확인 전";
+  const t = new Date(iso);
+  if (Number.isNaN(t.getTime())) return "아직 확인 전";
+  const hm = `${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`;
+  const day = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff = Math.round((day(now) - day(t)) / 86400000);
+  if (diff <= 0) return `오늘 ${hm} 확인`;
+  if (diff === 1) return `어제 ${hm} 확인`;
+  const md = `${String(t.getMonth() + 1).padStart(2, "0")}.${String(t.getDate()).padStart(2, "0")}`;
+  return `${md} ${hm} 확인`;
+}
+
 export function fileSize(bytes: number | null): string {
   if (bytes == null) return "";
   if (bytes < 1024) return `${bytes}B`;

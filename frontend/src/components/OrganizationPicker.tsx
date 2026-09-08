@@ -326,7 +326,7 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
               const boards = node.activeSourceCount;
               return (
                 <li key={node.key}>
-                  <div className={`flex items-center ${padX} ${rowMin} ${dense ? "py-1" : "py-1.5"} ${on ? "bg-[#FBF0F0]" : "hover:bg-bg"}`}>
+                  <div className={`flex items-center ${padX} ${rowMin} ${dense ? "py-1" : "py-1.5"} ${on ? "bg-tint-red-2" : "hover:bg-bg"}`}>
                     <span aria-hidden className="shrink-0" style={{ width: indent }} />
                     {twistBtn}
                     <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 self-stretch py-0.5">

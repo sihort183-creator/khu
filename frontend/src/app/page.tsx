@@ -66,7 +66,7 @@ function AllFeed() {
           e.preventDefault();
           setQ(qInput.trim().slice(0, 100));
         }}
-        className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-white px-[13px] py-[9px] focus-within:border-navy"
+        className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-card px-[13px] py-[9px] focus-within:border-navy"
       >
         <IconSearch className="text-gray" width={15} height={15} />
         <input ref={qRef} value={qInput} onChange={(e) => setQInput(e.target.value)} placeholder="제목·본문·기관명 검색" className="min-w-0 flex-1 bg-transparent text-sm outline-none" maxLength={100} aria-label="공지 검색" />
@@ -87,7 +87,7 @@ function AllFeed() {
       <div className="no-scrollbar mb-0.5 flex gap-1.5 overflow-x-auto pb-2">
         <Select value={medium} onChange={setMedium} placeholder="출처 유형" options={(catalog?.media ?? []).map((m) => [m.code, m.label])} />
         {org.ids.length > 0 && (
-          <button type="button" onClick={org.clear} className="flex-none rounded-lg border border-line bg-white px-[11px] py-1.5 text-[13px] text-ink-2 hover:border-gray-2">
+          <button type="button" onClick={org.clear} className="flex-none rounded-lg border border-line bg-card px-[11px] py-1.5 text-[13px] text-ink-2 hover:border-gray-2">
             조직 {org.ids.length}곳 해제
           </button>
         )}
@@ -102,7 +102,7 @@ function AllFeed() {
 function Select({ value, onChange, placeholder, options, disabled }: { value: string; onChange: (v: string) => void; placeholder: string; options: [string, string][]; disabled?: boolean }) {
   const on = !!value;
   return (
-    <label className={`relative inline-flex flex-none items-center rounded-lg border bg-white text-[13px] ${on ? "border-navy font-medium text-navy" : "border-line text-ink-2"} ${disabled ? "opacity-50" : ""}`}>
+    <label className={`relative inline-flex flex-none items-center rounded-lg border bg-card text-[13px] ${on ? "border-navy font-medium text-navy" : "border-line text-ink-2"} ${disabled ? "opacity-50" : ""}`}>
       <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} aria-label={placeholder} className="appearance-none bg-transparent py-1.5 pl-[11px] pr-7 outline-none">
         <option value="">{placeholder}</option>
         {options.map(([v, l]) => (

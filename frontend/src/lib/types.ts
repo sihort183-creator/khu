@@ -189,7 +189,12 @@ export interface Source {
   url: string | null;
   status: Coded; // active | delayed | blocked | pending | paused | retired
   status_message: string | null;
+  /** 이 게시판을 마지막으로 성공적으로 확인한 시각. 출처 화면이 "어제 14:20 확인"으로 적는다. */
   last_success_at: string | null;
+  /**
+   * 아래 초기 범위·백필 값은 운영용이다. 공개 파일에는 그대로 있지만 화면에는 쓰지 않는다
+   * (2026-09-08 결정: 학생은 "초기 수집 전"·"전체 확인"이 무슨 말인지 알 수 없다).
+   */
   initial_window_days: number | null;
   initial_window_start?: string | null;
   backfill_status?: string | null;

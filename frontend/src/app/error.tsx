@@ -6,7 +6,7 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
       <b className="mb-1 block text-[15px] text-ink">화면을 그리는 중 문제가 생겼습니다</b>
       잠시 후 다시 시도해 주세요.
       <div className="mt-4">
-        <button onClick={reset} className="rounded-lg border border-line bg-white px-4 py-2 text-ink-2 hover:bg-bg">
+        <button onClick={reset} className="rounded-lg border border-line bg-card px-4 py-2 text-ink-2 hover:bg-bg">
           다시 시도
         </button>
       </div>

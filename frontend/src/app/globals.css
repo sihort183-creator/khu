@@ -1,37 +1,241 @@
 @import "tailwindcss";
 
-/* 경희공지 디자인 토큰 v0.3 (docs/UI_CONCEPT.md) */
+/* 경희공지 디자인 토큰 v0.4 (docs/UI_CONCEPT.md 2절)
+ *
+ * 밝은 판이 정본이다. 어두운 판(2026-09-08 추가)은 같은 이름의 토큰을 한 벌 더 덮어쓰는
+ * 것뿐이고, 화면 코드에는 색을 직접 적지 않는다.
+ *
+ * 어두운 판을 켜는 규칙
+ *   - 아무 것도 고르지 않았으면 기기 설정을 따른다(prefers-color-scheme).
+ *   - 사람이 고르면 <html data-theme="light|dark"> 가 붙어 기기 설정을 이긴다.
+ *     그 글자를 첫 그리기 전에 붙이는 스크립트는 src/lib/theme.ts 에 있다.
+ *
+ * 브랜드 색은 어두운 배경에서 그대로 쓰면 안 읽힌다(Red #A40F16 은 카드 배경 #1F1F24 위에서
+ * 2.08:1). 그래서 밝은 변형을 정했고, 아래 값은 모두 WCAG AA(4.5:1)를 넘는다.
+ *   Red  #EE7A80 : 카드 6.04 / 배경 6.64 / 크림 5.54
+ *   Blue #93B6F5 : 카드 8.01 / 크림 7.34
+ *   Gold #CFAE5F : 카드 7.71
+ * 색을 칠하고 그 위에 흰 글자를 얹는 자리(주 버튼·활성 칩·캠퍼스 토글)는 밝은 변형이
+ * 아니라 따로 둔 --red-fill / --navy-fill 을 쓴다. 흰 글자 대비 5.78 / 5.98.
+ * 주제 배지 11색도 어두운 판을 따로 뒀고 글자/배경 대비는 모두 6.3:1 이상이다.
+ */
 :root {
+  color-scheme: light;
+
   --red: #a40f16;
   --red-2: #8c0b12;
+  --red-fill: #a40f16;
+  --red-fill-2: #8c0b12;
   --navy: #0d326f;
+  --navy-fill: #0d326f;
   --gold: #c0a353;
   --text: #292929;
   --text-2: #444444;
   --gray: #737373;
   --gray-2: #a6a6a6;
   --bg: #f6f5f2;
-  --white: #ffffff;
+  --card: #ffffff;
   --line: #e6e3dd;
   --line-2: #f0eeea;
   --cream: #fbfaf8;
+
+  --ok: #3aa76d;
+  --warn: #d9a400;
+  --warn-ink: #a07a00;
+  --warn-bg: #fbf6e8;
+  --warn-line: #ead9a6;
+  --tint-red: #fbeaeb;
+  --tint-red-2: #fbf0f0;
+  --tint-red-3: #fffbfb;
+  --switch-off: #d6d2ca;
+  --ph-1: #f3efe8;
+  --ph-2: #e9e4da;
+  --ad-1: #e8edf6;
+  --ad-2: #d7dfee;
+
   --r: 10px;
   --shadow: 0 1px 2px rgba(20, 20, 20, 0.04);
+
+  /* 주제 배지 11색 */
+  --cat-academic-bg: #eef1f7;
+  --cat-academic-fg: #253a73;
+  --cat-graduation-bg: #efeaf5;
+  --cat-graduation-fg: #4b3a8c;
+  --cat-scholarship-bg: #f8f1dc;
+  --cat-scholarship-fg: #7f6417;
+  --cat-career-bg: #e2f2f2;
+  --cat-career-fg: #0f6b70;
+  --cat-startup-bg: #e6f2e9;
+  --cat-startup-fg: #1f6b3a;
+  --cat-program-bg: #fdecdd;
+  --cat-program-fg: #a3501a;
+  --cat-international-bg: #e5eef7;
+  --cat-international-fg: #1c5b8e;
+  --cat-event-bg: #f9e5e6;
+  --cat-event-fg: #990e17;
+  --cat-council-bg: #f3e7ea;
+  --cat-council-fg: #7a2140;
+  --cat-life-bg: #eeeff1;
+  --cat-life-fg: #4a5560;
+  --cat-other-bg: #f0f0f0;
+  --cat-other-fg: #737373;
+}
+
+/* 기기 설정이 어두움이고, 사람이 "밝게"로 못박지 않았을 때 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --red: #ee7a80;
+    --red-2: #f2989c;
+    --red-fill: #c4242c;
+    --red-fill-2: #d93a42;
+    --navy: #93b6f5;
+    --navy-fill: #2f5fbf;
+    --gold: #cfae5f;
+    --text: #e9e7e4;
+    --text-2: #c4c1bc;
+    --gray: #9c9893;
+    --gray-2: #928e89;
+    --bg: #16161a;
+    --card: #1f1f24;
+    --line: #3a3a42;
+    --line-2: #2c2c33;
+    --cream: #26262c;
+
+    --ok: #4fb980;
+    --warn: #d6a72b;
+    --warn-ink: #d2a93f;
+    --warn-bg: #2e2717;
+    --warn-line: #4d4128;
+    --tint-red: #35191b;
+    --tint-red-2: #2a1a1c;
+    --tint-red-3: #241a1b;
+    --switch-off: #4a4a52;
+    --ph-1: #2c2a26;
+    --ph-2: #232120;
+    --ad-1: #232a38;
+    --ad-2: #1c2130;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+    --cat-academic-bg: #1e2a44;
+    --cat-academic-fg: #a9c2ee;
+    --cat-graduation-bg: #272044;
+    --cat-graduation-fg: #c3b4ee;
+    --cat-scholarship-bg: #332b15;
+    --cat-scholarship-fg: #e0c77a;
+    --cat-career-bg: #12312f;
+    --cat-career-fg: #7fd4ce;
+    --cat-startup-bg: #16301f;
+    --cat-startup-fg: #8fd3a5;
+    --cat-program-bg: #382415;
+    --cat-program-fg: #f0ae7c;
+    --cat-international-bg: #16283c;
+    --cat-international-fg: #97c2ea;
+    --cat-event-bg: #3a1f21;
+    --cat-event-fg: #f09a9e;
+    --cat-council-bg: #341f27;
+    --cat-council-fg: #eda2b4;
+    --cat-life-bg: #232830;
+    --cat-life-fg: #b3bdc8;
+    --cat-other-bg: #2a2a2e;
+    --cat-other-fg: #b0aca7;
+  }
+}
+
+/* 사람이 "어둡게"를 고른 경우. 기기 설정을 이긴다.
+   값은 위 블록과 같다 — CSS 에서 두 조건이 한 벌을 나눠 쓸 방법이 없어 그대로 적는다.
+   light-dark() 한 줄로 줄일 수 있지만 조금 옛 브라우저(iOS 16 등)에서 색이 통째로
+   사라지므로 쓰지 않았다. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --red: #ee7a80;
+  --red-2: #f2989c;
+  --red-fill: #c4242c;
+  --red-fill-2: #d93a42;
+  --navy: #93b6f5;
+  --navy-fill: #2f5fbf;
+  --gold: #cfae5f;
+  --text: #e9e7e4;
+  --text-2: #c4c1bc;
+  --gray: #9c9893;
+  --gray-2: #928e89;
+  --bg: #16161a;
+  --card: #1f1f24;
+  --line: #3a3a42;
+  --line-2: #2c2c33;
+  --cream: #26262c;
+
+  --ok: #4fb980;
+  --warn: #d6a72b;
+  --warn-ink: #d2a93f;
+  --warn-bg: #2e2717;
+  --warn-line: #4d4128;
+  --tint-red: #35191b;
+  --tint-red-2: #2a1a1c;
+  --tint-red-3: #241a1b;
+  --switch-off: #4a4a52;
+  --ph-1: #2c2a26;
+  --ph-2: #232120;
+  --ad-1: #232a38;
+  --ad-2: #1c2130;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+  --cat-academic-bg: #1e2a44;
+  --cat-academic-fg: #a9c2ee;
+  --cat-graduation-bg: #272044;
+  --cat-graduation-fg: #c3b4ee;
+  --cat-scholarship-bg: #332b15;
+  --cat-scholarship-fg: #e0c77a;
+  --cat-career-bg: #12312f;
+  --cat-career-fg: #7fd4ce;
+  --cat-startup-bg: #16301f;
+  --cat-startup-fg: #8fd3a5;
+  --cat-program-bg: #382415;
+  --cat-program-fg: #f0ae7c;
+  --cat-international-bg: #16283c;
+  --cat-international-fg: #97c2ea;
+  --cat-event-bg: #3a1f21;
+  --cat-event-fg: #f09a9e;
+  --cat-council-bg: #341f27;
+  --cat-council-fg: #eda2b4;
+  --cat-life-bg: #232830;
+  --cat-life-fg: #b3bdc8;
+  --cat-other-bg: #2a2a2e;
+  --cat-other-fg: #b0aca7;
 }
 
 @theme inline {
   --color-red: var(--red);
   --color-red-2: var(--red-2);
+  --color-red-fill: var(--red-fill);
+  --color-red-fill-2: var(--red-fill-2);
   --color-navy: var(--navy);
+  --color-navy-fill: var(--navy-fill);
   --color-gold: var(--gold);
   --color-ink: var(--text);
   --color-ink-2: var(--text-2);
   --color-gray: var(--gray);
   --color-gray-2: var(--gray-2);
   --color-bg: var(--bg);
+  /* 카드·헤더처럼 '종이' 면. 밝은 판에서는 흰색이지만 어두운 판에서는 아니라서
+     Tailwind 기본 흰색(bg-white)을 쓰면 안 된다. text-white(칠한 면 위의 흰 글자)는 그대로 둔다. */
+  --color-card: var(--card);
   --color-line: var(--line);
   --color-line-2: var(--line-2);
   --color-cream: var(--cream);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-warn-ink: var(--warn-ink);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-line: var(--warn-line);
+  --color-tint-red: var(--tint-red);
+  --color-tint-red-2: var(--tint-red-2);
+  --color-tint-red-3: var(--tint-red-3);
+  --color-switch-off: var(--switch-off);
   --radius-box: var(--r);
   --shadow-box: var(--shadow);
   --font-sans: var(--font-noto), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -81,4 +285,9 @@ body {
   color: var(--navy);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+/* 원문 그림·포스터는 어두운 판에서도 손대지 않는다(사용자 지시). */
+.notice-body img {
+  max-width: 100%;
+  height: auto;
 }

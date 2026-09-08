@@ -88,7 +88,7 @@ export function Shell({ children, categories, orgPicker }: Props) {
               <dt className="text-gray">구독</dt>
               <dd className="font-medium">{subCount ? `출처 ${subCount}개` : <span className="font-normal text-gray-2">없음</span>}</dd>
             </dl>
-            <button onClick={() => update({ onboarded: false })} className="mt-2.5 w-full rounded-lg border border-line bg-white py-1.5 text-[13px] text-ink-2 hover:border-gray">
+            <button onClick={() => update({ onboarded: false })} className="mt-2.5 w-full rounded-lg border border-line bg-card py-1.5 text-[13px] text-ink-2 hover:border-gray">
               소속 다시 고르기
             </button>
           </div>
@@ -103,7 +103,7 @@ export function Shell({ children, categories, orgPicker }: Props) {
 
 export function Box({ title, children, className = "" }: { title?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`overflow-hidden rounded-box border border-line bg-white shadow-box ${className}`}>
+    <div className={`overflow-hidden rounded-box border border-line bg-card shadow-box ${className}`}>
       {title && <div className="flex items-center border-b border-line-2 px-3.5 py-[11px] text-[13px] font-bold">{title}</div>}
       {children}
     </div>

@@ -41,12 +41,12 @@ function Contacts() {
 
   return (
     <Shell>
-      <div className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-white px-[13px] py-[9px] focus-within:border-navy">
+      <div className="mb-2.5 flex items-center gap-2 rounded-[10px] border border-line bg-card px-[13px] py-[9px] focus-within:border-navy">
         <IconSearch className="text-gray" width={15} height={15} />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="부서·학과·업무로 검색 (장학, 휴학, 기숙사 …)" className="flex-1 bg-transparent text-sm outline-none" maxLength={100} aria-label="연락처 검색" />
       </div>
       {loading && <div className="py-10 text-center text-[13px] text-gray">불러오는 중…</div>}
-      {!loading && list.length === 0 && <div className="rounded-box border border-line bg-white px-4 py-10 text-center text-[13px] text-gray">검색 결과가 없습니다</div>}
+      {!loading && list.length === 0 && <div className="rounded-box border border-line bg-card px-4 py-10 text-center text-[13px] text-gray">검색 결과가 없습니다</div>}
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {list.map((ct) => (
           <ContactCard key={ct.id} contact={ct} highlight={ct.id === focus} />
@@ -77,12 +77,12 @@ function ContactCard({ contact: ct, highlight }: { contact: Contact; highlight: 
   const phones = ct.channels.filter((c) => c.kind.code === "phone");
   const others = ct.channels.filter((c) => c.kind.code !== "phone");
   const ver = ct.verification;
-  const verColor = ver.code === "verified" ? "text-gray-2" : ver.code === "stale" ? "text-[#a07a00]" : "text-red";
+  const verColor = ver.code === "verified" ? "text-gray-2" : ver.code === "stale" ? "text-warn-ink" : "text-red";
   const primaryPhone = phones.find((p) => p.action_url);
   const evidenceUrl = ct.evidence[0]?.url;
 
   return (
-    <div id={`contact-${ct.id}`} className={`rounded-box border bg-white px-4 py-3.5 shadow-box ${highlight ? "border-navy" : "border-line"}`}>
+    <div id={`contact-${ct.id}`} className={`rounded-box border bg-card px-4 py-3.5 shadow-box ${highlight ? "border-navy" : "border-line"}`}>
       <div className="text-[11.5px] font-semibold text-gold">{ct.organization.type.label}</div>
       <div className="mb-0.5 mt-px text-[15px] font-bold">{ct.organization.name}</div>
       <div className="mb-2 text-[13px] text-ink-2">{ct.service_name}</div>
@@ -115,7 +115,7 @@ function ContactCard({ contact: ct, highlight }: { contact: Contact; highlight: 
       </dl>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
         {primaryPhone && (
-          <a href={primaryPhone.action_url!} className="inline-flex items-center gap-1 rounded-full px-[11px] py-[5px] text-xs font-semibold text-red" style={{ background: "#FBEAEB" }}>
+          <a href={primaryPhone.action_url!} className="inline-flex items-center gap-1 rounded-full bg-tint-red px-[11px] py-[5px] text-xs font-semibold text-red">
             <IconPhone width={12} height={12} /> 전화
           </a>
         )}

@@ -56,7 +56,7 @@ export default function NoticePage() {
               <span className="truncate">{n.primary_source.name}</span>
             </span>
             <span className="ml-auto inline-flex flex-none items-center gap-1 text-xs">
-              <span className={`h-1.5 w-1.5 rounded-full ${n.freshness.code === "fresh" ? "bg-[#3aa76d]" : "bg-[#d9a400]"}`} />
+              <span className={`h-1.5 w-1.5 rounded-full ${n.freshness.code === "fresh" ? "bg-ok" : "bg-warn"}`} />
               {n.freshness.label} · {relativeTime(n.freshness.last_checked_at)}
             </span>
           </div>
@@ -89,11 +89,11 @@ export default function NoticePage() {
             {/* 로그인해야 볼 수 있는 글은 본문을 아예 못 가져온다. 저장된 내용을 보여준다고
                 하면 거짓말이 되므로 왜 없는지 그대로 말한다. */}
             {n.original_status.code === "restricted" ? (
-              <p className="mt-3 rounded-lg border border-[#EAD9A6] bg-[#FBF6E8] px-3 py-2 text-xs text-ink-2">
+              <p className="mt-3 rounded-lg border border-warn-line bg-warn-bg px-3 py-2 text-xs text-ink-2">
                 원문 {n.original_status.label}: 학교 계정으로 로그인해야 볼 수 있는 글입니다. 제목과 날짜만 모았습니다. 내용은 원문에서 확인하세요.
               </p>
             ) : n.original_status.code !== "available" ? (
-              <p className="mt-3 rounded-lg border border-[#EAD9A6] bg-[#FBF6E8] px-3 py-2 text-xs text-ink-2">
+              <p className="mt-3 rounded-lg border border-warn-line bg-warn-bg px-3 py-2 text-xs text-ink-2">
                 원문 {n.original_status.label}: 원문 사이트에 접근할 수 없어 저장된 내용을 보여줍니다. 최신 내용은 원문에서 확인하세요.
               </p>
             ) : null}
@@ -195,7 +195,7 @@ export default function NoticePage() {
               </>
             )}
 
-            <a href={n.original_url} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-1.5 rounded-[10px] bg-red py-3 text-sm font-bold text-white hover:bg-red-2">
+            <a href={n.original_url} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-1.5 rounded-[10px] bg-red-fill py-3 text-sm font-bold text-white hover:bg-red-fill-2">
               {n.primary_source.medium.code === "instagram" ? "Instagram에서 원문 보기" : "원문 보기"}
               <IconExternal width={14} height={14} />
             </a>

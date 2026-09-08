@@ -95,11 +95,11 @@ export function NoticeRow({ notice: n }: { notice: Notice }) {
             alt=""
             loading="lazy"
             className="h-[52px] w-[52px] flex-none rounded-lg border border-line-2 object-cover"
-            style={{ background: "linear-gradient(135deg,#F3EFE8,#E9E4DA)" }}
+            style={{ background: "linear-gradient(135deg,var(--ph-1),var(--ph-2))" }}
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         ) : ig ? (
-          <div className="grid h-[52px] w-[52px] flex-none place-items-center rounded-lg text-gray" style={{ background: "linear-gradient(135deg,#F3EFE8,#E9E4DA)" }}>
+          <div className="grid h-[52px] w-[52px] flex-none place-items-center rounded-lg text-gray" style={{ background: "linear-gradient(135deg,var(--ph-1),var(--ph-2))" }}>
             <MediumIcon code="instagram" width={18} height={18} />
           </div>
         ) : null}
@@ -107,7 +107,7 @@ export function NoticeRow({ notice: n }: { notice: Notice }) {
           <div className="line-clamp-2 text-[14.5px] font-medium leading-[1.45]">
             <CategoryBadge category={n.primary_category} className="mr-1.5" />
             {n.title}
-            {isNew(n) && <span className="ml-1.5 inline-block rounded px-[5px] align-[2px] text-[10px] font-bold leading-[15px] text-red" style={{ background: "#FBEAEB" }}>N</span>}
+            {isNew(n) && <span className="ml-1.5 inline-block rounded px-[5px] align-[2px] text-[10px] font-bold leading-[15px] bg-tint-red text-red">N</span>}
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-xs text-gray">
             <span className="text-ink-2">{n.primary_source.name}</span>
