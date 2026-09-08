@@ -30,7 +30,6 @@ export function Shell({ children, categories, orgPicker }: Props) {
 
   const campus = campusShortLabel(catalog?.campuses, settings.campus_id);
   const scope = organizationScopeLabel(orgs, org.selected);
-  const subCount = settings.subscribed_source_ids.length;
 
   return (
     <div className="mx-auto grid max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 px-4 pb-10 pt-4 lg:grid-cols-[220px_minmax(0,1fr)_240px] lg:gap-5 lg:pt-5">
@@ -86,10 +85,8 @@ export function Shell({ children, categories, orgPicker }: Props) {
               <dd className="font-medium">{campus || "-"}</dd>
               <dt className="text-gray">조직</dt>
               <dd className="break-keep font-medium">{scope}</dd>
-              <dt className="text-gray">구독</dt>
-              <dd className="font-medium">{subCount ? `출처 ${subCount}개` : <span className="font-normal text-gray-2">없음</span>}</dd>
               <dt className="self-center text-gray">화면</dt>
-              <dd className="-my-0.5"><ThemeSegments /></dd>
+              <dd className="flex items-center"><ThemeSegments /></dd>
             </dl>
             <button onClick={() => update({ onboarded: false })} className="mt-2.5 w-full rounded-lg border border-line bg-card py-1.5 text-[13px] text-ink-2 hover:border-gray">
               소속 다시 고르기

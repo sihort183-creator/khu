@@ -94,7 +94,7 @@ export function ThemeSegments() {
     if (theme !== "system") document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
   return (
-    <div className="inline-flex rounded-full border border-line bg-bg p-0.5" role="group" aria-label="화면 밝기">
+    <div className="inline-flex rounded-full border border-line bg-bg p-[2px]" role="group" aria-label="화면 밝기">
       {SEGMENTS.map(({ value, label, Icon }) => {
         const on = theme === value;
         return (
@@ -105,11 +105,11 @@ export function ThemeSegments() {
             aria-pressed={on}
             aria-label={label}
             title={label}
-            className={`relative grid h-7 w-9 place-items-center rounded-full before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 ${
+            className={`relative grid h-[22px] w-7 place-items-center rounded-full before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 ${
               on ? "bg-navy-fill text-white" : "text-gray hover:text-ink"
             }`}
           >
-            <Icon width={16} height={16} />
+            <Icon width={13} height={13} />
           </button>
         );
       })}
