@@ -9,7 +9,7 @@ import { useCatalog, useOrganizations } from "@/lib/queries";
 import { campusShortLabel } from "@/lib/campus";
 import { categoryStyle } from "@/lib/category";
 import { Ad } from "./Ad";
-import { ThemeButton } from "./ThemeToggle";
+import { ThemeSegments } from "./ThemeToggle";
 import { IconChevron } from "./icons";
 import { OrganizationPicker, organizationScopeLabel } from "./OrganizationPicker";
 
@@ -89,7 +89,7 @@ export function Shell({ children, categories, orgPicker }: Props) {
               <dt className="text-gray">구독</dt>
               <dd className="font-medium">{subCount ? `출처 ${subCount}개` : <span className="font-normal text-gray-2">없음</span>}</dd>
               <dt className="self-center text-gray">화면</dt>
-              <dd className="-my-1"><ThemeButton /></dd>
+              <dd className="-my-0.5"><ThemeSegments /></dd>
             </dl>
             <button onClick={() => update({ onboarded: false })} className="mt-2.5 w-full rounded-lg border border-line bg-card py-1.5 text-[13px] text-ink-2 hover:border-gray">
               소속 다시 고르기

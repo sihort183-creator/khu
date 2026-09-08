@@ -1,7 +1,7 @@
 "use client";
 // 바닥글의 밝게 / 어둡게 / 기기 설정 조절. 기본은 "기기 설정"이다.
 import { useLayoutEffect, useSyncExternalStore } from "react";
-import { IconMoon, IconSun } from "./icons";
+import { IconDevice, IconMoon, IconSun } from "./icons";
 import { useTheme, type Theme } from "@/lib/theme";
 
 const OPTIONS: { value: Theme; label: string }[] = [
@@ -78,5 +78,41 @@ export function ThemeButton() {
     >
       {dark ? <IconSun width={19} height={19} /> : <IconMoon width={19} height={19} />}
     </button>
+  );
+}
+
+const SEGMENTS: { value: Theme; label: string; Icon: typeof IconSun }[] = [
+  { value: "light", label: "밝게", Icon: IconSun },
+  { value: "dark", label: "어둡게", Icon: IconMoon },
+  { value: "system", label: "기기 설정", Icon: IconDevice },
+];
+
+/** "내 설정" 상자용. 해 | 달 | 기기 세 칸을 오가며 고른다. */
+export function ThemeSegments() {
+  const { theme, set } = useTheme();
+  useLayoutEffect(() => {
+    if (theme !== "system") document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+  return (
+    <div className="inline-flex rounded-full border border-line bg-bg p-0.5" role="group" aria-label="화면 밝기">
+      {SEGMENTS.map(({ value, label, Icon }) => {
+        const on = theme === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => set(value)}
+            aria-pressed={on}
+            aria-label={label}
+            title={label}
+            className={`relative grid h-7 w-9 place-items-center rounded-full before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 ${
+              on ? "bg-navy-fill text-white" : "text-gray hover:text-ink"
+            }`}
+          >
+            <Icon width={16} height={16} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
