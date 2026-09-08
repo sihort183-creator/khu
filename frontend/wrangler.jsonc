@@ -10,5 +10,10 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // 산 도메인(경희공지.info). 화면은 맨 앞 주소와 www 둘 다 받는다. workers.dev 주소도 그대로 둔다.
+  "routes": [
+    { "pattern": "xn--289a5d743g7dm.info", "custom_domain": true },
+    { "pattern": "www.xn--289a5d743g7dm.info", "custom_domain": true }
+  ]
 }

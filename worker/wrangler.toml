@@ -6,6 +6,12 @@ main = "src/index.js"
 compatibility_date = "2026-06-01"
 workers_dev = true
 
+# 산 도메인(경희공지.info, punycode xn--289a5d743g7dm.info). Cloudflare 가 DNS 와 인증서를 스스로 만든다.
+# workers.dev 주소도 그대로 둔다.
+routes = [
+  { pattern = "api.xn--289a5d743g7dm.info", custom_domain = true },
+]
+
 # 조회 버킷만 바인딩한다. 원문 증거·백업 버킷은 Worker 에 연결하지 않는다(15.2절).
 [[r2_buckets]]
 binding = "PUBLIC"
