@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import type { Organization, OrgType } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import { useCatalog, useOrganizations } from "@/lib/queries";
-import { compareOrgNames, drawnOrgIds } from "@/lib/orgTree";
+import { compareOrgNames, drawnOrgIds, normalizeOrganizationSelection } from "@/lib/orgTree";
 import { campusOptions } from "@/lib/campus";
 import { IconSearch } from "./icons";
 
@@ -89,7 +89,9 @@ function OnboardingDialog() {
   // 방금 고른 결과를 아무 데서도 보지 못한 채 창만 닫히기 때문이다. 건너뛴 사람은
   // 고른 것이 없으니 보고 있던 화면에 그대로 둔다.
   const finish = (dept: string | null) => {
-    const organization_ids = [college, dept].filter((id): id is string => !!id);
+    // 목록 쪽 체크와 같은 규칙을 먹인다(lib/orgTree.ts). 고른 학과가 그 단과대 밑이면
+    // 단과대는 빠지고 학과만 남는다 — 안 그러면 온보딩을 마치자마자 단과대 전체가 보인다.
+    const organization_ids = normalizeOrganizationSelection([college, dept].filter((id): id is string => !!id), orgs);
     update({ campus_id: campus, college_id: college, department_id: dept, organization_ids, onboarded: true });
     if (organization_ids.length) router.push("/mine");
   };

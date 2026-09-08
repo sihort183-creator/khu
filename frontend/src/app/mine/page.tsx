@@ -20,10 +20,14 @@ export default function MyFeedPage() {
   const orgs = useOrganizations();
   const categoryCodes = useMemo(() => (catalog?.categories ?? []).map((c) => c.code), [catalog]);
   const cats = useCategorySelection(categoryCodes);
-  const org = useOrganizationSelection();
+  const org = useOrganizationSelection(orgs);
 
-  // 예전 저장값(단과대·학과)만 있고 옮겨 담기 전인 브라우저도 있으므로 함께 합친다.
-  const orgIds = [...new Set([...org.ids, settings.college_id, settings.department_id].filter((x): x is string => !!x))];
+  // 조직은 org.ids 하나만 본다. 예전에는 여기에 settings.college_id·department_id 를 몰래
+  // 더했는데, 그 두 값은 선택기에 칩으로 나오지도 체크가 풀리지도 않는다. 그래서 머리글은
+  // "공과대학 외 3곳"인데 칩은 둘뿐이었고, 고른 적 없는 외국어대학 글이 목록에 섞였다
+  // (2026-09-08 사용자 지적). 옛 저장값은 lib/settings.tsx 의 read() 가 organization_ids 로
+  // 옮겨 담으므로 여기서 다시 더할 이유가 없다.
+  const orgIds = org.ids;
   const feed = useNoticeFeed(
     ready
       ? {
@@ -38,7 +42,7 @@ export default function MyFeedPage() {
       : null,
   );
 
-  const scope = orgIds.length ? organizationScopeLabel(orgs, new Set(orgIds)) : campusScopeLabel(catalog?.campuses, settings.campus_id);
+  const scope = orgIds.length ? organizationScopeLabel(orgs, org.selected) : campusScopeLabel(catalog?.campuses, settings.campus_id);
   const label = `${scope}${settings.subscribed_source_ids.length ? ` + 구독 ${settings.subscribed_source_ids.length}` : ""}`;
 
   return (

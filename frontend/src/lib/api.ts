@@ -145,23 +145,129 @@ async function staticLatest(force = false): Promise<StaticLatest> {
   return tracked;
 }
 
+/**
+ * 개정 경로 파일 하나를 읽는다.
+ *
+ * 브라우저 캐시를 끄지 않는다(예전에는 `cache: "no-store"` 였다). 개정 경로
+ * (`/v1/r/<개정>/…`)의 파일은 한 번 만들어지면 절대 바뀌지 않고, 조회 서버도
+ * `Cache-Control: immutable` 을 붙여 내보낸다. no-store 는 그 약속을 통째로 버려
+ * 화면을 옮길 때마다 같은 파일을 다시 받게 했다. 개정이 바뀌면 경로가 바뀌므로
+ * 낡은 파일을 잘못 쓸 일은 없다. 개정 포인터(latest.json)만 no-store 로 남긴다.
+ */
 async function staticGet<T>(relative: string, latest?: StaticLatest): Promise<T> {
   const pointer = latest ?? (await staticLatest());
   const path = `${STATIC_BASE}/${pointer.base_path.replace(/^\/+/, "")}/${relative.replace(/^\/+/, "")}`;
-  const res = await fetch(path, { cache: "no-store" });
+  const res = await fetch(path);
   if (!res.ok) throw await res.json();
   return res.json() as Promise<T>;
 }
 
-const staticCursor = (offset: number, revision: string) => btoa(`${revision}:${offset}`);
-const staticOffset = (cursor: string | null | undefined, revision: string) => {
-  if (!cursor) return 0;
+/** 목록 페이지 파일 한 장에 든 공지 수. 백엔드 export/static.py 의 PAGE_SIZE 와 같다. */
+const STATIC_PAGE_SIZE = 50;
+/**
+ * 목록 한 화면을 채우려고 훑을 목록 페이지 수의 상한.
+ *
+ * 목록 페이지에는 화면이 그릴 것이 전부 들어 있어(제목·출처·매체·건수·포스터) 색인도
+ * 상세도 필요 없다. 다만 고른 주제가 아주 드물면 20줄을 채우는 데 페이지를 한없이
+ * 넘겨야 한다. 그때는 여기서 멈추고 색인 경로로 넘긴다. 6장 = 300건이면 대략 7%
+ * 이상 남는 조건은 전부 여기서 끝난다.
+ */
+const SCAN_PAGE_LIMIT = 6;
+/** 기억해 둘 목록 페이지 파일 수. 이어보기로 한참 내려가도 메모리가 늘지 않게 한다. */
+const PAGE_CACHE_LIMIT = 32;
+
+/**
+ * 같은 개정의 같은 파일을 두 번 받지 않는다.
+ *
+ * 개정 경로 파일은 불변이라 한 번 읽은 약속을 그대로 다시 준다. 예전에는 조직 목록이
+ * 한 화면에서 두세 번 오갔다 — 화면(useOrganizations)과 목록 거르기와 조직 수 세기가
+ * 각자 받았기 때문이다. 개정이 바뀌면 통째로 버린다.
+ */
+let sharedFiles: { revision: string; files: Map<string, Promise<unknown>> } | null = null;
+
+function cachedStaticGet<T>(relative: string, pointer: StaticLatest): Promise<T> {
+  if (!sharedFiles || sharedFiles.revision !== pointer.revision) {
+    sharedFiles = { revision: pointer.revision, files: new Map() };
+  }
+  const files = sharedFiles.files;
+  const hit = files.get(relative);
+  if (hit) return hit as Promise<T>;
+  const request: Promise<T> = staticGet<T>(relative, pointer).catch((error) => {
+    // 실패는 기억하지 않는다. 다음 조회가 다시 시도할 수 있어야 한다.
+    if (files.get(relative) === request) files.delete(relative);
+    throw error;
+  });
+  files.set(relative, request);
+  if (relative.startsWith("notices/page/")) {
+    const pages = [...files.keys()].filter((key) => key.startsWith("notices/page/"));
+    for (const key of pages.slice(0, Math.max(0, pages.length - PAGE_CACHE_LIMIT))) files.delete(key);
+  }
+  return request;
+}
+
+/**
+ * 이어보기 자리표.
+ *
+ * 두 경로가 자리표를 쓴다. 목록 페이지를 훑는 경로는 **전체 순서에서의 자리**를,
+ * 색인 경로는 **걸러낸 목록에서의 자리**를 센다. 같은 글자로 적으면 한 경로가 만든
+ * 자리표를 다른 경로가 엉뚱하게 읽는다. 그래서 색인 쪽만 `i` 를 붙여 구분하고,
+ * 자리표가 있으면 그것이 만들어진 경로를 그대로 따라간다.
+ * 접두가 없는 값은 예전 자리표이며 훑기 자리표와 뜻이 같다.
+ */
+type StaticCursor = { kind: "scan" | "index"; offset: number };
+
+const scanCursor = (offset: number, revision: string) => btoa(`${revision}:${offset}`);
+const indexCursor = (offset: number, revision: string) => btoa(`${revision}:i${offset}`);
+
+function staticCursorAt(cursor: string | null | undefined, revision: string): StaticCursor | null {
+  if (!cursor) return null;
   const [seenRevision, raw] = atob(cursor).split(":");
   if (seenRevision !== revision) throw feedChanged();
-  return Number(raw) || 0;
-};
+  if (raw?.startsWith("i")) return { kind: "index", offset: Number(raw.slice(1)) || 0 };
+  return { kind: "scan", offset: Number(raw) || 0 };
+}
 
-async function staticIndex(pointer: StaticLatest): Promise<StaticIndex> {
+const staticOffset = (cursor: string | null | undefined, revision: string) =>
+  staticCursorAt(cursor, revision)?.offset ?? 0;
+
+/**
+ * 합쳐 놓은 공지 색인.
+ *
+ * `positions` 는 항목이 전체 순서에서 몇 번째인가다. 색인과 목록 페이지는 같은 목록을
+ * 같은 순서로 내보내므로, 자리를 알면 그 공지가 어느 목록 페이지 파일에 있는지도 안다.
+ * 화면은 그 파일에서 공지를 그대로 꺼내 쓴다 — 상세 파일을 20개 부르지 않는 이유다.
+ */
+type LoadedIndex = { revision: string; entries: StaticIndexEntry[]; positions: Map<string, number> };
+
+let indexCache: { revision: string; promise: Promise<LoadedIndex> } | null = null;
+
+/**
+ * 색인은 개정마다 한 번만 읽는다.
+ *
+ * 조각이 12개에 6MB다. 목록을 한 쪽 넘길 때마다, 60초마다 다시 읽으면 받아오는
+ * 비용은 브라우저 캐시가 막아 주지만 해석 비용은 그대로 든다. 개정 경로 파일은
+ * 불변이라 한 번 합친 결과를 그대로 다시 쓴다.
+ */
+function staticIndex(pointer: StaticLatest): Promise<LoadedIndex> {
+  if (indexCache?.revision === pointer.revision) return indexCache.promise;
+  const promise: Promise<LoadedIndex> = loadStaticIndex(pointer).catch((error) => {
+    if (indexCache?.promise === promise) indexCache = null;
+    throw error;
+  });
+  indexCache = { revision: pointer.revision, promise };
+  return promise;
+}
+
+async function loadStaticIndex(pointer: StaticLatest): Promise<LoadedIndex> {
+  const entries = await loadStaticIndexEntries(pointer);
+  return {
+    revision: pointer.revision,
+    entries,
+    positions: new Map(entries.map((entry, position) => [entry.id, position])),
+  };
+}
+
+async function loadStaticIndexEntries(pointer: StaticLatest): Promise<StaticIndexEntry[]> {
   const index = await staticGet<StaticIndex>("notices/index.json", pointer);
   if (index.revision !== pointer.revision) throw feedChanged();
   if (index.generated_at && index.generated_at !== pointer.generated_at) {
@@ -173,18 +279,20 @@ async function staticIndex(pointer: StaticLatest): Promise<StaticIndex> {
     if (index.count !== index.entries.length) {
       throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인의 전체 건수가 실제 항목 수와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
     }
-    return index;
+    return index.entries;
   }
   if (!index.shards?.length) {
     if (index.count !== (index.entries ?? []).length) {
       throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인이 비어 있고 전체 건수도 일치하지 않습니다.", retryable: true, request_id: `static-${pointer.revision}` } };
     }
-    return { ...index, entries: index.entries ?? [] };
+    return index.entries ?? [];
   }
 
   // 조각 하나라도 실패하면 []로 조용히 바꾸지 않는다. 호출자가 오류 상태를
   // 보여 주고 같은 개정으로 재시도할 수 있도록 원래 오류를 전달한다.
   const payloads = await Promise.all(index.shards.map(async (shard) => {
+    // 조각은 여기서 기억하지 않는다. 합친 결과(staticIndex)를 개정마다 한 번만 만들므로
+    // 조각을 따로 붙들면 같은 22,000건을 두 벌 들고 있게 된다.
     const payload = await staticGet<StaticIndexShard>(relativeStaticPath(shard.path, pointer), pointer);
     const payloadEntries = Array.isArray(payload) ? payload : payload.entries ?? [];
     if (!Array.isArray(payload)) {
@@ -205,7 +313,7 @@ async function staticIndex(pointer: StaticLatest): Promise<StaticIndex> {
   if (index.count !== entries.length) {
     throw { error: { code: "STATIC_INDEX_INVALID", message: "공지 색인 조각 합계가 전체 건수와 다릅니다.", retryable: true, request_id: `static-${pointer.revision}` } };
   }
-  return { ...index, entries };
+  return entries;
 }
 
 function normalizeOrganization(organization: Organization, campusId?: string): Organization {
@@ -338,13 +446,13 @@ function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, contex
 }
 
 async function staticOrganizations(pointer: StaticLatest): Promise<Organization[]> {
-  const response = await staticGet<ListResponse<Organization>>("organizations.json", pointer);
+  const response = await cachedStaticGet<ListResponse<Organization>>("organizations.json", pointer);
   if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
   return response.data.map((organization) => normalizeOrganization(organization));
 }
 
 async function staticSourceMedia(pointer: StaticLatest): Promise<Map<string, string>> {
-  const response = await staticGet<ListResponse<Source>>("sources.json", pointer);
+  const response = await cachedStaticGet<ListResponse<Source>>("sources.json", pointer);
   if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
   return new Map(response.data.map((source) => [source.id, source.medium.code]));
 }
@@ -422,79 +530,160 @@ function normalizeNoticeDetail(response: ItemResponse<StaticNoticeDetail>): Item
   };
 }
 
-async function loadNoticePageSlice(pointer: StaticLatest, offset: number, limit: number) {
-  let pageNumber = Math.floor(offset / 50) + 1;
-  let localOffset = offset % 50;
-  let remaining = limit;
-  const data: Notice[] = [];
-  let hasNext = false;
+/**
+ * 목록 페이지 파일을 순서대로 훑어 조건에 맞는 공지를 모은다.
+ *
+ * 목록 한 줄을 그리는 데 필요한 것(주제·제목·출처 이름·시각·매체·동일 공지 수·포스터)은
+ * 이미 목록 페이지 파일에 전부 들어 있다. 그래서 여기서는 색인도 상세도 부르지 않는다.
+ * 예전에는 캠퍼스를 고른 것만으로 색인 12조각(1.1MB)을 먼저 받고, 그다음 상세 파일
+ * 20개를 줄 세워 받았다 — 첫 화면이 9초 걸린 이유다.
+ *
+ * 한 건을 더 찾아 두고 그것은 돌려주지 않는다. 그래야 "다음이 있다"를 어림하지 않고
+ * 정확히 말할 수 있다. 자리표는 전체 순서에서의 자리라, 다음 조회가 같은 자리에서
+ * 이어 훑는다.
+ *
+ * 훑을 페이지 수에는 상한이 있다. 넘으면 null 을 주고 부르는 쪽이 색인 경로로 넘긴다
+ * (드문 주제 하나만 골라 20줄이 아주 멀리 흩어져 있는 경우다). 다만 이미 이어보기
+ * 중이면 그 자리표는 전체 순서 기준이라 색인 경로로 넘길 수 없다. 그때는 찾은 만큼만
+ * 준다.
+ */
+async function scanNoticePages(
+  pointer: StaticLatest,
+  offset: number,
+  limit: number,
+  match: (notice: Notice) => boolean,
+): Promise<{ data: Notice[]; hasNext: boolean; nextOffset: number } | null> {
+  let pageNumber = Math.floor(offset / STATIC_PAGE_SIZE) + 1;
+  let start = offset % STATIC_PAGE_SIZE;
+  const found: Notice[] = [];
+  let nextOffset = offset;
+  let scanned = 0;
 
-  while (remaining > 0) {
-    const file = await staticGet<ListResponse<Notice>>(`notices/page/${pageNumber}.json`, pointer);
+  for (;;) {
+    const file = await cachedStaticGet<ListResponse<Notice>>(`notices/page/${pageNumber}.json`, pointer);
     if (file.page.dataset_revision !== pointer.revision) throw feedChanged();
-    const chunk = file.data.slice(localOffset, localOffset + remaining).map(normalizeNotice);
-    data.push(...chunk);
-    remaining -= chunk.length;
-    hasNext = file.page.has_next || localOffset + chunk.length < file.data.length;
-    if (remaining <= 0 || !file.page.has_next) break;
+    scanned += 1;
+    for (let i = start; i < file.data.length; i += 1) {
+      if (!match(file.data[i])) continue;
+      if (found.length >= limit) return { data: found, hasNext: true, nextOffset };
+      found.push(normalizeNotice(file.data[i]));
+      nextOffset = (pageNumber - 1) * STATIC_PAGE_SIZE + i + 1;
+    }
+    if (!file.page.has_next) return { data: found, hasNext: false, nextOffset };
+    if (scanned >= SCAN_PAGE_LIMIT) {
+      if (found.length >= limit || offset > 0) return { data: found, hasNext: true, nextOffset };
+      return null;
+    }
     pageNumber += 1;
-    localOffset = 0;
+    start = 0;
   }
+}
 
-  return {
-    data,
-    hasNext,
-    nextOffset: offset + data.length,
-  };
+/**
+ * 색인이 고른 항목을 목록 페이지 파일에서 꺼낸다.
+ *
+ * 색인과 목록 페이지는 같은 목록을 같은 순서로 내보내므로, 항목이 전체에서 몇 번째인지
+ * 알면 어느 페이지 파일에 있는지도 안다. 20줄이 흩어져 있어도 필요한 페이지 파일만
+ * 한꺼번에 받으면 되고, 대개는 몇 장으로 끝난다. 상세 파일 20개를 부르던 자리다.
+ *
+ * 자리 계산이 어긋나 그 페이지에 없으면 그 한 건만 상세 파일로 메운다. 옛 개정이든
+ * 새 개정이든 이 되돌림이 있어 목록에 구멍이 나지 않는다.
+ */
+async function loadNoticesForEntries(
+  pointer: StaticLatest,
+  index: LoadedIndex,
+  selected: StaticIndexEntry[],
+): Promise<Notice[]> {
+  const pageNumbers = new Set<number>();
+  for (const entry of selected) {
+    const position = index.positions.get(entry.id);
+    if (position !== undefined) pageNumbers.add(Math.floor(position / STATIC_PAGE_SIZE) + 1);
+  }
+  const wanted = new Set(selected.map((entry) => entry.id));
+  const byId = new Map<string, Notice>();
+  await Promise.all([...pageNumbers].map(async (pageNumber) => {
+    const file = await cachedStaticGet<ListResponse<Notice>>(`notices/page/${pageNumber}.json`, pointer);
+    if (file.page.dataset_revision !== pointer.revision) throw feedChanged();
+    for (const notice of file.data) if (wanted.has(notice.id)) byId.set(notice.id, normalizeNotice(notice));
+  }));
+
+  const missing = selected.filter((entry) => !byId.has(entry.id));
+  await Promise.all(missing.map(async (entry) => {
+    const response = await staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer);
+    byId.set(entry.id, normalizeNoticeDetail(response).data);
+  }));
+
+  return selected.map((entry) => byId.get(entry.id)).filter((notice): notice is Notice => !!notice);
 }
 
 async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> {
   const pointer = await staticLatest();
-  const offset = staticOffset(query.cursor, pointer.revision);
+  const cursor = staticCursorAt(query.cursor, pointer.revision);
   const limit = query.limit ?? 20;
-  const needsIndex = Boolean(
-    query.q
-      || query.category_code?.length
-      || query.source_id?.length
-      || query.medium?.length
-      || query.campus_id?.length
-      || query.organization_id?.length
-      || query.sort === "published",
-  );
+  const meta = { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at };
+  /**
+   * 목록 페이지만으로 답할 수 있는 조건인가.
+   *
+   * 주제·매체·캠퍼스는 목록 페이지의 공지 하나하나에 그대로 들어 있어 색인이 필요 없다.
+   * 검색어·출처·조직은 다르다. 20줄이 22,410건 어디에 흩어져 있을지 모르므로 색인으로
+   * 자리를 먼저 찾아야 한다.
+   */
+  const scannable = cursor?.kind !== "index"
+    && !query.q
+    && !query.source_id?.length
+    && !query.organization_id?.length
+    && (!query.sort || query.sort === "recent");
 
-  if (!needsIndex && (!query.sort || query.sort === "recent")) {
-    const page = await loadNoticePageSlice(pointer, offset, limit);
-    return {
-      data: page.data,
-      page: {
-        next_cursor: page.hasNext ? staticCursor(page.nextOffset, pointer.revision) : null,
-        has_next: page.hasNext,
-        snapshot_at: pointer.generated_at,
-        dataset_revision: pointer.revision,
-      },
-      meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
+  if (scannable) {
+    const organizations = query.campus_id?.length ? await staticOrganizations(pointer) : [];
+    const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
+    const campusIds = new Set(query.campus_id ?? []);
+    const categories = query.category_code ?? [];
+    const media = query.medium ?? [];
+    // 색인 경로(staticNoticeMatches·audienceMatchesCampus)와 글자 그대로 같은 판정이다.
+    // 두 경로가 같은 조건에 다른 답을 내면 '더 보기'에서 목록이 어긋난다.
+    const match = (notice: Notice) => {
+      if (categories.length && !categories.includes(notice.primary_category.code)) return false;
+      if (media.length && !media.includes(notice.primary_source.medium.code)) return false;
+      if (campusIds.size && !noticeAudienceKeys(notice).some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap))) return false;
+      return true;
     };
+    const scan = await scanNoticePages(pointer, cursor?.offset ?? 0, limit, match);
+    if (scan) {
+      return {
+        data: scan.data,
+        page: {
+          next_cursor: scan.hasNext ? scanCursor(scan.nextOffset, pointer.revision) : null,
+          has_next: scan.hasNext,
+          snapshot_at: pointer.generated_at,
+          dataset_revision: pointer.revision,
+        },
+        meta,
+      };
+    }
+    // 훑기로는 한 화면을 채우지 못했다. 아래 색인 경로가 처음부터 다시 센다.
   }
 
+  const offset = scannable ? 0 : cursor?.offset ?? 0;
   const index = await staticIndex(pointer);
   const needsOrganizations = Boolean(query.campus_id?.length || (query.organization_id?.length && query.include_descendants));
   const organizations = needsOrganizations ? await staticOrganizations(pointer) : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
   const sourceMedia = query.medium?.length ? await staticSourceMedia(pointer) : undefined;
   const scope = organizationScope(organizations, query.organization_id ?? [], !!query.include_descendants);
-  let entries = (index.entries ?? []).filter((entry) => audiencesInOrganizationScope(entry.a, scope) && staticNoticeMatches(entry, query, {
+  let entries = index.entries.filter((entry) => audiencesInOrganizationScope(entry.a, scope) && staticNoticeMatches(entry, query, {
     campusIds: query.campus_id?.length ? new Set(query.campus_id) : undefined,
     organizations: organizationMap,
     sourceMedia,
   }));
   entries = sortIndexEntries(entries);
   const selected = entries.slice(offset, offset + limit);
-  const data = await Promise.all(selected.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
+  const data = await loadNoticesForEntries(pointer, index, selected);
   const hasNext = offset + data.length < entries.length;
   return {
     data,
-    page: { next_cursor: hasNext ? staticCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
-    meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
+    page: { next_cursor: hasNext ? indexCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
+    meta,
   };
 }
 
@@ -511,7 +700,7 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
   const subscribed = new Set(body.subscribed_source_ids);
   const filters = body.filters ?? {};
   const sourceMedia = filters.medium?.length ? await staticSourceMedia(pointer) : undefined;
-  const selected = (index.entries ?? []).filter((entry) => {
+  const selected = index.entries.filter((entry) => {
     const campusIds = body.campus_id ? new Set([body.campus_id]) : new Set<string>();
     const inCampus = !campusIds.size || entry.a.some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap));
     const inScope = inCampus && (subscribed.has(entry.s) || audiencesInOrganizationScope(entry.a, scope));
@@ -525,11 +714,11 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
   const offset = staticOffset(body.cursor, pointer.revision);
   const limit = body.limit ?? 20;
   const slice = ordered.slice(offset, offset + limit);
-  const data = await Promise.all(slice.map((entry) => staticGet<ItemResponse<StaticNoticeDetail>>(`notices/${entry.id}.json`, pointer).then(normalizeNoticeDetail).then((response) => response.data)));
+  const data = await loadNoticesForEntries(pointer, index, slice);
   const hasNext = offset + data.length < ordered.length;
   return {
     data,
-    page: { next_cursor: hasNext ? staticCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
+    page: { next_cursor: hasNext ? indexCursor(offset + limit, pointer.revision) : null, has_next: hasNext, snapshot_at: pointer.generated_at, dataset_revision: pointer.revision },
     meta: { request_id: `static-${pointer.revision}`, generated_at: pointer.generated_at },
   };
 }
@@ -562,15 +751,16 @@ function paginate<T>(items: T[], limit = 20, cursor?: string | null): ListRespon
   };
 }
 
-/* ---------- 조직 관계 (mock 전용) ---------- */
+/* ---------- 조직 관계 ---------- */
 /**
- * 가상 데이터의 대상을 색인과 같은 글자로 바꾼다.
+ * 공지의 대상을 색인과 같은 글자로 바꾼다.
  *
- * 가상 데이터는 `{ type: "organization", id }` 꼴이고 색인은 `"org:<id>"` 꼴이다.
- * 두 경로가 같은 범위 함수(organizationScope / audiencesInOrganizationScope)를 쓰려면
- * 여기서 형태를 맞춰야 한다. 맞추지 않으면 가상 데이터로 도는 화면만 규칙이 달라진다.
+ * 공지 계약은 `{ type: "organization", id }` 꼴이고 색인은 `"org:<id>"` 꼴이다.
+ * 두 경로가 같은 범위 함수(organizationScope / audiencesInOrganizationScope /
+ * audienceMatchesCampus)를 쓰려면 여기서 형태를 맞춰야 한다. 맞추지 않으면 목록
+ * 페이지를 훑는 경로와 색인 경로가 같은 조건에 다른 답을 낸다.
  */
-const mockAudienceKeys = (notice: Notice): string[] =>
+const noticeAudienceKeys = (notice: Notice): string[] =>
   notice.audiences.map((audience) => {
     if (audience.type === "organization") return `org:${audience.id}`;
     if (audience.type === "campus") return `campus:${audience.id}`;
@@ -656,7 +846,7 @@ const textMatch = (n: Notice, q?: string) => {
 
 /* ---------- public API ---------- */
 export async function getCatalog(): Promise<ItemResponse<Catalog>> {
-  if (!useMock) return staticLatest().then((pointer) => staticGet<ItemResponse<Catalog>>("catalog.json", pointer));
+  if (!useMock) return staticLatest().then((pointer) => cachedStaticGet<ItemResponse<Catalog>>("catalog.json", pointer));
   await delay(60);
   return { data: M.catalog, meta: meta() };
 }
@@ -664,7 +854,7 @@ export async function getCatalog(): Promise<ItemResponse<Catalog>> {
 export async function listOrganizations(params: { campus_id?: string; parent_id?: string | null } = {}): Promise<ListResponse<Organization>> {
   if (!useMock) {
     const pointer = await staticLatest();
-    const response = await staticGet<ListResponse<Organization>>("organizations.json", pointer);
+    const response = await cachedStaticGet<ListResponse<Organization>>("organizations.json", pointer);
     let data = response.data.map((organization) => normalizeOrganization(organization, params.campus_id));
     if (params.campus_id) data = data.filter((organization) => organizationMatchesCampus(organization, params.campus_id!));
     if (params.parent_id !== undefined) data = data.filter((organization) => organization.parent_id === params.parent_id);
@@ -690,9 +880,9 @@ export async function listOrganizationNoticeCounts(): Promise<NodeCounts> {
     const [index, organizations, catalog] = await Promise.all([
       staticIndex(pointer),
       staticOrganizations(pointer),
-      staticGet<ItemResponse<Catalog>>("catalog.json", pointer),
+      cachedStaticGet<ItemResponse<Catalog>>("catalog.json", pointer),
     ]);
-    return countNoticesByNode(organizations, catalog.data.campuses, (index.entries ?? []).map((entry) => entry.a));
+    return countNoticesByNode(organizations, catalog.data.campuses, index.entries.map((entry) => entry.a));
   }
   await delay(60);
   // 가상 데이터의 audience.type 은 "organization"이고 색인 쪽 접두사는 "org"다.
@@ -712,7 +902,7 @@ export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse
   if (query.medium?.length) list = list.filter((n) => query.medium!.includes(n.primary_source.medium.code));
   if (query.source_id?.length) list = list.filter((n) => query.source_id!.includes(n.primary_source.id));
   const scope = organizationScope(M.organizations, query.organization_id ?? [], !!query.include_descendants);
-  list = list.filter((n) => audiencesInOrganizationScope(mockAudienceKeys(n), scope));
+  list = list.filter((n) => audiencesInOrganizationScope(noticeAudienceKeys(n), scope));
   list = list.filter((n) => textMatch(n, query.q));
   return paginate(sortNotices(list), query.limit ?? 20, query.cursor);
 }
@@ -738,7 +928,7 @@ export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<N
   const subs = new Set(body.subscribed_source_ids);
   let list = M.notices.filter((n) => {
     if (!matchesCampus(n, body.campus_id ? [body.campus_id] : [])) return false;
-    return subs.has(n.primary_source.id) || audiencesInOrganizationScope(mockAudienceKeys(n), scope);
+    return subs.has(n.primary_source.id) || audiencesInOrganizationScope(noticeAudienceKeys(n), scope);
   });
   const f = body.filters ?? {};
   if (f.category_code?.length) list = list.filter((n) => f.category_code!.includes(n.primary_category.code));
@@ -751,7 +941,7 @@ export async function listSources(params: { campus_id?: string; q?: string } = {
   if (!useMock) {
     const pointer = await staticLatest();
     const [response, organizations] = await Promise.all([
-      staticGet<ListResponse<Source>>("sources.json", pointer),
+      cachedStaticGet<ListResponse<Source>>("sources.json", pointer),
       staticOrganizations(pointer),
     ]);
     if (response.page.dataset_revision !== pointer.revision) throw feedChanged();

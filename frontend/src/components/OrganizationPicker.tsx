@@ -56,23 +56,39 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
   // 484곳 중 349곳은 아직 붙은 게시판이 없다. 기본으로 감춰야 목록을 훑을 수 있다.
   const [showEmpty, setShowEmpty] = useState(false);
 
-  // 공지 건수는 색인 전체(약 600KB)를 읽어야 나온다. 선택기가 실제로 자리를 차지할
-  // 때만 읽는다. 좁은 화면에서 좌측 열은 display:none 이라 자리가 없고(offsetParent 없음),
-  // 접힌 모바일 상자는 아예 그려지지도 않는다. 화면 폭이 바뀌면 다시 살핀다.
+  // 공지 건수는 색인 전체(조각 12개, 압축해서 1.1MB)를 읽어야 나온다. 선택기가 실제로
+  // 자리를 차지할 때만 읽는다. 좁은 화면에서 좌측 열은 display:none 이라 자리가 없고
+  // (offsetParent 없음), 접힌 모바일 상자는 아예 그려지지도 않는다. 화면 폭이 바뀌면
+  // 다시 살핀다.
   // (IntersectionObserver 를 쓰지 않는 이유: 화면이 그려지지 않는 상황에서는 한 번도
   //  불리지 않아 수치가 영영 안 붙는다.)
+  //
+  // 그리고 첫 화면이 다 그려진 뒤에 읽는다. 예전에는 setTimeout(0) 이라 공지 목록과
+  // 동시에 출발했고, 조각 12개가 목록 파일과 회선을 나눠 쓰며 첫 화면을 늦췄다
+  // (2026-09-08 실측: 첫 진입 9.1초). 수치는 조금 늦게 붙어도 되는 값이다.
   const boxRef = useRef<HTMLDivElement>(null);
   const [laidOut, setLaidOut] = useState(false);
   useEffect(() => {
     if (laidOut) return;
+    let idle = 0;
+    let timer = 0;
     const check = () => {
       const el = boxRef.current;
       if (el && el.offsetParent !== null && el.getBoundingClientRect().width > 0) setLaidOut(true);
     };
-    const timer = setTimeout(check, 0);
+    // 한가할 때 살핀다. requestIdleCallback 이 없는 브라우저(사파리 옛 판)는 시간으로 민다.
+    const later = () => {
+      if (typeof requestIdleCallback === "function") idle = requestIdleCallback(check, { timeout: 3000 });
+      else timer = window.setTimeout(check, 1200);
+    };
+    const start = () => { timer = window.setTimeout(later, 600); };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
     window.addEventListener("resize", check);
     return () => {
+      if (idle && typeof cancelIdleCallback === "function") cancelIdleCallback(idle);
       clearTimeout(timer);
+      window.removeEventListener("load", start);
       window.removeEventListener("resize", check);
     };
   }, [laidOut]);
@@ -173,7 +189,10 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
     if (turningOn && node.children.length > 0) setOpen((prev) => new Set(prev ?? defaultOpen).add(node.key));
   };
 
-  const selectedOrgs = orgs.filter((o) => selected.has(o.id));
+  // 고른 조직은 **캠퍼스·검색·접힘과 무관하게** 하나도 빠짐없이 칩이 된다. 칩이 곧
+  // 체크를 푸는 유일한 손잡이라, 한 곳이라도 빠지면 목록은 좁아졌는데 되돌릴 길이 없다.
+  // 목록 머리글(organizationScopeLabel)도 같은 함수를 써서 곳 수가 어긋나지 않게 한다.
+  const selectedOrgs = selectedOrganizations(orgs, selected);
   // 접혀 있는 것은 숨긴 것이 아니다. 남긴 가지에 든 조직 수로 센다.
   // 별칭 조직은 애초에 트리에 줄이 없다. orgs.length 로 빼면 "숨은 곳"이 부풀어
   // 눌러도 나오지 않는 곳이 생긴다. 그래서 자르기 전 트리의 줄 수로 센다.
@@ -189,7 +208,7 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
 
   return (
     <div ref={boxRef} className="text-[13px]">
-      {selectedOrgs.length > 0 && (
+      {orgs.length > 0 && selectedOrgs.length > 0 && (
         <div className={`flex flex-wrap gap-1 border-b border-line-2 ${dense ? "p-2" : "p-2.5"}`}>
           {selectedOrgs.map((o) => (
             <button
@@ -357,10 +376,20 @@ export function OrganizationPicker({ selected, onToggle, onClear, dense = false 
   );
 }
 
+/**
+ * 고른 조직을 고른 순서대로. 칩 줄과 머리글이 같은 목록을 봐야 "외 3곳"인데 칩은 둘 같은
+ * 어긋남이 안 생긴다. 명부에 없는 id 도 버리지 않는다 — 버리면 화면에서 지울 수가 없다.
+ */
+export function selectedOrganizations(orgs: Organization[], selected: Set<string>): { id: string; name: string }[] {
+  const byId = new Map(orgs.map((o) => [o.id, o]));
+  return [...selected].map((id) => ({ id, name: byId.get(id)?.name ?? "이름 없는 조직" }));
+}
+
 /** 선택 상태를 한 줄로 요약한다. 접힌 상자의 제목과 목록 머리글이 같은 문구를 쓴다. */
 export function organizationScopeLabel(orgs: Organization[], selected: Set<string>): string {
   if (selected.size === 0) return "경희대학교 전체";
-  const names = orgs.filter((o) => selected.has(o.id)).map((o) => o.name);
-  if (names.length === 0) return `조직 ${selected.size}곳`;
+  // 조직 명부가 아직 안 왔으면 이름 대신 곳 수만 말한다. "이름 없는 조직 외 3곳"은 거짓말이다.
+  if (orgs.length === 0) return `조직 ${selected.size}곳`;
+  const names = selectedOrganizations(orgs, selected).map((o) => o.name);
   return names.length === 1 ? names[0] : `${names[0]} 외 ${names.length - 1}곳`;
 }

@@ -29,7 +29,7 @@ await orgTreeModule.link(() => {
   throw new Error("orgTree.ts 는 값 import 를 갖지 않아야 한다");
 });
 await orgTreeModule.evaluate();
-const { buildOrgTree, compareOrgNames, orgSortKey, countNoticesByNode, OTHER_NAME } = orgTreeModule.namespace;
+const { buildOrgTree, compareOrgNames, orgSortKey, countNoticesByNode, OTHER_NAME, toggleOrganizationSelection, normalizeOrganizationSelection } = orgTreeModule.namespace;
 
 const CAMPUSES = [
   { id: "campus-global", name: "국제캠퍼스" },
@@ -155,4 +155,57 @@ test("상위가 자기를 가리키는 고리가 있어도 트리를 만든다",
   };
   walk(tree);
   assert.deepEqual(all.sort(), ["a", "b"]);
+});
+
+/* ---------- 체크 규칙(좁히기) — 2026-09-08 사용자 결정 ---------- */
+//   "전체 공지에서는 공과대학까지는 되는데, 공과대학 안에서 기계공학부만 볼 수는 없다."
+// 화면에서만 확인하면 다음 손질에 조용히 무너진다. 여기서 못 박는다.
+
+const ENG = [
+  org("col", "공과대학", "college"),
+  org("mech", "기계공학부", "department", { parent: "col" }),
+  org("arch", "건축학과", "department", { parent: "col" }),
+  org("lab", "기계공학부 연구실", "institute", { parent: "mech" }),
+  org("lang", "외국어대학", "college"),
+];
+// vm 밖 realm 배열이라 deepEqual 이 못 맞춘다. 이쪽 realm 으로 옮겨 담는다.
+const list = (v) => Array.from(v);
+
+test("상위가 체크된 채 하위를 체크하면 상위가 풀리고 하위만 남는다", () => {
+  assert.deepEqual(list(toggleOrganizationSelection(["col"], "mech", ENG)), ["mech"]);
+  // 두 단계 위도 함께 풀린다.
+  assert.deepEqual(list(toggleOrganizationSelection(["col"], "lab", ENG)), ["lab"]);
+  // 관계 없는 선택은 건드리지 않는다.
+  assert.deepEqual(list(toggleOrganizationSelection(["col", "lang"], "mech", ENG)).sort(), ["lang", "mech"]);
+});
+
+test("하위가 체크된 채 상위를 체크하면 하위 체크가 상위 하나로 합쳐진다", () => {
+  assert.deepEqual(list(toggleOrganizationSelection(["mech", "arch"], "col", ENG)), ["col"]);
+  assert.deepEqual(list(toggleOrganizationSelection(["lab", "lang"], "col", ENG)).sort(), ["col", "lang"]);
+});
+
+test("체크를 끄면 그 줄만 빠진다 — 상위를 대신 켜 주지 않는다", () => {
+  assert.deepEqual(list(toggleOrganizationSelection(["mech", "lang"], "mech", ENG)), ["lang"]);
+  assert.deepEqual(list(toggleOrganizationSelection(["col"], "col", ENG)), []);
+});
+
+test("형제끼리는 서로 밀어내지 않는다", () => {
+  assert.deepEqual(list(toggleOrganizationSelection(["mech"], "arch", ENG)).sort(), ["arch", "mech"]);
+});
+
+test("조직 목록이 아직 없으면 예전처럼 넣고 뺀다", () => {
+  assert.deepEqual(list(toggleOrganizationSelection(["col"], "mech", [])).sort(), ["col", "mech"]);
+});
+
+test("고리가 있는 상위 관계에서도 멈춘다", () => {
+  const loop = [org("a", "가", "office", { parent: "b" }), org("b", "나", "office", { parent: "a" })];
+  assert.deepEqual(list(toggleOrganizationSelection(["b"], "a", loop)), ["a"]);
+});
+
+test("온보딩이 고른 단과대+학과는 학과 하나로 좁혀진다", () => {
+  assert.deepEqual(list(normalizeOrganizationSelection(["col", "mech"], ENG)), ["mech"]);
+  // 나중에 고른 쪽이 이긴다. 순서가 뒤집히면 결과도 뒤집힌다.
+  assert.deepEqual(list(normalizeOrganizationSelection(["mech", "col"], ENG)), ["col"]);
+  assert.deepEqual(list(normalizeOrganizationSelection(["lang", "mech"], ENG)).sort(), ["lang", "mech"]);
+  assert.deepEqual(list(normalizeOrganizationSelection(["col", "col"], ENG)), ["col"]);
 });

@@ -305,3 +305,57 @@ export function countNoticesByNode(orgs: Organization[], campuses: Campus[] | un
   }
   return { byKey, total: audienceLists.length };
 }
+
+/* ---------- 조직 체크 규칙 (2026-09-08 사용자 결정: "좁히기") ---------- */
+//
+// 규칙은 셋이다.
+//   1. 상위를 체크하면 그 아래 전부가 범위에 든다(예전 그대로. lib/api.ts 의 organizationScope).
+//   2. 상위가 체크된 채 하위를 체크하면 **상위 체크가 풀리고 하위만 남는다**.
+//      "공과대학 안에서 기계공학부만 볼 수는 없다"던 것이 이 규칙이 없어서였다.
+//   3. 하위 몇 개가 체크된 채 상위를 체크하면 그 하위 체크를 지우고 상위 하나로 합친다.
+//      규칙 1 때문에 어차피 같은 범위인데 칩만 여러 개 남아 지저분해지기 때문이다.
+//
+// 규칙 2·3은 늘 **방금 누른 줄**이 이긴다. 사람이 마지막에 한 말이 뜻이다.
+//
+// 부모 관계는 `parent_id` 를 그대로 따른다. 트리 화면이 별칭을 접는 것(drawnOrgIds)과는
+// 일부러 다르게 간다 — 공지를 거르는 organizationScope 가 `parent_id` 를 그대로 보므로,
+// 여기서 다른 관계를 쓰면 "체크는 풀렸는데 목록은 그대로"처럼 화면과 목록이 어긋난다.
+// 별칭 줄은 애초에 트리에 그려지지 않아 체크될 일이 없다.
+
+/** id 의 조상 id 들(자기 자신 제외). 상위가 자기를 가리키는 고리가 있어도 멈춘다. */
+function ancestorIdsOf(id: string, byId: Map<string, Organization>): Set<string> {
+  const out = new Set<string>();
+  let current = byId.get(id);
+  while (current?.parent_id && current.parent_id !== current.id && !out.has(current.parent_id)) {
+    out.add(current.parent_id);
+    current = byId.get(current.parent_id);
+  }
+  return out;
+}
+
+/**
+ * 체크 한 줄을 뒤집는다. 끄는 것은 그냥 뺀다 — 껐다고 상위를 대신 켜 주지는 않는다.
+ * 조직 목록이 아직 안 왔으면(orgs 가 비었으면) 부모를 알 수 없으므로 예전처럼 그냥 넣고 뺀다.
+ */
+export function toggleOrganizationSelection(ids: readonly string[], id: string, orgs: Organization[]): string[] {
+  const set = new Set(ids);
+  if (set.has(id)) {
+    set.delete(id);
+    return [...set];
+  }
+  const byId = new Map(orgs.map((org) => [org.id, org]));
+  for (const ancestorId of ancestorIdsOf(id, byId)) set.delete(ancestorId); // 규칙 2
+  for (const other of [...set]) if (ancestorIdsOf(other, byId).has(id)) set.delete(other); // 규칙 3
+  set.add(id);
+  return [...set];
+}
+
+/**
+ * 이미 있는 선택 목록에 같은 규칙을 먹인다. 앞에서부터 차례로 체크한 셈으로 친다 —
+ * 온보딩이 단과대 다음에 학과를 고르므로, 나중에 고른 좁은 쪽이 남는다.
+ */
+export function normalizeOrganizationSelection(ids: readonly string[], orgs: Organization[]): string[] {
+  let out: string[] = [];
+  for (const id of ids) if (!out.includes(id)) out = toggleOrganizationSelection(out, id, orgs);
+  return out;
+}

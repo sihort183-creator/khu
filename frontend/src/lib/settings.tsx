@@ -2,6 +2,8 @@
 // 비회원 설정. 이 브라우저의 localStorage에만 저장한다(규격 7절).
 // 외부 저장소 + useSyncExternalStore: 서버 렌더에서는 기본값, 클라이언트에서는 저장값.
 import { useCallback, useMemo, useSyncExternalStore } from "react";
+import type { Organization } from "./types";
+import { toggleOrganizationSelection } from "./orgTree";
 
 export interface Settings {
   /**
@@ -98,19 +100,26 @@ export function useSettings() {
  * 조직 다중 선택. 비어 있으면 전체(= 경희대학교 전체)라는 뜻이라 주제 칩과 규칙이 같다.
  * 저장소에 두는 이유: 온보딩을 건너뛴 사람도 목록에서 체크만 하면 '내 공지'와
  * '전체 공지'가 함께 그 조직으로 좁혀져야 하기 때문이다.
+ *
+ * 조직 목록을 **인자로 받는다.** 여기서 useOrganizations() 를 부르면 저장소 하나 읽자고
+ * 화면마다 SWR 조회가 딸려 오고, 설정 파일이 조회 계층에 매달린다. 인자로 두면 타입이
+ * 빠뜨린 화면을 잡아 준다 — 전체 공지·내 공지·온보딩이 같은 규칙을 쓰게 하려면 그게 낫다.
+ * 체크를 뒤집는 규칙(좁히기·합치기)은 lib/orgTree.ts 의 toggleOrganizationSelection 하나뿐이다.
  */
-export function useOrganizationSelection() {
+export function useOrganizationSelection(orgs: Organization[]) {
   const { settings, update } = useSettings();
   const ids = settings.organization_ids;
   const selected = useMemo(() => new Set(ids), [ids]);
 
-  const toggle = useCallback((id: string) => {
-    const cur = read();
-    const set = new Set(cur.organization_ids);
-    if (set.has(id)) set.delete(id);
-    else set.add(id);
-    write({ ...cur, organization_ids: [...set] });
-  }, []);
+  // 저장값은 write 직전에 read() 로 다시 읽는다. 두 선택기(좌측 열·모바일 상자)가 같은
+  // 저장소를 보므로, 렌더 때 들고 있던 값으로 덮으면 다른 쪽이 방금 한 체크가 지워진다.
+  const toggle = useCallback(
+    (id: string) => {
+      const cur = read();
+      write({ ...cur, organization_ids: toggleOrganizationSelection(cur.organization_ids, id, orgs) });
+    },
+    [orgs],
+  );
 
   const clear = useCallback(() => update({ organization_ids: [] }), [update]);
 

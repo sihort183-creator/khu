@@ -24,7 +24,7 @@ export function Shell({ children, categories, orgPicker }: Props) {
   const { settings, update } = useSettings();
   const catalog = useCatalog();
   const orgs = useOrganizations();
-  const org = useOrganizationSelection();
+  const org = useOrganizationSelection(orgs);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const campus = campusShortLabel(catalog?.campuses, settings.campus_id);

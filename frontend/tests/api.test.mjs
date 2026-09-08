@@ -114,6 +114,40 @@ function staticPath(url) {
   return new URL(url).pathname;
 }
 
+const sourceRefs = {
+  "src-web": { id: "src-web", name: "웹 출처", medium: coded("web", "웹") },
+  "src-ig": { id: "src-ig", name: "인스타 출처", medium: coded("instagram", "인스타그램") },
+};
+
+const audienceFromKey = (key) => {
+  if (key === "university") return { type: "university", id: null, name: "경희대학교" };
+  if (key.startsWith("campus:")) return { type: "campus", id: key.slice(7), name: key };
+  if (key.startsWith("org:")) return { type: "organization", id: key.slice(4), name: key };
+  return { type: "undetermined", id: null, name: key };
+};
+
+/**
+ * 색인 항목과 같은 순서·같은 내용의 목록 페이지 파일을 만든다.
+ *
+ * 화면은 목록 한 줄을 목록 페이지 파일에서 그대로 꺼내 쓴다(상세 파일을 부르지 않는다).
+ * 그래서 시험에서도 색인과 목록 페이지가 같은 목록을 같은 순서로 담고 있어야 한다 —
+ * 백엔드(export/static.py)가 실제로 그렇게 내보낸다.
+ */
+function noticeFromEntry(entry) {
+  const base = notice(entry.id, entry.a.map(audienceFromKey));
+  return { ...base, primary_source: sourceRefs[entry.s] ?? base.primary_source };
+}
+
+function noticePages(entries, revision = "r1") {
+  const list = entries.map(noticeFromEntry);
+  return (path) => {
+    const match = /\/notices\/page\/(\d+)\.json$/.exec(path);
+    if (!match) return null;
+    const pageNumber = Number(match[1]);
+    return page(list.slice((pageNumber - 1) * 50, pageNumber * 50), revision, pageNumber * 50 < list.length);
+  };
+}
+
 test("공지 목록은 50건 페이지 경계를 넘어 연속으로 반환한다", async () => {
   const first = Array.from({ length: 50 }, (_, i) => notice(`n-${i + 1}`));
   const second = Array.from({ length: 50 }, (_, i) => notice(`n-${i + 51}`));
@@ -208,19 +242,23 @@ test("캠퍼스·매체 필터와 상위 조직 범위를 실제 색인 계약�
     { id: "src-ig", name: "인스타 출처", organization: { id: "org-college", name: "단과대" }, medium: coded("instagram", "인스타그램"), content_kind: coded("notice", "공지"), url: "https://example.test/ig", status: coded("active", "정상"), status_message: null, last_success_at: null, initial_window_days: null },
   ]);
   const details = Object.fromEntries(entries.map((entry) => [entry.id, backendDetail(notice(entry.id, entry.a.map((audience) => ({ type: audience.startsWith("org:") ? "organization" : audience.startsWith("campus:") ? "campus" : "university", id: audience.includes(":") ? audience.split(":")[1] : null, name: audience })) ))]));
+  const pages = noticePages(entries);
   const fetchImpl = async (url) => {
     const path = staticPath(url);
     if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
     if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
     if (path.endsWith("/organizations.json")) return { ok: true, json: async () => organizations };
     if (path.endsWith("/sources.json")) return { ok: true, json: async () => sources };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
     const detail = Object.entries(details).find(([id]) => path.endsWith(`/notices/${id}.json`))?.[1];
     if (detail) return { ok: true, json: async () => ({ data: detail, meta: {} }) };
     throw new Error(`Unexpected path ${path}`);
   };
   const api = await loadApi(fetchImpl);
   const filtered = await api.listNotices({ campus_id: ["campus-seoul"], medium: ["instagram"], limit: 20 });
-  assert.deepEqual(filtered.data.map((item) => item.id), ["campus-ig"]);
+  // Array.from 으로 감싼다. 목록을 vm 안에서 만들면 배열의 원형이 달라 deepEqual 이 어긋난다.
+  assert.deepEqual(Array.from(filtered.data, (item) => item.id), ["campus-ig"]);
   // 조직을 고르면 그 조직 + 그 아래 전부 + 그 위가 보인다(사용자 결정 2026-09-07).
   // 아래를 합치지 않으면 단과대를 고른 사람의 홈이 비어 버린다 - 공지 대부분이
   // 단과대가 아니라 학과 게시판에서 오기 때문이다. 별칭 조직도 부모로 이어져 딸려 온다.
@@ -263,11 +301,14 @@ test("전체 공지와 내 공지는 같은 조직 범위 규칙을 쓴다", asy
     { id: "org-sibling", name: "형제 학과", type: coded("department", "학과"), parent_id: "org-college", campuses, has_children: false },
     { id: "org-other", name: "남의 단과대", type: coded("college", "단과대"), parent_id: null, campuses, has_children: false },
   ]);
+  const pages = noticePages(entries);
   const fetchImpl = async (url) => {
     const path = staticPath(url);
     if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
     if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
     if (path.endsWith("/organizations.json")) return { ok: true, json: async () => organizations };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
     const entry = entries.find((one) => path.endsWith(`/notices/${one.id}.json`));
     if (entry) return { ok: true, json: async () => ({ data: backendDetail(notice(entry.id)), meta: {} }) };
     throw new Error(`Unexpected path ${path}`);
@@ -296,10 +337,14 @@ test("전체 공지와 내 공지는 같은 조직 범위 규칙을 쓴다", asy
 });
 
 test("entries가 없는 색인은 모든 조각을 합치고 개정·건수 불일치를 거부한다", async () => {
-  const baseOne = notice("shard-1");
-  const baseTwo = notice("shard-2");
-  let invalid = false;
-  const fetchImpl = async (url) => {
+  const shardEntries = [
+    { id: "shard-1", t: "첫 조각", c: "academic", o: null, s: "src", d: null, v: "2026-09-06T00:00:00Z", a: ["university"] },
+    { id: "shard-2", t: "둘째 조각", c: "academic", o: null, s: "src", d: null, v: "2026-09-06T00:00:00Z", a: ["university"] },
+  ];
+  const pages = noticePages(shardEntries);
+  // 색인은 개정마다 한 번만 읽고 그 결과를 다시 쓴다(개정 경로 파일은 불변이다).
+  // 그래서 "합치기"와 "건수 불일치 거부"는 각각 새 화면에서 확인한다.
+  const build = (invalid) => async (url) => {
     const path = staticPath(url);
     if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
     if (path.endsWith("/notices/index.json")) {
@@ -314,17 +359,76 @@ test("entries가 없는 색인은 모든 조각을 합치고 개정·건수 불�
         }),
       };
     }
-    if (path.endsWith("/notices/index/1.json")) return { ok: true, json: async () => ({ revision: "r1", generated_at: "2026-09-06T00:00:00Z", count: 1, entries: [{ id: "shard-1", t: "첫 조각", c: "academic", o: null, s: "src", d: null, v: "2026-09-06T00:00:00Z", a: ["university"] }] }) };
-    if (path.endsWith("/notices/index/2.json")) return { ok: true, json: async () => ({ revision: "r1", generated_at: "2026-09-06T00:00:00Z", count: 1, entries: [{ id: "shard-2", t: "둘째 조각", c: "academic", o: null, s: "src", d: null, v: "2026-09-06T00:00:00Z", a: ["university"] }] }) };
-    if (path.endsWith("/notices/shard-1.json")) return { ok: true, json: async () => ({ data: backendDetail(baseOne), meta: {} }) };
-    if (path.endsWith("/notices/shard-2.json")) return { ok: true, json: async () => ({ data: backendDetail(baseTwo), meta: {} }) };
+    if (path.endsWith("/notices/index/1.json")) return { ok: true, json: async () => ({ revision: "r1", generated_at: "2026-09-06T00:00:00Z", count: 1, entries: [shardEntries[0]] }) };
+    if (path.endsWith("/notices/index/2.json")) return { ok: true, json: async () => ({ revision: "r1", generated_at: "2026-09-06T00:00:00Z", count: 1, entries: [shardEntries[1]] }) };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
+    throw new Error(`Unexpected path ${path}`);
+  };
+  const api = await loadApi(build(false));
+  const response = await api.listNotices({ q: "조각", limit: 20 });
+  assert.deepEqual(Array.from(response.data, (item) => item.id).sort(), ["shard-1", "shard-2"]);
+  const broken = await loadApi(build(true));
+  await assert.rejects(broken.listNotices({ q: "조각", limit: 20 }), (error) => error.error.code === "STATIC_INDEX_INVALID");
+});
+
+test("검색·조직 걸러내기는 상세 파일 대신 목록 페이지에서 줄을 꺼낸다", async () => {
+  // 2026-09-08 실측: 목록 20줄을 그리려고 상세 파일 20개를 불러 첫 화면이 9.1초 걸렸다.
+  // 색인이 고른 항목이 전체에서 몇 번째인지 알면 어느 목록 페이지에 있는지도 알고,
+  // 목록 페이지에는 줄을 그릴 것이 전부 들어 있다.
+  const entries = Array.from({ length: 60 }, (_, i) => ({
+    id: `n-${i + 1}`,
+    t: i % 3 === 0 ? `찾을 공지 ${i + 1}` : `다른 공지 ${i + 1}`,
+    c: "academic", o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["university"],
+  }));
+  const pages = noticePages(entries);
+  const asked = [];
+  const fetchImpl = async (url) => {
+    const path = staticPath(url);
+    asked.push(path);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
     throw new Error(`Unexpected path ${path}`);
   };
   const api = await loadApi(fetchImpl);
-  const response = await api.listNotices({ q: "조각", limit: 20 });
-  assert.deepEqual(Array.from(response.data, (item) => item.id).sort(), ["shard-1", "shard-2"]);
-  invalid = true;
-  await assert.rejects(api.listNotices({ q: "조각", limit: 20 }), (error) => error.error.code === "STATIC_INDEX_INVALID");
+  const response = await api.listNotices({ q: "찾을", limit: 20 });
+  assert.deepEqual(Array.from(response.data, (item) => item.id), entries.filter((entry) => entry.t.startsWith("찾을")).slice(0, 20).map((entry) => entry.id));
+  assert.equal(asked.some((path) => /\/notices\/ntc-|\/notices\/n-\d+\.json$/.test(path)), false);
+  assert.deepEqual(asked.filter((path) => path.includes("/notices/page/")).sort(), ["/v1/r/r1/notices/page/1.json", "/v1/r/r1/notices/page/2.json"]);
+});
+
+test("훑기로 한 화면을 못 채우면 색인 경로로 넘어가고 이어보기도 그쪽 자리표를 쓴다", async () => {
+  // 아주 드문 주제 하나만 고르면 20줄이 아주 멀리 흩어져 있다. 목록 페이지를 끝없이
+  // 넘기지 않고 색인으로 자리를 먼저 찾는다. 두 경로의 자리표는 세는 기준이 달라
+  // (전체 순서 / 걸러낸 목록) 섞이면 안 된다 — 자리표에 색인 표시가 붙는 이유다.
+  const entries = Array.from({ length: 500 }, (_, i) => ({
+    id: `n-${i + 1}`,
+    t: `공지 ${i + 1}`,
+    c: i % 100 === 0 ? "startup" : "academic",
+    o: null, s: "src-web", d: "2026-09-06", v: "2026-09-06T00:00:00Z", a: ["university"],
+  }));
+  const pages = noticePages(entries);
+  const asked = [];
+  const fetchImpl = async (url) => {
+    const path = staticPath(url);
+    asked.push(path);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
+    throw new Error(`Unexpected path ${path}`);
+  };
+  const api = await loadApi(fetchImpl);
+  const first = await api.listNotices({ category_code: ["startup"], limit: 3 });
+  assert.deepEqual(Array.from(first.data, (item) => item.id), ["n-1", "n-101", "n-201"]);
+  assert.ok(asked.some((path) => path.endsWith("/notices/index.json")), "색인을 읽어야 한다");
+  // 색인 자리표는 걸러낸 목록에서의 자리다. 훑기 자리표로 잘못 읽히면 안 된다.
+  assert.equal(atob(first.page.next_cursor).split(":")[1], "i3");
+  const second = await api.listNotices({ category_code: ["startup"], limit: 3, cursor: first.page.next_cursor });
+  assert.deepEqual(Array.from(second.data, (item) => item.id), ["n-301", "n-401"]);
+  assert.equal(second.page.has_next, false);
 });
 
 test("연락처는 50건 경계를 넘어 전체 페이지를 읽고 필터링한다", async () => {

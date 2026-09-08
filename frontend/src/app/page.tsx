@@ -33,7 +33,7 @@ function AllFeed() {
   const orgs = useOrganizations();
   const categoryCodes = useMemo(() => (catalog?.categories ?? []).map((c) => c.code), [catalog]);
   const cats = useCategorySelection(categoryCodes);
-  const org = useOrganizationSelection();
+  const org = useOrganizationSelection(orgs);
   const [medium, setMedium] = useState("");
   const [q, setQ] = useState("");
   const [qInput, setQInput] = useState("");
