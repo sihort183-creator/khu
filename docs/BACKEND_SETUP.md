@@ -145,6 +145,50 @@ cd worker && npx wrangler login && npx wrangler deploy
 
 프론트에는 이 주소를 `NEXT_PUBLIC_API_BASE` 로 넣는다.
 
+### 수집 깨우기 토큰 (권장)
+
+GitHub 예약 실행은 2026-09-07 밤부터 여러 시간씩 빠졌다. 그래서 Worker 가 매시 17분에 GitHub 에
+"수집 한 회차 시작" 요청을 대신 보낸다. 이 장치는 **토큰을 넣어야 켜진다.** 토큰이 없으면 Worker 는
+아무 요청도 하지 않고 기록만 한 줄 남긴다(조회 기능은 토큰과 무관하게 그대로 동작한다).
+
+**1) GitHub 에서 토큰 만들기** — 순서대로 누른다.
+
+1. GitHub → 오른쪽 위 프로필 → **Settings**
+2. 왼쪽 맨 아래 **Developer settings**
+3. **Personal access tokens** → **Fine-grained tokens** → **Generate new token**
+4. 이름은 아무거나(예: `khu-collect-waker`), 만료(Expiration)는 **1년**
+5. **Repository access** → *Only select repositories* → **`sihort183-creator/khu` 하나만** 고른다
+6. **Permissions** → *Repository permissions* → **Actions 를 `Read and write`** 로 바꾼다.
+   **다른 권한은 하나도 주지 않는다**(Contents 도 주지 않는다)
+7. **Generate token** → 화면에 뜬 값을 복사한다. 이 화면을 닫으면 값을 다시 볼 수 없다
+
+**2) Cloudflare 에 비밀값으로 넣기** — 둘 중 하나만 하면 된다.
+
+- 대시보드: Cloudflare → **Workers & Pages** → **`khu-notice-api`** → **Settings** →
+  **Variables and Secrets** → **Add** → 종류를 **Secret** 으로 두고, 이름은 정확히
+  **`KHU_GITHUB_TOKEN`**, 값에는 복사한 토큰을 붙여 넣고 저장한다.
+- 또는 로컬에 Cloudflare 로그인이 되어 있으면:
+
+  ```bash
+  cd worker && npx wrangler secret put KHU_GITHUB_TOKEN
+  ```
+
+  물어보면 토큰 값을 붙여 넣는다.
+
+비밀값은 Cloudflare 에 저장되므로 배포와 무관하다. 다시 배포해도 지워지지 않고, 저장소 파일 어디에도
+값이 남지 않는다.
+
+**3) 켜졌는지 확인** — 다음 매시 17분을 기다린 뒤 둘 중 아무거나 본다.
+
+- Cloudflare → `khu-notice-api` → **Observability**(Worker 로그)에 `수집 깨우기: 회차 시작 …` 줄이 보인다.
+  이미 도는 회차가 있던 시각이면 `이미 in_progress 회차가 있어 시작하지 않습니다` 가 보인다(정상이다).
+- GitHub → 저장소 **Actions** → *공지 수집* 에 `workflow_dispatch` 로 시작된 회차가 뜬다.
+
+**안전에 관해.** 이 토큰으로 할 수 있는 일은 **`sihort183-creator/khu` 저장소의 워크플로를 실행·조회하는
+것뿐**이다. 코드를 읽거나 바꾸거나, 비밀값을 보거나, 다른 저장소를 건드릴 수 없다. 값이 새어 나갔다고
+생각되면 GitHub → Settings → Developer settings → Fine-grained tokens 에서 그 토큰을 **Delete** 하면
+바로 무효가 된다. 새로 만들어 같은 이름으로 다시 넣으면 된다.
+
 ### 감시 붙이기 (선택, 무료)
 
 <https://healthchecks.io> 에서 무료 가입하고 확인 항목 2개를 만든다.

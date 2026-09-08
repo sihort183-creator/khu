@@ -177,7 +177,74 @@ async function revisionObject(key, bucket) {
   };
 }
 
+/**
+ * 수집 깨우기(13절).
+ *
+ * GitHub 예약 실행은 2026-09-07 밤부터 여러 시간씩 빠졌다. 그래서 매시 17분에 여기서
+ * 수집 워크플로에 workflow_dispatch 를 보낸다. 조회 경로와는 아무 관계가 없다.
+ * R2 도 쓰지 않고, fetch 요청으로 부를 수 있는 길도 만들지 않는다.
+ *
+ * 이미 도는 회차가 있으면 보내지 않는다. 수집은 회차가 겹치면 안 된다(7.4절).
+ * 토큰(KHU_GITHUB_TOKEN)이 없으면 아무 요청도 하지 않는다. 실패는 기록만 하고 삼킨다.
+ * 여기서 예외를 던져도 수집이 살아나지는 않고, 조회만 시끄러워진다.
+ */
+const GITHUB_API = "https://api.github.com";
+const DISPATCH_REF = "main";
+
+async function wakeCollector(env) {
+  const token = env?.KHU_GITHUB_TOKEN;
+  if (!token) {
+    console.log("수집 깨우기: KHU_GITHUB_TOKEN 비밀값이 없어 아무것도 하지 않습니다.");
+    return;
+  }
+  const repo = env.KHU_GITHUB_REPO || "sihort183-creator/khu";
+  const workflow = env.KHU_COLLECT_WORKFLOW || "collect.yml";
+  const base = `${GITHUB_API}/repos/${repo}/actions/workflows/${encodeURIComponent(workflow)}`;
+  const headers = {
+    "authorization": `Bearer ${token}`,
+    "accept": "application/vnd.github+json",
+    "x-github-api-version": "2022-11-28",
+    "user-agent": "khu-notice-scheduler",
+  };
+
+  try {
+    // 도는 회차가 하나라도 있으면 건너뛴다. queued·pending 은 앞 회차가 끝나기를
+    // 기다리는 것이다(concurrency 로 줄 선 회차를 GitHub 이 pending 으로 보고한 적이 있다).
+    for (const status of ["in_progress", "queued", "pending"]) {
+      const runs = await fetch(`${base}/runs?status=${status}&per_page=1`, { headers });
+      if (!runs.ok) {
+        console.error(`수집 깨우기: 회차 확인 실패 (${status}, HTTP ${runs.status}). 이번 시각은 건너뜁니다.`);
+        return;
+      }
+      const body = await runs.json();
+      const count = body?.total_count ?? body?.workflow_runs?.length ?? 0;
+      if (count > 0) {
+        console.log(`수집 깨우기: 이미 ${status} 회차가 있어 시작하지 않습니다.`);
+        return;
+      }
+    }
+
+    const dispatch = await fetch(`${base}/dispatches`, {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify({ ref: DISPATCH_REF }),
+    });
+    if (!dispatch.ok) {
+      console.error(`수집 깨우기: 시작 요청 실패 (HTTP ${dispatch.status}). 이번 시각은 건너뜁니다.`);
+      return;
+    }
+    console.log(`수집 깨우기: 회차 시작 (${repo} / ${workflow} / ${DISPATCH_REF}).`);
+  } catch (err) {
+    console.error(`수집 깨우기: 요청 중 오류 — ${err}`);
+  }
+}
+
 export default {
+  /** 매시 17분(wrangler.toml [triggers]). 조회 경로와 분리된 유일한 진입점이다. */
+  async scheduled(event, env, ctx) {
+    await wakeCollector(env);
+  },
+
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = request.headers.get("origin");

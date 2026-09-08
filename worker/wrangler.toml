@@ -13,3 +13,13 @@ bucket_name = "khu-notice-public"
 
 [observability]
 enabled = true
+
+# 수집 깨우기(13절). GitHub 예약 실행이 빠지는 일이 잦아, 매시 17분에 여기서
+# GitHub 에 workflow_dispatch 를 보낸다. 분만 맞으면 되므로 UTC 기준으로도 매시 17분이다.
+# 토큰(KHU_GITHUB_TOKEN)은 Cloudflare 비밀값이라 이 파일에 없다. 토큰이 없으면 아무것도 하지 않는다.
+[triggers]
+crons = ["17 * * * *"]
+
+[vars]
+KHU_GITHUB_REPO = "sihort183-creator/khu"
+KHU_COLLECT_WORKFLOW = "collect.yml"

@@ -5,6 +5,7 @@
   "description": "경희 공지 조회 제공. R2의 정적 JSON에 캐시와 CORS를 붙인다.",
   "scripts": {
     "dev": "wrangler dev",
+    "test": "node --test \"tests/*.test.mjs\"",
     "deploy": "wrangler deploy",
     "tail": "wrangler tail"
   },
