@@ -916,8 +916,16 @@ def run_category_backfill(
     transitions: dict[str, int] = {}
     samples: list[CategoryChange] = []
 
+    # 덩어리마다 한 번만 flush 한다. 공지마다 autoflush 가 돌면 GitHub 러너(미국)에서 서울
+    # DB 로 공지 하나에 서너 번씩 왕복해 6천 건에 90분이 넘게 걸렸다(2026-09-09).
     for rows in repo.iter_notices_for_category_recompute(session, chunk=chunk):
         current = repo.notice_category_codes(session, [row[0] for row in rows])
+        notices = (
+            {n.id: n for n in session.execute(select(m.Notice).where(m.Notice.id.in_([r[0] for r in rows]))).scalars()}
+            if apply
+            else {}
+        )
+        session.autoflush = False
         for notice_id, status, source_id, title, body_text, board_category in rows:
             scanned += 1
             decision = category_rules.classify(title, body_text, board_category=board_category)
@@ -947,7 +955,7 @@ def run_category_backfill(
             if not apply:
                 continue
             repo.replace_notice_categories(session, notice_id, decision)
-            notice = session.get(m.Notice, notice_id)
+            notice = notices.get(notice_id)
             if notice is not None:
                 notice.updated_at = now
                 audience_version = (notice.derived_version or "|").split("|", 1)[-1]
@@ -971,6 +979,9 @@ def run_category_backfill(
                     run_id=batch_id,
                 )
             )
+        session.autoflush = True
+        if apply:
+            session.flush()
 
     return {
         "scanned": scanned,
