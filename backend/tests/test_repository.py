@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import event, func, select
 
 from app.domain import ids
 from app.domain.audiences import AudienceDecision, AudienceTarget
@@ -457,3 +457,52 @@ def test_same_dedupe_pair_can_be_recorded_twice(db, source):
     assert len(rows) == 1
     # 다시 판정한 값으로 갱신된다.
     assert float(rows[0].score) == pytest.approx(0.75)
+
+
+def test_preload_listing_items_does_not_read_bodies(db, source, engine, session_factory):
+    """미리 읽기는 본문 두 칸을 select 하지 않아야 한다.
+
+    수집 경로가 여기서 올린 기존 이력에서 보는 것은 제목·발행일·내용 지문·게시판
+    분류뿐이다. 본문은 이력 한 건 평균 2.3KB 라 회차당 12.8MB 중 11.4MB 를 차지해
+    Supabase egress 예산을 수집 혼자 넘겼다(2026-09-09 측정). defer 로 뺀다.
+    """
+    listed = _listed(external_id="300", title="본문 있는 공지")
+    body = "아주 긴 본문입니다. " * 50
+    written = _write(db, source, listed, _detail(listed, body=body))
+    db.commit()
+
+    statements: list[str] = []
+
+    def _capture(conn, cursor, statement, parameters, context, executemany):
+        statements.append(statement)
+
+    event.listen(engine, "before_cursor_execute", _capture)
+    try:
+        with session_factory() as fresh:
+            items, revisions = repo.preload_listing_items(fresh, source.id, [listed])
+            assert len(items) == 1 and len(revisions) == 1
+
+            revision_sql = [sql for sql in statements if "source_item_revisions" in sql]
+            assert revision_sql, "이력 조회 문장을 가로채지 못했다"
+            for sql in revision_sql:
+                assert "body_html" not in sql, sql
+                assert "body_text" not in sql, sql
+            # 수집이 실제로 쓰는 칸은 그대로 들어 있어야 한다.
+            assert "content_hash" in revision_sql[0]
+            assert "published_raw" in revision_sql[0]
+            assert "board_category" in revision_sql[0]
+
+            revision = revisions[0]
+            assert revision.id == written.revision_id
+            # 본문은 아직 세션에 올라오지 않았다.
+            assert "body_text" not in revision.__dict__
+            assert "body_html" not in revision.__dict__
+            # 제목은 추가 조회 없이 읽힌다.
+            before = len(statements)
+            assert revision.title == listed.title
+            assert len(statements) == before
+            # 본문을 만지면 그때 한 번 더 읽어 오고 값은 그대로다.
+            assert revision.body_text == body
+            assert len(statements) > before
+    finally:
+        event.remove(engine, "before_cursor_execute", _capture)

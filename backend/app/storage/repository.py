@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import func, select, update
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, defer
 
 from app.domain import ids
 from app.domain.audiences import AudienceDecision, AudienceTarget
@@ -371,9 +371,19 @@ def preload_listing_items(session: Session, source_id: str, listings: list[Liste
     if not keys:
         return [], []
     items = list(session.scalars(select(m.SourceItem).where(m.SourceItem.id.in_(keys))))
-    revisions = list(session.scalars(select(m.SourceItemRevision).where(
-        m.SourceItemRevision.id.in_([item.current_revision_id for item in items if item.current_revision_id])
-    )))
+    # 본문 두 칸은 빼고 읽는다. 수집 경로가 여기서 올린 기존 이력에서 보는 것은
+    # title·published_*·content_hash·board_category·raw_object_key 뿐이고 본문은
+    # 한 번도 읽지 않는다(2026-09-09 실측: 회차당 12.83MB 중 11.4MB가 본문).
+    # defer 라서 나중에 누가 본문을 만지면 그때 한 번 더 읽어 온다. 결과는 같다.
+    revisions = list(session.scalars(
+        select(m.SourceItemRevision)
+        .options(defer(m.SourceItemRevision.body_html), defer(m.SourceItemRevision.body_text))
+        .where(
+            m.SourceItemRevision.id.in_(
+                [item.current_revision_id for item in items if item.current_revision_id]
+            )
+        )
+    ))
     return items, revisions
 
 
