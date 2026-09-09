@@ -246,6 +246,45 @@ def test_body_keywords_only_decide_when_the_body_opens_with_them():
     assert cat.classify("2027학년도 1학기 파견 안내", lead).primary == "international"
 
 
+def test_full_reclassify_dry_run_findings():
+    # 2026-09-09 장학 밖 탭 실측과 전체 재분류 모의 실행에서 나온 패턴들.
+    # 행정 공문은 사업명에 든 낱말과 무관하게 기타다.
+    for title in (
+        "[공지] 「2026 김제 모악산 뮤직페스티벌 대행 용역」제안서 평가위원(후보자) 공개 모집 안내",
+        "[공지] 제안서 평가위원회 후보 추천 요청(2026 인천 관광스타트업 육성)",
+        "[입찰공고] (제2026-국제산학23호) GPU 구입",
+        "[공지] 2026-2학기 교원 초빙에 따른 외부심사위원 후보자 추천 의뢰",
+    ):
+        decision = cat.classify(title, "", board_category="행사")
+        assert decision.primary == "other" and decision.rule_name == "admin_notice", title
+    # 캠퍼스 표식과 조직 이름 말머리는 주제가 아니다.
+    assert cat.classify("[미래인재센터(국제)] 2026-2 진로 대비 프로그램 「대학생활 Level Up!」참여자 모집", "").primary == "program"
+    assert cat.classify("국제 | 2026학년도 2학기 대기업 대비반(AI를 활용한 직무별 취업전략) 교육 일정 안내", "").primary == "career"
+    assert cat.classify("[한국건설생활환경시험연구원] 정규직 채용공고 (제2026-2차)", "").primary == "career"
+    assert cat.classify("[창업교육센터] 2026-2학기 창업현장실습 신청공고", "").primary == "career"
+    # 취업이 졸업보다 앞이다.
+    assert cat.classify("[금호석유화학그룹] 2026년 하반기 신입사원 공개채용 (~9/11(금))", "졸업예정자 대상").primary == "career"
+    assert cat.classify("[Sanofi] 인턴십 프로그램 채용 안내 (대학교 졸업예정자, 유예자 대상)", "").primary == "career"
+    # 부분 문자열: 9월 1주차, 학생회관, 학기부터.
+    assert cat.classify("습득물 안내(9월1주차)", "").primary == "campus_life"
+    assert cat.classify("[입찰공고] 학생회관 외 2개 건물 전기개선공사", "").primary == "other"
+    assert cat.classify("2026-2학기 국제캠퍼스 학생회관 식당 운영 안내", "").primary == "campus_life"
+    assert cat.classify("[한국장학재단] 학자금지원구간 개편(2027학년도 1학기부터 적용)", "", board_category="공통").primary == "scholarship"
+    assert cat.classify("[기부캠페인] 경희목련 희망 장학 기금", "").primary != "scholarship"
+    assert cat.classify("2026학년도 2학기 이수옥 장학기금 신청 안내", "").primary == "scholarship"
+    # 기타에서 건진 낱말들.
+    assert cat.classify("2026학년도 1학기 기말 강의평가 실시 안내", "").primary == "academic"
+    assert cat.classify("2026학년도 2학기 학점포기 신청 안내", "").primary == "academic"
+    assert cat.classify("2026학년도 1학기 전공 트랙교육과정 신청 및 포기 안내", "").primary == "academic"
+    assert cat.classify("대학(원)생 대상 RISS 서포터즈(홍보단) 8기 모집 안내", "").primary == "program"
+    assert cat.classify("[심리상담센터] 신입생, 재학생을 위한 새학기 심리검사 실시 안내", "").primary == "campus_life"
+    assert cat.classify("평화의전당 광장 주차통제 안내[2026 이소라 여덟번째 봄 콘서트]", "").primary == "campus_life"
+    assert cat.classify("평화의전당 광장 주차통제 안내(경희대학교 전국 초·중·고등학생 무용경연대회)", "").primary == "campus_life"
+    assert cat.classify("2025학년도 후기(2026.08월) 학사학위취득유예제도 신청 안내", "").primary == "graduation"
+    assert cat.classify("[HD현대] 2026년 상반기 신입사원 모집 (~3/24)", "").primary == "career"
+    assert cat.classify("「2026 KHU Homecoming Week」 개최 안내", "").primary == "event"
+
+
 def test_board_badge_국제_means_the_campus_not_the_topic():
     # 미래혁신원 장학공지·근로 게시판은 배지가 "국제"(캠퍼스)다. 주제는 제목이 정한다.
     for title in (
