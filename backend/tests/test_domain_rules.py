@@ -246,7 +246,20 @@ def test_body_keywords_only_decide_when_the_body_opens_with_them():
     assert cat.classify("2027학년도 1학기 파견 안내", lead).primary == "international"
 
 
-def test_rule_version_marks_the_title_first_rules():
+def test_board_badge_국제_means_the_campus_not_the_topic():
+    # 미래혁신원 장학공지·근로 게시판은 배지가 "국제"(캠퍼스)다. 주제는 제목이 정한다.
+    for title in (
+        "[장학] 2026-2 목련장학 신청 공고(~2026.9.14[월])",
+        "2026학년도 가을학기 장학 대상자 서류제출 안내",
+        "[교내근로]교내 근로봉사장학생 모집 안내[총무관리처 관재팀]",
+        "26-2학기 학기중 국가근로장학 모집 안내 공고문(교내/교외)",
+    ):
+        assert cat.classify(title, "", board_category="국제").primary == "scholarship", title
+    assert cat.classify("2027-1 파견 교환학생 모집", "", board_category="국제").primary == "international"
+    assert cat.classify("아무 안내", "", board_category="국제교류").primary == "international"
+
+
+
     assert cat.RULE_VERSION == "categories/2"
     assert cat.classify("아무 제목", "").rule_version == "categories/2"
 

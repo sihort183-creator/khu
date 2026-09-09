@@ -48,7 +48,12 @@ BOARD_CATEGORY_MAP: dict[str, str] = {
     "프로그램": "program",
     "비교과": "program",
     "특강": "program",
-    "국제": "international",
+    # "국제" 한 낱말은 넣지 않는다. 게시판 배지 "국제" 는 국제캠퍼스라는 뜻이고, 그 배지가
+    # 장학공지·근로 게시판의 장학 글 45건을 국제 탭으로 보냈다(2026-09-09 실측).
+    "국제교류": "international",
+    "국제처": "international",
+    "국제협력": "international",
+    "국제화": "international",
     "교환학생": "international",
     "해외": "international",
     "어학": "international",
