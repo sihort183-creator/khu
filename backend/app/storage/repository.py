@@ -1002,6 +1002,69 @@ def iter_notices_for_audience_recompute(session: Session, *, chunk: int = 1000):
         after = rows[-1][0]
 
 
+def iter_notices_for_category_recompute(session: Session, *, chunk: int = 1000):
+    """공지와 그 대표 원본의 저장된 제목·본문·게시판 분류를 순서대로 흘려준다.
+
+    주제 분류 categories.classify 의 입력은 제목·본문·게시판 분류 셋뿐이고 셋 다
+    리비전에 저장되어 있다. 대상 재계산과 같은 이유로 대표 원본만 keyset 으로 읽는다.
+    """
+    after = ""
+    while True:
+        rows = session.execute(
+            select(
+                m.Notice.id,
+                m.Notice.status,
+                m.SourceItem.source_id,
+                m.SourceItemRevision.title,
+                m.SourceItemRevision.body_text,
+                m.SourceItemRevision.board_category,
+            )
+            .join(
+                m.NoticeSource,
+                (m.NoticeSource.notice_id == m.Notice.id)
+                & m.NoticeSource.is_active.is_(True)
+                & m.NoticeSource.is_primary.is_(True),
+            )
+            .join(m.SourceItem, m.SourceItem.id == m.NoticeSource.source_item_id)
+            .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .where(m.Notice.id > after)
+            .order_by(m.Notice.id)
+            .limit(chunk)
+        ).all()
+        if not rows:
+            return
+        yield rows
+        after = rows[-1][0]
+
+
+def notice_category_codes(
+    session: Session, notice_ids: list[str]
+) -> dict[str, tuple[str, tuple[str, ...]]]:
+    """지금 저장된 (대표 주제, 보조 주제들) 을 공지별로 읽는다. 보조는 코드순."""
+    if not notice_ids:
+        return {}
+    rows = session.execute(
+        select(m.NoticeCategory.notice_id, m.NoticeCategory.category_code, m.NoticeCategory.is_primary)
+        .where(m.NoticeCategory.notice_id.in_(notice_ids))
+    ).all()
+    primary: dict[str, str] = {}
+    secondary: dict[str, list[str]] = {}
+    for notice_id, code, is_primary in rows:
+        if is_primary:
+            primary[notice_id] = code
+        else:
+            secondary.setdefault(notice_id, []).append(code)
+    return {
+        nid: (primary.get(nid, "other"), tuple(sorted(secondary.get(nid, []))))
+        for nid in set(primary) | set(secondary)
+    }
+
+
+def replace_notice_categories(session: Session, notice_id: str, category: CategoryDecision) -> None:
+    """공지 하나의 주제 행을 판정 결과로 바꾼다. 수집이 쓰는 것과 같은 경로다."""
+    _replace_categories(session, notice_id, category)
+
+
 def iter_item_bodies_for_dedupe(session: Session, *, chunk: int = 1000):
     """공개 중인 공지의 원본 식별자·본문·본문 HTML·원문 주소를 순서대로 흘려준다.
 

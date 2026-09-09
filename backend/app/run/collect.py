@@ -872,6 +872,164 @@ def _target_from_key(key: str) -> audience_rules.AudienceTarget | None:
     return None
 
 
+@dataclass(frozen=True)
+class CategoryChange:
+    """주제가 달라지는 공지 한 건. 표본 확인과 되돌리기에 필요한 값만 담는다."""
+
+    notice_id: str
+    title: str
+    source_id: str
+    before: str
+    after: str
+    rule_name: str
+    evidence: str | None
+
+
+def run_category_backfill(
+    session: Session,
+    *,
+    chunk: int = 500,
+    apply: bool = False,
+    batch_id: str | None = None,
+    reason: str | None = None,
+    actor: str = "ops",
+    sample_limit: int = 0,
+    only_codes: frozenset[str] | None = None,
+    now: datetime | None = None,
+) -> dict:
+    """쌓인 공지의 주제를 저장된 제목·본문·게시판 분류로 다시 계산한다(8.2절).
+
+    분류는 새 리비전이 생길 때 한 번만 계산되어 저장되므로 규칙을 고쳐도 이미 쌓인
+    공지는 그대로다. 2026-09-09 장학 규칙을 고치면서(categories/2) 이 명령을 만들었다.
+    입력 셋이 모두 리비전에 있으므로 원문을 다시 받지 않는다.
+
+    only_codes 를 주면 "이전 대표 주제 또는 새 대표 주제가 그 안에 드는" 공지만 바꾼다.
+    장학만 먼저 고칠 때처럼 한 탭의 드나듦만 손대고 나머지는 그대로 두려는 용도다.
+    보조 주제만 달라지는 공지는 세지도 바꾸지도 않는다. 탭은 대표 주제로만 거른다.
+
+    apply=False 면 세션을 건드리지 않고 세기만 한다. 실제 적용은 공지마다 audit_logs 에
+    이전·이후 주제를 남기고 갱신 시각을 올린다. 증분 내보내기는 갱신 시각으로 바뀐
+    공지를 고르므로, 이걸 올리지 않으면 사이트에 반영되지 않는다.
+    """
+    now = now or datetime.now(UTC)
+    scanned = changed = unchanged = skipped = 0
+    transitions: dict[str, int] = {}
+    samples: list[CategoryChange] = []
+
+    for rows in repo.iter_notices_for_category_recompute(session, chunk=chunk):
+        current = repo.notice_category_codes(session, [row[0] for row in rows])
+        for notice_id, status, source_id, title, body_text, board_category in rows:
+            scanned += 1
+            decision = category_rules.classify(title, body_text, board_category=board_category)
+            before, _ = current.get(notice_id, ("other", ()))
+            after = decision.primary
+            if before == after:
+                unchanged += 1
+                continue
+            if only_codes is not None and before not in only_codes and after not in only_codes:
+                skipped += 1
+                continue
+            changed += 1
+            transition = f"{before} -> {after}"
+            transitions[transition] = transitions.get(transition, 0) + 1
+            if len(samples) < sample_limit:
+                samples.append(
+                    CategoryChange(
+                        notice_id=notice_id,
+                        title=title,
+                        source_id=source_id,
+                        before=before,
+                        after=after,
+                        rule_name=decision.rule_name,
+                        evidence=decision.evidence,
+                    )
+                )
+            if not apply:
+                continue
+            repo.replace_notice_categories(session, notice_id, decision)
+            notice = session.get(m.Notice, notice_id)
+            if notice is not None:
+                notice.updated_at = now
+                audience_version = (notice.derived_version or "|").split("|", 1)[-1]
+                notice.derived_version = f"{decision.rule_version}|{audience_version}"
+            session.add(
+                m.AuditLog(
+                    id=ids._digest("reclassify", notice_id, batch_id or now.isoformat()),
+                    actor=actor,
+                    action="notice.reclassify",
+                    target_kind="notice",
+                    target_id=notice_id,
+                    before={"primary": before},
+                    after={
+                        "primary": after,
+                        "secondary": list(decision.secondary),
+                        "rule": decision.rule_name,
+                        "evidence": decision.evidence,
+                        "status": status,
+                    },
+                    reason=reason,
+                    run_id=batch_id,
+                )
+            )
+
+    return {
+        "scanned": scanned,
+        "changed": changed,
+        "unchanged": unchanged,
+        "skipped_outside_scope": skipped,
+        "transitions": dict(sorted(transitions.items(), key=lambda kv: -kv[1])),
+        "applied": bool(apply),
+        "batch": batch_id,
+        "samples": [
+            {
+                "notice_id": s.notice_id,
+                "title": s.title[:80],
+                "before": s.before,
+                "after": s.after,
+                "rule": s.rule_name,
+                "evidence": s.evidence,
+            }
+            for s in samples
+        ],
+    }
+
+
+def revert_category_backfill(
+    session: Session, *, batch_id: str, actor: str = "ops", apply: bool = False
+) -> dict:
+    """주제 다시 계산 한 묶음을 audit_logs 의 이전 대표 주제로 되돌린다.
+
+    이전 보조 주제는 남기지 않았으므로 대표만 돌아간다. 되돌린 행의 규칙명은
+    "revert" 로 남겨 어디서 왔는지 알 수 있게 한다.
+    """
+    rows = list(
+        session.execute(
+            select(m.AuditLog).where(
+                m.AuditLog.action == "notice.reclassify", m.AuditLog.run_id == batch_id
+            )
+        ).scalars()
+    )
+    restored = missing = 0
+    now = datetime.now(UTC)
+    for entry in rows:
+        code = (entry.before or {}).get("primary")
+        if entry.target_id is None or not code or code not in category_rules.CATEGORY_LABELS:
+            missing += 1
+            continue
+        restored += 1
+        if not apply:
+            continue
+        repo.replace_notice_categories(
+            session,
+            entry.target_id,
+            category_rules.CategoryDecision(primary=code, rule_name="revert", all_codes=(code,)),
+        )
+        notice = session.get(m.Notice, entry.target_id)
+        if notice is not None:
+            notice.updated_at = now
+    return {"batch": batch_id, "entries": len(rows), "restored": restored, "unusable": missing}
+
+
 class SharedFetcherProxy:
     """출처 스레드의 요청을 단일 통신 루프로 전달한다. 호스트 제한을 공유한다.
 

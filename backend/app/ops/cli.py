@@ -1028,6 +1028,74 @@ def notice_reaudience(args: argparse.Namespace) -> int:
     return 0
 
 
+def notice_reclassify(args: argparse.Namespace) -> int:
+    """쌓인 공지의 주제(탭)를 저장된 제목·본문·게시판 분류로 다시 계산한다.
+
+    reaudience 와 같은 꼴이다. --dry-run 으로 먼저 이동 건수를 본다.
+    --only 로 한 탭의 드나듦만 손댈 수 있다(예: --only scholarship).
+    """
+    from app.run.collect import revert_category_backfill, run_category_backfill
+
+    if args.revert:
+        with session_scope() as session:
+            preview = revert_category_backfill(session, batch_id=args.revert, apply=False)
+            if preview["entries"] == 0 or args.dry_run:
+                session.rollback()
+                print(json.dumps(preview, ensure_ascii=False))
+                if preview["entries"] == 0:
+                    print(f"그 묶음의 기록이 없습니다: {args.revert}", file=sys.stderr)
+                    return 1
+                print("모의 실행입니다. 아무것도 저장하지 않았습니다.")
+                return 0
+            stats = revert_category_backfill(session, batch_id=args.revert, actor=_actor(), apply=True)
+            _audit(
+                session,
+                action="notice.reclassify_revert",
+                target_kind="notice",
+                target_id="*",
+                reason=args.reason,
+                after=stats,
+            )
+        print(json.dumps(stats, ensure_ascii=False))
+        print("되돌렸습니다. `ops export` 또는 다음 수집 실행 후 정적 파일에 반영됩니다.")
+        return 0
+
+    only = frozenset(code.strip() for code in (args.only or "").split(",") if code.strip()) or None
+    if args.dry_run:
+        with session_scope() as session:
+            stats = run_category_backfill(
+                session, apply=False, sample_limit=args.samples, actor=_actor(), only_codes=only
+            )
+            session.rollback()
+        print(json.dumps(stats, ensure_ascii=False, indent=2))
+        print("모의 실행입니다. 아무것도 저장하지 않았습니다.")
+        return 0
+
+    batch_id = f"recat-{uuid4().hex[:12]}"
+    with session_scope() as session:
+        stats = run_category_backfill(
+            session,
+            apply=True,
+            batch_id=batch_id,
+            reason=args.reason,
+            actor=_actor(),
+            sample_limit=args.samples,
+            only_codes=only,
+        )
+        _audit(
+            session,
+            action="notice.reclassify_batch",
+            target_kind="notice",
+            target_id="*",
+            reason=args.reason,
+            after={k: v for k, v in stats.items() if k != "samples"},
+        )
+    print(json.dumps(stats, ensure_ascii=False, indent=2))
+    print(f"되돌리려면: python -m app.ops.cli notice reclassify --revert {batch_id}")
+    print("`ops export` 또는 다음 수집 실행 후 정적 파일에 반영됩니다.")
+    return 0
+
+
 # ------------------------------------------------------------------ 내보내기·점검
 
 
@@ -1158,6 +1226,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--revert", default=None, metavar="BATCH", help="그 묶음의 변경을 이전 대상으로 되돌린다"
     )
     reaud.set_defaults(func=notice_reaudience)
+
+    recat = notice.add_parser(
+        "reclassify", help="쌓인 전체 공지의 주제(탭)를 저장된 제목·본문·게시판 분류로 다시 계산"
+    )
+    recat.add_argument("--reason", default="주제 분류 규칙 수정 후 일괄 재계산")
+    recat.add_argument("--dry-run", action="store_true", help="저장하지 않고 결과만 센다")
+    recat.add_argument("--samples", type=int, default=30, help="눈으로 볼 변경 표본 수")
+    recat.add_argument(
+        "--only",
+        default=None,
+        metavar="CODES",
+        help="쉼표로 나눈 주제 코드. 이전 또는 새 대표 주제가 여기 드는 공지만 바꾼다(예: scholarship)",
+    )
+    recat.add_argument(
+        "--revert", default=None, metavar="BATCH", help="그 묶음의 변경을 이전 대표 주제로 되돌린다"
+    )
+    recat.set_defaults(func=notice_reclassify)
 
     export = sub.add_parser("export", help="정적 파일 다시 만들기")
     export.add_argument("--prune", action="store_true")
