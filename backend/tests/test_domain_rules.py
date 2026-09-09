@@ -127,6 +127,77 @@ def test_contacts_are_not_a_notice_category():
     assert "contact" not in cat.CATEGORY_LABELS
 
 
+# 2026-09-09 장학 탭 실측(공개 색인 22,941건)에서 나온 실제 제목들. 규칙을 고칠 때
+# 이 글들이 다시 엉뚱한 탭으로 가지 않도록 붙잡아 둔다.
+
+
+def test_title_keyword_beats_body_keyword():
+    # 조교 모집 본문의 "장학금 지급" 한 마디가 제목의 채용을 이기던 문제.
+    body = "행정 업무를 돕는 조교를 모집합니다. " * 20 + "선발된 조교에게는 장학금을 지급합니다."
+    decision = cat.classify("[법학계열 종합행정실] 2026-2학기 조교 모집", body)
+    assert decision.primary == "career"
+    assert decision.rule_name == "title_keyword"
+    decision = cat.classify("[NH농협손해보험] 2026년 상반기 신규직원 채용", "장학생 우대 " * 5)
+    assert decision.primary == "career"
+
+
+def test_scholarship_body_evidence_only_counts_in_the_lead():
+    # 본문 뒤쪽에서 장학금 조건을 길게 적는 고시반·연수·발굴단 안내는 장학이 아니다.
+    late = "학생정책발굴단을 모집합니다. " * 30 + "활동 우수자에게는 장학금을 지급합니다. 장학금 장학금 장학금"
+    decision = cat.classify("2026년 대학혁신지원사업 학생정책발굴단 모집", late)
+    assert decision.primary != "scholarship"
+    assert "scholarship" not in decision.all_codes
+    # 앞머리에서 곧장 장학을 말하면 제목에 없어도 장학이다.
+    lead = "2026학년도 2학기 국가근로장학금 신청을 안내합니다. " + "세부 내용 " * 100
+    decision = cat.classify("2026학년도 2학기 국가근로 신청 안내", lead)
+    assert decision.primary == "scholarship"
+    assert decision.rule_name == "body_lead_keyword"
+
+
+def test_bare_scholarship_word_in_title_is_scholarship():
+    # "장학금·장학생" 만 보던 규칙이 교내 장학 이름 99건을 기타로 보냈다.
+    for title in (
+        "2026-1학기 융합인재장학 신청 안내",
+        "[공통] 2026학년도 2학기 우정장학(학업장려금) 신청 안내",
+        "일반대학원 우수연구자 추천장학 선발 안내",
+        "2026학년도 2학기 장학대상자 재직증명서 제출 안내",
+    ):
+        assert cat.classify(title, "").primary == "scholarship", title
+
+
+def test_scholarship_officer_hiring_is_not_scholarship():
+    assert cat.classify("2026년 교육청 장학사 채용 공고", "").primary == "career"
+    assert cat.classify("2026년 장학관 임용 후보자 공모", "").primary != "scholarship"
+
+
+def test_scholarship_outranks_graduation_startup_international_keywords():
+    for title in (
+        "2026학년도 1학기 일반대학원 학술지게재 및 학술대회 논문발표장학 신청 안내",
+        "[창업교육센터] 2026-1학기 스타트업(StartUp) 장학 신청 안내",
+        "제 36차 미래인재 해외교환 장학생 선발 안내 (2027-1학기 파견 교환학생 대상)",
+        "[수원시국제교류센터] 2026년도 중국 지난대학교 어학연수 장학생 추가모집 안내",
+    ):
+        decision = cat.classify(title, "")
+        assert decision.primary == "scholarship", title
+    # 밀린 주제는 보조로 남는다.
+    assert "startup" in cat.classify("2026-1학기 스타트업 장학 안내", "").secondary
+
+
+def test_campus_topic_prefix_reads_the_topic_not_the_campus():
+    # "[국제_국가장학]" 의 국제는 국제캠퍼스다. 최장 일치로 국가장학이 먼저 잡혀야 한다.
+    for title in (
+        "[국제_국가장학] [주거안정장학] 2026-2학기 1차 주거안정장학금 학생 신청 홍보 안내",
+        "[국제_국가근로] 26-1학기 하계방학 국가근로장학 모집 안내 공고문",
+        "[국제_교내장학] [국제C] 2026학년도 1학기 마일리지 장학금 지급 신청 안내",
+    ):
+        assert cat.classify(title, "").primary == "scholarship", title
+
+
+def test_rule_version_marks_the_title_first_rules():
+    assert cat.RULE_VERSION == "categories/2"
+    assert cat.classify("아무 제목", "").rule_version == "categories/2"
+
+
 # ----------------------------------------------------------------- 대상 범위
 
 
