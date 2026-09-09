@@ -223,9 +223,31 @@ jobs:
           path: |
             backend/.localstore/selfcheck.json
             backend/.localstore/selfcheck-summary.md
+            backend/.localstore/export-metrics.json
           include-hidden-files: true
           retention-days: 14
 
       - name: 실행 요약
         if: always()
         run: python -m app.ops.cli status >> "$GITHUB_STEP_SUMMARY"
+
+      # github.token 으로 띄운 회차는 끝나도 workflow_run 이벤트를 만들지 않는다(GitHub 규칙:
+      # GITHUB_TOKEN 이 만든 이벤트는 새 워크플로를 깨우지 않는다. workflow_dispatch 만 예외).
+      # 2026-09-09 실측: 예약(cron)으로 뜬 회차 뒤에는 "다음 회차 예약"이 떴고, 그 예약이
+      # 띄운 회차 뒤에는 한 번도 안 떴다. 그래서 사슬이 한 칸 가고 끊겼다.
+      # 여기서 직접 workflow_dispatch 로 예약을 띄워 사슬을 잇는다. 예약 쪽은 하나만 남기므로
+      # (cancel-in-progress) 겹쳐 띄워도 해가 없다.
+      - name: 다음 회차 예약 띄우기
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          waiting=$(gh run list --workflow=relay.yml --status in_progress --limit 1 --json databaseId -q 'length')
+          if [ "$waiting" != "0" ]; then
+            echo "다음 회차 예약이 이미 기다리고 있습니다." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh workflow run relay.yml --ref main
+          echo "다음 회차 예약을 띄웠습니다 ($(TZ=Asia/Seoul date +%H:%M) KST)." >> "$GITHUB_STEP_SUMMARY"
