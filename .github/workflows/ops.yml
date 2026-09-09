@@ -16,6 +16,10 @@ on:
           - sources pause
           - contacts import
           - notice hide
+          - notice reclassify --dry-run
+          - notice reclassify --only scholarship
+          - notice reclassify
+          - notice reclassify --revert
           - export
           - check-sources
           - status
@@ -83,6 +87,14 @@ jobs:
             "sources pause")    python -m app.ops.cli sources pause "$TARGET" --reason "$REASON" ;;
             "contacts import")  python -m app.ops.cli contacts import ;;
             "notice hide")      python -m app.ops.cli notice hide "$TARGET" --reason "$REASON" ;;
+            "notice reclassify --dry-run")
+              python -m app.ops.cli notice reclassify --dry-run --samples 60 ;;
+            "notice reclassify --only scholarship")
+              python -m app.ops.cli notice reclassify --only scholarship --reason "$REASON" ;;
+            "notice reclassify")
+              python -m app.ops.cli notice reclassify --reason "$REASON" ;;
+            "notice reclassify --revert")
+              python -m app.ops.cli notice reclassify --revert "$TARGET" --reason "$REASON" ;;
             "export")           python -m app.ops.cli export --prune ;;
             "check-sources")    python -m app.ops.cli check-sources --limit 100 ;;
             "status")           python -m app.ops.cli status ;;
