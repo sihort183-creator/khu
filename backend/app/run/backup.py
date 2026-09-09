@@ -1,7 +1,9 @@
 """논리 백업(17.2절).
 
 Supabase 무료 요금제에는 자동 백업이 없다. 이 절차가 유일한 복구 수단이므로
-실패하면 즉시 경보한다(18절). 6시간마다 별도 워크플로가 실행한다.
+실패하면 즉시 경보한다(18절). 주 1회 별도 워크플로가 실행한다(2026-09-09 변경,
+그 전에는 6시간마다). 백업 한 번이 데이터베이스에서 읽어 가는 양이 원본 약 125MB 라
+하루 4번이면 무료 egress 한도(월 5GB)를 세 배로 넘겼다.
 
   python -m app.run.backup            백업 만들어 R2 백업 버킷에 올린다
   python -m app.run.backup --verify   최근 백업을 내려받아 열어 본다
@@ -30,7 +32,9 @@ from app.config import Settings
 from app.config import settings as default_settings
 from app.storage.objects import ObjectStore, build_store
 
-# 보존: 최근 7일은 6시간 단위, 이후 30일까지 하루 1개(17.2절).
+# 보존: 최근 7일 안의 백업은 모두, 이후 30일까지 하루 1개(17.2절).
+# 주 1회로 바뀐 뒤에는 실제로 주 1개씩 30일치, 즉 4~5개가 남는다. 상수는 그대로 두었다.
+# 이 값을 늘리면 탈퇴·삭제 요청이 백업에 남는 기간도 함께 늘어나기 때문이다(17.2절).
 RECENT_DAYS = 7
 DAILY_DAYS = 30
 PREFIX = "pgdump"
