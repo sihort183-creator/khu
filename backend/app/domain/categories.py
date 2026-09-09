@@ -75,36 +75,52 @@ PREFIX_MAP = dict(BOARD_CATEGORY_MAP)
 # 장학이 맨 앞이다. "논문발표장학"(졸업), "스타트업 장학"(창업), "교환학생 장학"(국제)은
 # 모두 장학 공지이지 그 주제의 공지가 아니다.
 KEYWORD_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("scholarship", re.compile(r"장학(금|생)|국가장학|교내장학|학자금|등록금\s*(납부|고지|분할)")),
-    ("graduation", re.compile(r"졸업(요건|사정|예정자|논문|자격|시험|앨범)|학위\s*수여")),
-    ("career", re.compile(r"채용|취업|인턴(십)?|현장실습|직무|공채|리크루팅|잡페어|커리어|조교\s*(모집|선발|채용)")),
+    # "현장학습" 의 장학은 장학이 아니다.
+    ("scholarship", re.compile(r"(?<!현)장학(금|생)|국가장학|교내장학|학자금|등록금\s*(납부|고지|분할)")),
+    ("graduation", re.compile(r"졸업(요건|사정|예정자|논문|자격|시험|앨범)|학위\s*(수여|자격시험|청구논문)|종합시험")),
+    ("career", re.compile(r"채용|취업|인턴(십)?|현장실습|직무|공채|리크루팅|잡페어|커리어|조교[^\n]{0,12}?(모집|선발|채용|공고)")),
     ("startup", re.compile(r"창업|스타트업|기업가정신|액셀러레이팅|창업경진")),
     (
         "international",
-        re.compile(r"교환학생|해외\s*(파견|연수|봉사|인턴)|국제\s*(교류|처)|유학생|어학연수|TOEIC|IELTS|TOEFL"),
+        re.compile(r"교환학생|해외\s*(파견|연수|봉사|인턴)|전공\s*연수|국제화\s*연수|연수단|국제\s*(교류|처)|유학생|어학연수|TOEIC|IELTS|TOEFL"),
     ),
-    ("program", re.compile(r"공모전|경진대회|아이디어\s*공모|비교과|특강|워크숍|워크샵|캠프|아카데미|수료|교육\s*과정")),
-    ("event", re.compile(r"축제|행사|콘서트|전시|공연|세미나|심포지엄|포럼|학술대회|설명회|간담회")),
+    # "수료" 는 뺐다. 수료생 등록·수료사정 같은 학사 행정을 프로그램으로 보냈다.
+    ("program", re.compile(r"공모전|경진대회|아이디어\s*공모|비교과|특강|워크숍|워크샵|캠프|아카데미|수료증|교육\s*과정|학부\s*연구생")),
+    # "전공연수" 의 공연은 공연이 아니다.
+    ("event", re.compile(r"축제|행사|콘서트|전시|(?<!전)공연|세미나|심포지엄|포럼|학술대회|설명회|간담회")),
     ("student_council", re.compile(r"총학생회|학생회|동아리연합회|중앙운영위원회|학생\s*자치|선거\s*시행세칙")),
     ("campus_life", re.compile(r"기숙사|생활관|셔틀|통학|식당|주차|시설\s*(공사|점검|이용)|분실물|봉사활동|헌혈")),
     (
         "academic",
-        re.compile(r"수강\s*(신청|정정|철회)|시간표|계절학기|학사\s*일정|휴학|복학|전과|재입학|학점\s*교류|성적\s*(입력|정정|공시)"),
+        # 휴학·복학은 "휴학생 신청 불가" 같은 자격 문구에 흔해서 신청·안내·기간이 붙을 때만 본다.
+        re.compile(r"수강\s*(신청|정정|철회)|시간표|계절학기|학사\s*일정|(휴학|복학)\s*(신청|안내|기간)|전과|재입학|학점\s*교류|성적\s*(입력|정정|공시)"),
     ),
 )
 
 # 제목에서만 더 보는 키워드. 제목은 짧고 주제를 곧장 말하므로 본문보다 느슨하게 본다.
 # "융합인재장학 신청", "우정장학 안내" 처럼 "장학" 한 낱말로 끝나는 교내 장학 이름이 많다.
-# 교육청 "장학사·장학관" 채용, "장학지도" 는 장학금이 아니라서 뺀다.
+# 뺀 것: 교육청 "장학사·장학관" 채용, "장학지도", 기관 이름의 "장학재단", 채용 공고인
+# "장학전환인턴", 기부 캠페인의 "장학 기금", 그리고 "현장학습". "장학사업" 은 장학이다.
+# 등록·분할납부 안내는 등록금 공지라 학생이 장학 탭에서 같이 본다(2026-09-09 결정).
 TITLE_ONLY_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("scholarship", re.compile(r"장학(?!사|관|지도)")),
+    (
+        "scholarship",
+        re.compile(
+            r"(?<!현)장학(?!사(?!업)|관|지도|재단|전환|환급|수기|\s*기금)"
+            r"|분할납부|등록금|[Tt]uition|지원비|응시료\s*지원|학업장려금|국비\s*유학"
+            r"|(재학생|복학생|학부생|신입생|수료생|대학원생?)\)?\s*등록|등록\s*및\s*분할|등록\s*일정"
+        ),
+    ),
 )
 
-# 본문에서는 이 주제를 앞머리에서만 인정한다. 조교 모집·고시반·연수 안내는 본문 뒤쪽에
+# 본문 키워드는 앞머리에서만 인정한다. 조교 모집·고시반·연수 안내는 본문 뒤쪽에
 # "장학금 지급" 조건을 길게 적어서 등장 횟수로는 진짜 장학 공지와 갈라지지 않았다.
 # 실측(2026-09-09, 표본 150+150)에서 진짜 장학 공지는 본문 첫 200자 안에서 장학을 말하고,
-# 아닌 글은 대개 600자 뒤에서야 말했다.
+# 아닌 글은 대개 600자 뒤에서야 말했다. 같은 날 재분류 검수에서 본문 뒤쪽의 유학생·교환학생·
+# 휴학·인턴십·창업 한 마디가 등록금 안내와 학사 행정을 엉뚱한 탭으로 끌고 가는 것도 봤다.
+# 주제를 본문이 정하려면 본문이 그 얘기로 시작해야 한다. 아니면 "기타" 가 정직하다.
 BODY_LEAD_WINDOW: dict[str, int] = {"scholarship": 200}
+BODY_LEAD_DEFAULT = 300
 
 # 제목 키워드가 말머리를 이기는 주제. 말머리에 조직 이름이 흔한 탓이다(classify 참고).
 TITLE_BEATS_PREFIX: frozenset[str] = frozenset({"scholarship"})
@@ -203,10 +219,10 @@ def classify(
     for code, pattern in KEYWORD_RULES:
         if code in title_codes:
             continue
-        window = BODY_LEAD_WINDOW.get(code)
-        match = pattern.search(haystack_body[:window] if window else haystack_body)
+        window = BODY_LEAD_WINDOW.get(code, BODY_LEAD_DEFAULT)
+        match = pattern.search(haystack_body[:window])
         if match:
-            hits.append((code, "body_lead_keyword" if window else "body_keyword", match.group(0)))
+            hits.append((code, "body_lead_keyword", match.group(0)))
 
     if not hits:
         if source_default and source_default in CATEGORY_LABELS:

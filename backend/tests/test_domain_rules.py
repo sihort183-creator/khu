@@ -193,6 +193,59 @@ def test_campus_topic_prefix_reads_the_topic_not_the_campus():
         assert cat.classify(title, "").primary == "scholarship", title
 
 
+def test_audit_findings_from_the_first_dry_run():
+    # 2026-09-09 재분류 모의 실행 검수(567건 중 118건 오류)에서 나온 패턴들.
+    assert cat.classify("2026년 하반기 효명장학사업", "", board_category="공통").primary == "scholarship"
+    # 부분 문자열: 현장학습의 "장학", 전공연수의 "공연".
+    assert cat.classify("미술교육전공 역량 강화 세종문화회관 미술관 현장학습", "").primary != "scholarship"
+    assert cat.classify("2026학년도 사학과 하계 해외 전공연수 안내", "").primary == "international"
+    # 등록·분할납부 안내는 장학 탭에 남는다. 본문 뒤쪽 "유학생" 이 끌고 가지 않는다.
+    body = "등록 절차를 안내합니다. " * 30 + "외국인 유학생은 국제처로 문의하세요."
+    assert cat.classify("2026학년도 2학기 학부생 등록 및 분할납부 신청 안내", body).primary == "scholarship"
+    assert cat.classify("2026학년도 2학기 재학생(복학생), 수료생 등록일정 및 분할납부 신청 안내", "").primary == "scholarship"
+    assert cat.classify("2026-2 Announcement of Tuition Payment Period", "", board_category="공통").primary == "scholarship"
+    # 기관 이름·채용·기부의 "장학" 은 장학이 아니다.
+    assert cat.classify("롯데장학재단_사회공헌 사진 공모전", "").primary == "program"
+    assert cat.classify("[현대모비스] 26년 상반기 장학전환인턴 모집", "").primary == "career"
+    assert cat.classify("[기부캠페인] 경희목련 희망 장학 기금", "").primary != "scholarship"
+    # "수료" 는 더 이상 프로그램 신호가 아니다.
+    assert cat.classify("2025학년도 전기 수료사정 결과 및 연구등록 안내", "").primary != "program"
+
+
+def test_audit_findings_from_the_second_dry_run():
+    # 본문 앞머리의 "휴학생 신청 불가" 가 지원금 안내를 학사로 보냈다.
+    assert cat.classify("2026학년도 상반기 토익지원비 신청 안내", "휴학생은 신청할 수 없습니다. 재학생만 " * 5).primary != "academic"
+    assert cat.classify("2026학년도 2학기 휴학 신청 안내", "").primary == "academic"
+    # "사전등록 및", "평가위원 등록 및" 은 등록금이 아니다.
+    assert cat.classify("[핀테크 생태계 만남의 장] 행사 사전등록 및 1:1 상담", "").primary == "event"
+    assert cat.classify("2026학년도 2학기 학부생 등록 및 분할납부 신청 안내", "").primary == "scholarship"
+    # 학위자격시험은 본문의 "등록금 납부자만 응시" 보다 제목이 먼저다.
+    assert cat.classify("2026학년도 2학기 대학원 학위자격시험(종합시험) 신청 안내", "등록금 납부자만 응시할 수 있습니다.").primary == "graduation"
+    # 수강료 환급 강좌와 장학 수기 공모전은 장학이 아니다.
+    assert cat.classify("[국제교육원] 여름학기 장학환급 공인영어시험 대비 외국어 강좌", "").primary != "scholarship"
+    assert cat.classify("2026년 (재)김해시미래인재장학재단 제3회 장학수기 공모전 공고", "").primary == "program"
+    # 조교 모집의 여러 표기.
+    for title in (
+        "[정치외교학과] 2026학년도 2학기 학과 교육조교(TA) 모집",
+        "2026학년도 1학기 경영대학 일반대학원 행정실 조교 추가 모집",
+        "서울캠퍼스 교육대학원 조교 공고",
+        "[서울C] 2026-2학기 ★국제교류팀★ 교육조교(TA) I형 모집",
+    ):
+        assert cat.classify(title, "").primary == "career", title
+    assert cat.classify("경희대학교 의상학과 해외 전공 연수 프로그램 (뉴욕 FIT)", "").primary == "international"
+    # 지원금·국비유학은 장학 탭이다.
+    assert cat.classify("2026학년도 상반기 토익지원비 신청 안내", "", board_category="공통").primary == "scholarship"
+    assert cat.classify("2026년도 국비유학(연수)생 선발 공고", "국제교류 " * 10).primary == "scholarship"
+
+
+def test_body_keywords_only_decide_when_the_body_opens_with_them():
+    late = "활동 내용을 안내합니다. " * 30 + "교환학생 경험자 우대, 휴학생 제외, 인턴십 연계"
+    decision = cat.classify("2026년 대학혁신지원사업 학생정책발굴단 모집", late)
+    assert decision.primary == "other"
+    lead = "교환학생 파견 설명회를 엽니다. " + "세부 내용 " * 100
+    assert cat.classify("2027학년도 1학기 파견 안내", lead).primary == "international"
+
+
 def test_rule_version_marks_the_title_first_rules():
     assert cat.RULE_VERSION == "categories/2"
     assert cat.classify("아무 제목", "").rule_version == "categories/2"
