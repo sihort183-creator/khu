@@ -3,7 +3,7 @@
 수집 회차 뒤에 규칙만으로 이상을 찾는다. 판단에 사람이나 모형을 쓰지 않는다.
 운영 자료를 바꾸지 않는다. 읽기와 원문 조회만 한다.
 
-    python -m app.ops.selfcheck                    8개 항목을 모두 점검한다
+    python -m app.ops.selfcheck                    9개 항목을 모두 점검한다
     python -m app.ops.selfcheck --no-fetch         원문 요청 없이 데이터베이스만 본다
     python -m app.ops.selfcheck --probe-limit 30   조용한 0건 확인 상한(회차당)
 
@@ -27,6 +27,7 @@ from sqlalchemy import func, select
 from app.config import Settings
 from app.config import settings as default_settings
 from app.domain.dates import KST, as_utc, parse_published, utcnow
+from app.export.static import read_export_metrics
 from app.ingestion import get_adapter
 from app.ingestion.http import Fetcher, FetchError
 from app.run.initial import parse_deadline
@@ -486,6 +487,98 @@ def check_backfill_stall(
 # ------------------------------------------------------------------- 점검 실행
 
 
+
+# ------------------------------------------------------- 9 증분·전체 일치
+
+
+def check_export_consistency(metrics: dict | None, *, now: datetime, stale_hours: int = 6) -> dict:
+    """공개 파일을 증분으로 만든 결과가 전체 방식과 같은지 본다.
+
+    근거는 개정 명세다. 명세의 값은 곧 내용 해시(v1/objects/<sha256>.json)이므로,
+    전체 방식의 명세와 증분 방식의 명세가 같다는 것은 만들어진 파일이 바이트 단위로
+    같다는 뜻이다. 그림자(shadow) 회차와, 하루 한 번 전체 재생성으로 되돌아온 회차에서
+    이 대조가 돈다. 어긋나면 증분이 낡은 파일을 붙잡고 있다는 뜻이라 이상으로 본다.
+    """
+    name = "증분·전체 일치"
+    if not metrics:
+        return {
+            "name": name,
+            "status": WARN,
+            "summary": "공개 회차 기록이 없습니다(아직 한 번도 공개하지 않았거나 기록을 못 읽음)",
+            "mode": None,
+            "compared": None,
+            "mismatched": None,
+        }
+    generated = as_utc(_parse_iso(metrics.get("generated_at")))
+    stale = generated is not None and (now - generated) > timedelta(hours=stale_hours)
+    shadow = metrics.get("shadow") or {}
+    mode = metrics.get("mode")
+    requested = metrics.get("requested_mode")
+    base = {
+        "name": name,
+        "mode": mode,
+        "requested_mode": requested,
+        "mode_reason": metrics.get("mode_reason"),
+        "revision": metrics.get("revision"),
+        "generated_at": _iso(generated),
+        "details_carried": metrics.get("details_carried"),
+        "db_read_bytes": metrics.get("db_read_bytes"),
+        "compared": shadow.get("compared"),
+        "mismatched": shadow.get("mismatched"),
+        "examples": shadow.get("examples") or [],
+    }
+    read_mb = (metrics.get("db_read_bytes") or 0) / 1024 / 1024
+    tail = f" · 공개 단계 DB 읽기 {read_mb:.1f}MB"
+    if shadow.get("ran") and shadow.get("matched") is False:
+        wrong = (
+            int(shadow.get("mismatched") or 0)
+            + int(shadow.get("missing_in_incremental") or 0)
+            + int(shadow.get("extra_in_incremental") or 0)
+        )
+        return {
+            **base,
+            "status": ALERT,
+            "summary": (
+                f"증분 결과가 전체 결과와 {wrong}개 파일에서 어긋납니다"
+                f"(대조 {shadow.get('compared')}개, 예: {', '.join(base['examples'][:3]) or '없음'})" + tail
+            ),
+        }
+    if shadow.get("ran"):
+        return {
+            **base,
+            "status": WARN if stale else OK,
+            "summary": (
+                f"증분·전체 대조 {shadow.get('compared')}개 모두 일치"
+                + (f" · 기록이 {stale_hours}시간 넘게 낡음" if stale else "") + tail
+            ),
+        }
+    if stale:
+        return {
+            **base,
+            "status": WARN,
+            "summary": f"마지막 공개가 {stale_hours}시간 넘게 지났습니다(방식 {mode})" + tail,
+        }
+    return {
+        **base,
+        "status": OK,
+        "summary": (
+            f"방식 {mode}" + (f"(요청 {requested})" if requested and requested != mode else "")
+            + f" · 물려받은 상세 {metrics.get('details_carried') or 0}개"
+            + (f" · 대조 안 함: {shadow.get('reason')}" if shadow.get("reason") else "")
+            + tail
+        ),
+    }
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
 def _deadline(value: str) -> datetime | None:
     """마감 문자열이 망가져 있어도 나머지 일곱 항목은 점검한다."""
     try:
@@ -513,10 +606,13 @@ def run_check(
     deadline: datetime | None = None,
     previous: dict | None = None,
     now: datetime | None = None,
+    export_metrics: dict | None = None,
 ) -> dict:
     cfg = cfg or default_settings
     now = now or utcnow()
     window_start = cfg.initial_window_start
+    if export_metrics is None:
+        export_metrics = read_export_metrics(cfg)
 
     with session_scope(cfg) as session:
         candidates = silent_zero_candidates(session)
@@ -536,6 +632,7 @@ def run_check(
                 deadline=deadline,
                 idle_minutes=backfill_idle_minutes,
             ),
+            "export_consistency": check_export_consistency(export_metrics, now=now),
         }
 
     cursor = (previous or {}).get("checks", {}).get("silent_zero", {}).get("cursor")
@@ -610,7 +707,7 @@ def render(report: dict) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="khu-selfcheck", description="수집 결과 자체 점검(8개 항목)"
+        prog="khu-selfcheck", description="수집 결과 자체 점검(9개 항목)"
     )
     parser.add_argument("--output", default=DEFAULT_OUTPUT, help="기계 판독용 결과 파일")
     parser.add_argument("--probe-limit", type=int, default=30, help="회차당 원문 확인 상한")

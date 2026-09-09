@@ -94,3 +94,15 @@ def session_factory(engine, settings: Settings):
 @pytest.fixture
 def store(tmp_path: Path) -> LocalObjectStore:
     return LocalObjectStore(tmp_path / "objects")
+
+
+@pytest.fixture(autouse=True)
+def export_metrics_path(tmp_path, monkeypatch):
+    """공개 회차 기록을 검사마다 따로 둔다.
+
+    기본값은 실행 폴더의 .localstore 라서, 한 검사가 남긴 기록을 다음 검사가
+    읽어 결과가 순서에 따라 달라진다.
+    """
+    from app.export import static as static_module
+
+    monkeypatch.setattr(static_module, "METRICS_PATH", tmp_path / "export-metrics.json")

@@ -202,6 +202,7 @@ def test_full_report_fills_every_check_and_reports_the_worst_status(session_fact
         "zombie_runs",
         "publish_delay",
         "backfill_stall",
+        "export_consistency",
     ]
     assert report["status"] == selfcheck.ALERT
 
@@ -304,3 +305,70 @@ def test_backfill_stall_names_the_passed_deadline_and_stays_quiet_while_it_runs(
         db.commit()
     running = selfcheck.run_check(cfg=cfg, fetch=False, now=now, deadline=extended)["checks"]["backfill_stall"]
     assert running["status"] == selfcheck.OK
+
+
+# --------------------------------------------------------- 9 증분·전체 일치
+
+
+def _metrics(**over) -> dict:
+    base = {
+        "generated_at": "2026-09-09T12:00:00Z",
+        "revision": "r1",
+        "requested_mode": "incremental",
+        "mode": "incremental",
+        "mode_reason": "이전 판과 견주어 바뀐 것만 다시 읽음",
+        "details_carried": 23_000,
+        "db_read_bytes": 2_500_000,
+        "shadow": None,
+    }
+    base.update(over)
+    return base
+
+
+def test_export_consistency_is_alert_when_incremental_and_full_disagree():
+    now = datetime(2026, 9, 9, 12, 10, tzinfo=UTC)
+    check = selfcheck.check_export_consistency(
+        _metrics(
+            mode="full",
+            shadow={
+                "ran": True, "matched": False, "compared": 500, "mismatched": 2,
+                "missing_in_incremental": 1, "extra_in_incremental": 0,
+                "examples": ["notices/ntc-002.json", "notices/ntc-009.json"],
+            },
+        ),
+        now=now,
+    )
+    assert check["status"] == selfcheck.ALERT
+    assert "어긋납니다" in check["summary"]
+    assert check["mismatched"] == 2
+
+
+def test_export_consistency_is_ok_when_the_comparison_matches():
+    now = datetime(2026, 9, 9, 12, 10, tzinfo=UTC)
+    check = selfcheck.check_export_consistency(
+        _metrics(mode="full", shadow={"ran": True, "matched": True, "compared": 500, "mismatched": 0}),
+        now=now,
+    )
+    assert check["status"] == selfcheck.OK
+    assert "모두 일치" in check["summary"]
+
+
+def test_export_consistency_warns_without_any_record():
+    now = datetime(2026, 9, 9, 12, 10, tzinfo=UTC)
+    check = selfcheck.check_export_consistency(None, now=now)
+    assert check["status"] == selfcheck.WARN
+
+
+def test_export_consistency_warns_when_the_record_is_stale():
+    now = datetime(2026, 9, 9, 23, 0, tzinfo=UTC)
+    check = selfcheck.check_export_consistency(_metrics(), now=now)
+    assert check["status"] == selfcheck.WARN
+    assert "지났습니다" in check["summary"]
+
+
+def test_export_consistency_is_ok_on_a_plain_incremental_round():
+    now = datetime(2026, 9, 9, 12, 10, tzinfo=UTC)
+    check = selfcheck.check_export_consistency(_metrics(), now=now)
+    assert check["status"] == selfcheck.OK
+    assert "incremental" in check["summary"]
+    assert "23000" in check["summary"] or "23,000" in check["summary"]

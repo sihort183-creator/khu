@@ -121,6 +121,19 @@ class Settings:
     recheck_days: int = 14
     stale_run_after_minutes: int = 120
 
+    # 공개 파일 만들기 방식(docs/공개파일_증분화_2026-09-09.md).
+    #   full        전부 다시 읽어 전부 다시 만든다. 지금까지의 방식이고 기본값이다.
+    #   shadow      full 로 만들어 공개하되 증분 방식도 함께 돌려 결과를 견준다.
+    #   incremental 증분 결과를 공개한다.
+    export_mode: str = "full"
+    # 바뀐 공지가 전체의 이 비율을 넘으면 그 회차는 전체 방식으로 돈다.
+    # 대량 재분류처럼 거의 다 바뀐 회차에서는 증분이 이득이 없고 위험만 남는다.
+    export_max_changed_ratio: float = 0.3
+    # 이 시간이 지나면 다음 회차를 전체 방식으로 강제한다. 하루 한 번이 기본이다.
+    export_full_every_hours: int = 24
+    # 하루치 강제 전체 재생성을 이 시각(KST) 이후 첫 회차에서 한다.
+    export_full_hour_kst: int = 4
+
     @property
     def is_production(self) -> bool:
         return self.env == "production"
@@ -179,6 +192,10 @@ def load_settings() -> Settings:
         initial_window_start=_date("KHU_INITIAL_WINDOW_START", date(2026, 3, 1)),
         list_page_limit=max(1, _int("KHU_LIST_PAGE_LIMIT", 5)),
         stale_run_after_minutes=_int("KHU_STALE_RUN_AFTER_MINUTES", 120),
+        export_mode=(os.environ.get("KHU_EXPORT_MODE", "").strip().lower() or "full"),
+        export_max_changed_ratio=_float("KHU_EXPORT_MAX_CHANGED_RATIO", 0.3),
+        export_full_every_hours=_int("KHU_EXPORT_FULL_EVERY_HOURS", 24),
+        export_full_hour_kst=_int("KHU_EXPORT_FULL_HOUR_KST", 4),
     )
 
 

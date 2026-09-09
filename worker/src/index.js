@@ -266,7 +266,10 @@ export default {
     if (image) return proxyImage(image[1], request, origin, ctx);
 
     const key = resolveKey(url.pathname);
-    if (!key || key.startsWith("v1/objects/") || key.endsWith("/manifest.json")) {
+    // v1/state/ 는 다음 회차가 "무엇이 바뀌었나"를 알기 위해 두는 내부 기록이다.
+    // 조회 계약에 없는 경로이므로 밖으로 내보내지 않는다.
+    if (!key || key.startsWith("v1/objects/") || key.startsWith("v1/state/")
+        || key.endsWith("/manifest.json")) {
       return jsonError(404, "NOT_FOUND", "요청한 자료가 없습니다.", origin);
     }
 

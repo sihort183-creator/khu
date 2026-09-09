@@ -7,7 +7,10 @@
 from __future__ import annotations
 
 import contextlib
+import logging
+import threading
 from collections.abc import Iterator
+from dataclasses import dataclass, replace
 
 from sqlalchemy import Engine, create_engine, event, select, text
 from sqlalchemy.orm import Session, sessionmaker
@@ -16,9 +19,11 @@ from app.config import ConfigError, Settings
 from app.config import settings as default_settings
 from app.storage.models import SchemaState, metadata
 
+log = logging.getLogger("khu.db")
+
 # 코드가 기대하는 스키마 표시. 마이그레이션이 이 값을 올리고,
 # 수집 실행은 시작할 때 일치를 확인한 뒤에만 진행한다(17.1절 3항).
-EXPECTED_SCHEMA_VERSION = "0003"
+EXPECTED_SCHEMA_VERSION = "0004"
 SCHEMA_STATE_KEY = "schema_version"
 
 _engine: Engine | None = None
@@ -136,18 +141,193 @@ def reset_engine() -> None:
     _session_factory = None
 
 
+# --------------------------------------------------------------- 읽기량 계측
+
+# 2026-09-09 Supabase 가 무료 한도(월 5 GB)를 넘겼다고 알려 왔다. 어디서 얼마나
+# 읽는지 모르면 줄일 수도 없어서, 회차마다 "데이터베이스에서 받아 온 양"을 잰다.
+#
+# 재는 방법은 근사치다. SQLAlchemy 가 결과를 꺼낼 때 쓰는 커서를 얇은 대리자로
+# 감싸고, 넘어온 값의 길이를 더한다(문자열은 UTF-8 바이트, 나머지는 8바이트로 셈).
+# 실제 회선 위의 바이트에는 열 이름·형식 정보·프로토콜 덮개가 더 붙으므로 이 값은
+# 하한에 가깝다. 절대값보다 "증분 전후 비교"에 쓰라고 만든 값이다.
+
+
+@dataclass(frozen=True)
+class ReadStats:
+    """데이터베이스에서 읽어 온 양. 세 값 모두 누적이다."""
+
+    statements: int = 0
+    rows: int = 0
+    bytes: int = 0
+
+    def delta(self, before: ReadStats) -> ReadStats:
+        return ReadStats(
+            statements=self.statements - before.statements,
+            rows=self.rows - before.rows,
+            bytes=self.bytes - before.bytes,
+        )
+
+    def as_dict(self) -> dict[str, int]:
+        return {"statements": self.statements, "rows": self.rows, "bytes": self.bytes}
+
+
+_meter_lock = threading.Lock()
+_meter_total = ReadStats()
+_metered_engines: set[int] = set()
+
+
+def _cell_bytes(value: object) -> int:
+    if value is None:
+        return 0
+    if isinstance(value, str):
+        return len(value.encode("utf-8", "ignore"))
+    if isinstance(value, bytes | bytearray | memoryview):
+        return len(value)
+    # 숫자·시각·불리언은 회선에서 짧은 고정 폭이다. 8바이트로 어림한다.
+    return 8
+
+
+def _tally(rows) -> None:
+    count = 0
+    size = 0
+    for row in rows:
+        count += 1
+        for value in row:
+            size += _cell_bytes(value)
+    if not count:
+        return
+    global _meter_total
+    with _meter_lock:
+        _meter_total = ReadStats(
+            statements=_meter_total.statements, rows=_meter_total.rows + count,
+            bytes=_meter_total.bytes + size,
+        )
+
+
+class _CountingCursor:
+    """DBAPI 커서를 그대로 흉내 내면서 꺼낸 행만 세는 대리자."""
+
+    __slots__ = ("_cursor",)
+
+    def __init__(self, cursor) -> None:
+        object.__setattr__(self, "_cursor", cursor)
+
+    def __getattr__(self, name):  # pragma: no cover - 단순 위임
+        return getattr(self._cursor, name)
+
+    def __setattr__(self, name, value):  # pragma: no cover - 단순 위임
+        setattr(self._cursor, name, value)
+
+    def __iter__(self):
+        for row in self._cursor:
+            _tally((row,))
+            yield row
+
+    def fetchone(self):
+        row = self._cursor.fetchone()
+        if row is not None:
+            _tally((row,))
+        return row
+
+    def fetchmany(self, *args, **kwargs):
+        rows = self._cursor.fetchmany(*args, **kwargs)
+        _tally(rows)
+        return rows
+
+    def fetchall(self):
+        rows = self._cursor.fetchall()
+        _tally(rows)
+        return rows
+
+
+def _on_cursor_execute(_conn, cursor, _statement, _parameters, context, _many) -> None:
+    global _meter_total
+    with _meter_lock:
+        _meter_total = ReadStats(
+            statements=_meter_total.statements + 1, rows=_meter_total.rows,
+            bytes=_meter_total.bytes,
+        )
+    # 결과 대리자는 이 뒤에 context.cursor 로 만들어진다. 여기서 바꿔치기하면
+    # 실제로 꺼내 가는 행이 대리자를 지나간다.
+    if context is not None and getattr(context, "cursor", None) is cursor:
+        try:
+            context.cursor = _CountingCursor(cursor)
+        except Exception:  # pragma: no cover - 드라이버가 막으면 계측만 포기한다
+            log.debug("읽기량 계측을 붙이지 못했습니다", exc_info=True)
+
+
+def enable_read_meter(engine: Engine | None = None) -> None:
+    """읽기량 계측을 켠다. 여러 번 불러도 한 번만 붙는다.
+
+    계측은 순수하게 관찰만 한다. 결과·트랜잭션·예외 처리에 손대지 않는다.
+    """
+    engine = engine or get_engine()
+    if id(engine) in _metered_engines:
+        return
+    event.listen(engine, "after_cursor_execute", _on_cursor_execute)
+    _metered_engines.add(id(engine))
+
+
+def disable_read_meter(engine: Engine | None = None) -> None:
+    """계측을 뗀다. 누적값은 지우지 않는다."""
+    engine = engine or get_engine()
+    if id(engine) not in _metered_engines:
+        return
+    with contextlib.suppress(Exception):
+        event.remove(engine, "after_cursor_execute", _on_cursor_execute)
+    _metered_engines.discard(id(engine))
+
+
+def read_stats() -> ReadStats:
+    """지금까지의 누적 읽기량."""
+    with _meter_lock:
+        return replace(_meter_total)
+
+
+def reset_read_meter() -> None:
+    global _meter_total
+    with _meter_lock:
+        _meter_total = ReadStats()
+
+
+@contextlib.contextmanager
+def measure_reads(engine: Engine | None = None) -> Iterator[list[ReadStats]]:
+    """구간 읽기량을 잰다.
+
+        with measure_reads() as measured:
+            ...
+        print(measured[0].bytes)
+
+    한 칸짜리 목록을 주는 이유는 구간이 끝나야 값이 정해지기 때문이다.
+    구간 안에서 읽으면 아직 0 이다. 계측이 꺼져 있으면 자동으로 켠다.
+    """
+    enable_read_meter(engine)
+    before = read_stats()
+    box: list[ReadStats] = [ReadStats()]
+    try:
+        yield box
+    finally:
+        box[0] = read_stats().delta(before)
+
+
 __all__ = [
     "ConfigError",
     "EXPECTED_SCHEMA_VERSION",
+    "ReadStats",
     "SchemaMismatch",
     "assert_schema_ready",
     "build_engine",
     "create_all",
+    "disable_read_meter",
+    "enable_read_meter",
     "get_engine",
     "get_session_factory",
+    "measure_reads",
     "ping",
     "read_schema_version",
+    "read_stats",
     "reset_engine",
+    "reset_read_meter",
     "session_scope",
     "write_schema_version",
 ]

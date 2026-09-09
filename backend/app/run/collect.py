@@ -41,7 +41,7 @@ from app.ingestion.base import FetchedDetail, ListedItem, ParseError, Restricted
 from app.ingestion.http import Fetcher, FetchError
 from app.storage import models as m
 from app.storage import repository as repo
-from app.storage.db import assert_schema_ready, session_scope
+from app.storage.db import ReadStats, assert_schema_ready, enable_read_meter, read_stats, session_scope
 from app.storage.objects import ObjectStore, build_store, evidence_key
 
 log = logging.getLogger("khu.collect")
@@ -908,6 +908,11 @@ async def run_collection(
     budget = TimeBudget(cfg.run_budget_seconds)
     store = build_store(cfg)
     commit = os.environ.get("GITHUB_SHA") or os.environ.get("KHU_CODE_COMMIT")
+    # 회차가 데이터베이스에서 읽은 양을 잰다. 2026-09-09 Supabase 무료 egress 한도를
+    # 넘긴 뒤로, 어느 단계가 얼마나 읽는지 모르면 줄일 수도 없다.
+    # 인터페이스는 app/storage/db.py 를 본다(docs/공개파일_증분화_2026-09-09.md).
+    enable_read_meter()
+    reads_before = read_stats()
 
     with session_scope(cfg) as session:
         assert_schema_ready(session)
@@ -1023,6 +1028,7 @@ async def run_collection(
                 log.info("중복 자동 병합 %d건", merged)
 
     export_result = export_static(cfg, run_id=run_id, store=store) if publish else None
+    run_reads = read_stats().delta(reads_before)
 
     with session_scope(cfg) as session:
         run = session.get(_run_model(), run_id)
@@ -1044,9 +1050,12 @@ async def run_collection(
             result=result,
             revision=export_result.revision if export_result else None,
             note=(
-                f"시간 {budget.elapsed:.0f}초, 요청 {fetcher.requests_made}회"
-                if not failed
-                else f"실패 {len(failed)}건: " + ", ".join(f"{o.name}({o.error_kind})" for o in failed[:5])
+                (
+                    f"시간 {budget.elapsed:.0f}초, 요청 {fetcher.requests_made}회"
+                    if not failed
+                    else f"실패 {len(failed)}건: " + ", ".join(f"{o.name}({o.error_kind})" for o in failed[:5])
+                )
+                + _reads_note(run_reads, export_result)
             ),
         )
 
@@ -1061,6 +1070,22 @@ async def run_collection(
     outcome.export = export_result
     _send_heartbeat(cfg, outcome)
     return outcome
+
+
+def _reads_note(run_reads: ReadStats, export_result: ExportResult | None) -> str:
+    """실행 기록에 붙일 읽기량 한 줄.
+
+    회차 전체와 내보내기 단계를 나눠 적는다. 두 값의 차가 곧 수집 단계가 읽은 양이다.
+    증분 전후를 견주려면 이 한 줄이면 된다.
+    """
+    total = run_reads.bytes / 1024 / 1024
+    if export_result is None:
+        return f", DB 읽기 {total:.1f}MB"
+    export_mb = export_result.db_read_bytes / 1024 / 1024
+    return (
+        f", DB 읽기 {total:.1f}MB(공개 {export_mb:.1f}MB, "
+        f"방식 {export_result.mode}, 물려받은 상세 {export_result.details_carried}개)"
+    )
 
 
 def _run_model():

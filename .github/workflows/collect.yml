@@ -89,6 +89,15 @@ jobs:
       # 초기 수집 중에는 DB 가 시간당 수천 건씩 자란다. 한 시간에 한 번 공개하면
       # 화면이 계속 서너 시간 낡은 것만 보여준다.
       KHU_PUBLISH_SECONDS: ${{ vars.KHU_PUBLISH_SECONDS || '1200' }}
+      # 공개 파일을 만드는 방식. full(지금까지의 방식) / shadow(전체로 공개하되 증분과 대조)
+      # / incremental(증분 결과를 공개). 저장소 변수 하나로 push 없이 되돌릴 수 있다.
+      # 2026-09-09 Supabase 무료 egress 한도 초과 대응. docs/공개파일_증분화_2026-09-09.md
+      KHU_EXPORT_MODE: ${{ vars.KHU_EXPORT_MODE || 'full' }}
+      # 바뀐 공지가 전체의 이 비율을 넘으면 그 회차는 전체 방식으로 되돌아간다.
+      KHU_EXPORT_MAX_CHANGED_RATIO: ${{ vars.KHU_EXPORT_MAX_CHANGED_RATIO || '0.3' }}
+      # 하루 한 번(아래 시각 이후 첫 회차) 전체 재생성을 강제한다.
+      KHU_EXPORT_FULL_EVERY_HOURS: ${{ vars.KHU_EXPORT_FULL_EVERY_HOURS || '24' }}
+      KHU_EXPORT_FULL_HOUR_KST: ${{ vars.KHU_EXPORT_FULL_HOUR_KST || '4' }}
 
     steps:
       - uses: actions/checkout@v4
