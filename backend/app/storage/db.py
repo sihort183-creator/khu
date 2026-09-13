@@ -290,6 +290,85 @@ def reset_read_meter() -> None:
         _meter_total = ReadStats()
 
 
+# ----------------------------------------------- 쓰기(WAL)·임시 파일 계측
+
+# 2026-09-13 Supabase 가 이번에는 "Disk IO Budget 고갈" 을 알려 왔다. 읽기는 캐시
+# 적중률 100%(blks_read 1,571)라 문제가 아니었고, 디스크를 깎아 먹은 것은 쓰기와
+# 정렬이 넘친 임시 파일이었다(temp_bytes 누계 735 GB, 전체 statements WAL 4,282 MB).
+#
+# 읽기량과 달리 이 둘은 앱이 셀 수 없다. WAL 은 데이터베이스가 만들고, 임시 파일은
+# 실행 계획이 정한다. 그래서 데이터베이스 자신의 누적 계수기를 회차 시작과 끝에 한
+# 번씩 읽어 차이를 적는다. 조회 두 개뿐이라 비용은 없다시피 하다.
+#
+# 주의. pg_stat_wal 은 인스턴스 전체(다른 데이터베이스·자동청소·체크포인트 포함)의
+# 값이고, pg_stat_database 의 임시 파일도 이 데이터베이스에서 도는 모든 세션의 값이다.
+# 회차와 겹쳐 도는 작업이 있으면 그만큼 섞인다. 절대값이 아니라 회차 사이 비교에 쓴다.
+
+
+@dataclass(frozen=True)
+class WriteStats:
+    """데이터베이스가 스스로 센 WAL·임시 파일 누적값. PostgreSQL 에서만 잰다."""
+
+    available: bool = False
+    wal_bytes: int = 0
+    temp_files: int = 0
+    temp_bytes: int = 0
+    reason: str | None = None
+
+    def delta(self, before: WriteStats) -> WriteStats:
+        """회차가 만든 양. 둘 중 하나라도 못 쟀거나 계수기가 초기화되면 못 잰 것으로 둔다."""
+        if not (self.available and before.available):
+            return WriteStats(reason=self.reason or before.reason or "재지 못했다")
+        values = (
+            self.wal_bytes - before.wal_bytes,
+            self.temp_files - before.temp_files,
+            self.temp_bytes - before.temp_bytes,
+        )
+        if any(value < 0 for value in values):
+            return WriteStats(reason="통계 계수기가 회차 도중 초기화되었다")
+        return WriteStats(available=True, wal_bytes=values[0], temp_files=values[1],
+                          temp_bytes=values[2])
+
+    def as_dict(self) -> dict[str, int]:
+        return {
+            "wal_bytes": self.wal_bytes, "temp_files": self.temp_files,
+            "temp_bytes": self.temp_bytes,
+        }
+
+
+_TEMP_SQL = text(
+    "select temp_files, temp_bytes from pg_stat_database where datname = current_database()"
+)
+_WAL_SQL = text("select wal_bytes from pg_stat_wal")
+
+
+def write_stats(engine: Engine | None = None) -> WriteStats:
+    """지금까지의 WAL·임시 파일 누적값. 못 읽으면 이유만 담아 돌려준다.
+
+    세션이 아니라 엔진에서 연결을 따로 빌린다. 권한이 없어 조회가 실패하면
+    PostgreSQL 은 그 트랜잭션을 통째로 못 쓰게 만드는데, 계측 때문에 회차가
+    죽으면 안 되기 때문이다. 실패해도 예외를 밖으로 내보내지 않는다.
+    """
+    try:
+        engine = engine or get_engine()
+    except Exception as exc:  # pragma: no cover - 설정이 없으면 계측도 없다
+        return WriteStats(reason=f"엔진을 얻지 못했다: {exc}"[:200])
+    if engine.dialect.name != "postgresql":
+        return WriteStats(reason=f"{engine.dialect.name} 에는 WAL·임시 파일 통계가 없다")
+    try:
+        with engine.connect() as conn:
+            temp = conn.execute(_TEMP_SQL).first()
+            wal = conn.execute(_WAL_SQL).scalar_one_or_none()
+    except Exception as exc:  # noqa: BLE001 - 계측 실패가 회차를 멈추지 않는다
+        log.warning("WAL·임시 파일 통계를 읽지 못했습니다: %s", exc)
+        return WriteStats(reason=str(exc).splitlines()[0][:200])
+    if temp is None or wal is None:
+        return WriteStats(reason="통계 뷰가 값을 주지 않았다")
+    return WriteStats(
+        available=True, wal_bytes=int(wal), temp_files=int(temp[0]), temp_bytes=int(temp[1]),
+    )
+
+
 @contextlib.contextmanager
 def measure_reads(engine: Engine | None = None) -> Iterator[list[ReadStats]]:
     """구간 읽기량을 잰다.
@@ -315,6 +394,7 @@ __all__ = [
     "EXPECTED_SCHEMA_VERSION",
     "ReadStats",
     "SchemaMismatch",
+    "WriteStats",
     "assert_schema_ready",
     "build_engine",
     "create_all",
@@ -330,4 +410,5 @@ __all__ = [
     "reset_read_meter",
     "session_scope",
     "write_schema_version",
+    "write_stats",
 ]

@@ -41,7 +41,15 @@ from app.ingestion.base import FetchedDetail, ListedItem, ParseError, Restricted
 from app.ingestion.http import Fetcher, FetchError
 from app.storage import models as m
 from app.storage import repository as repo
-from app.storage.db import ReadStats, assert_schema_ready, enable_read_meter, read_stats, session_scope
+from app.storage.db import (
+    ReadStats,
+    WriteStats,
+    assert_schema_ready,
+    enable_read_meter,
+    read_stats,
+    session_scope,
+    write_stats,
+)
 from app.storage.objects import ObjectStore, build_store, evidence_key
 
 log = logging.getLogger("khu.collect")
@@ -1082,6 +1090,9 @@ async def run_collection(
     # 인터페이스는 app/storage/db.py 를 본다(docs/공개파일_증분화_2026-09-09.md).
     enable_read_meter()
     reads_before = read_stats()
+    # 2026-09-13 Disk IO 예산 고갈. 이제는 읽은 양만으로 모자라다. 이 회차가 데이터베이스에
+    # 만든 WAL 과 넘친 임시 파일도 남긴다. 계수기를 앞뒤로 한 번씩 읽는 것뿐이다.
+    writes_before = write_stats()
 
     with session_scope(cfg) as session:
         assert_schema_ready(session)
@@ -1196,8 +1207,12 @@ async def run_collection(
             if merged:
                 log.info("중복 자동 병합 %d건", merged)
 
+    writes_before_export = write_stats()
     export_result = export_static(cfg, run_id=run_id, store=store) if publish else None
     run_reads = read_stats().delta(reads_before)
+    after_writes = write_stats()
+    run_writes = after_writes.delta(writes_before)
+    export_writes = after_writes.delta(writes_before_export)
 
     with session_scope(cfg) as session:
         run = session.get(_run_model(), run_id)
@@ -1225,6 +1240,7 @@ async def run_collection(
                     else f"실패 {len(failed)}건: " + ", ".join(f"{o.name}({o.error_kind})" for o in failed[:5])
                 )
                 + _reads_note(run_reads, export_result)
+                + _writes_note(run_writes, export_writes)
             ),
         )
 
@@ -1255,6 +1271,27 @@ def _reads_note(run_reads: ReadStats, export_result: ExportResult | None) -> str
         f", DB 읽기 {total:.1f}MB(공개 {export_mb:.1f}MB, "
         f"방식 {export_result.mode}, 물려받은 상세 {export_result.details_carried}개)"
     )
+
+
+def _writes_note(run_writes: WriteStats, export_writes: WriteStats) -> str:
+    """실행 기록에 붙일 쓰기·임시 파일 한 줄.
+
+    2026-09-13 실측으로 이 인스턴스의 디스크 입출력은 거의 전부가 임시 파일이었다
+    (회차당 약 9.3 GB, WAL 은 약 12 MB). 그래서 임시 파일을 앞에 적는다. 공개 단계
+    몫을 따로 적어 두면 어느 단계가 넘치는지 다음 회차 기록만 보고 가를 수 있다.
+
+    값은 데이터베이스 전체 계수기의 차라서 회차와 겹쳐 돈 다른 작업도 섞인다.
+    절대값이 아니라 회차 사이 비교에 쓴다. 권한이 없거나 PostgreSQL 이 아니면
+    못 잰 이유를 적는다.
+    """
+    if not run_writes.available:
+        return f", WAL·임시파일 못 잼({run_writes.reason})"
+    temp_mb = run_writes.temp_bytes / 1024 / 1024
+    wal_mb = run_writes.wal_bytes / 1024 / 1024
+    note = f", 임시파일 {temp_mb:,.0f}MB({run_writes.temp_files}개), WAL {wal_mb:,.0f}MB"
+    if export_writes.available:
+        note += f"(공개 임시 {export_writes.temp_bytes / 1024 / 1024:,.0f}MB)"
+    return note
 
 
 def _run_model():
