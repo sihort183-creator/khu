@@ -313,6 +313,50 @@ def _source_refs(session: Session) -> dict[str, api.SourceRef]:
     }
 
 
+# --------------------------------------------------------------- 배열의 차례
+
+# 왜 있나. 2026-09-13 그림자 대조가 5개 파일에서 어긋났다(docs/증분_대조_불일치_조사_2026-09-13.md).
+# 자료가 달랐던 것이 아니라 **배열의 차례**만 달랐다. 아래 조회들은 ORDER BY 가 없어
+# 차례가 데이터베이스의 실행 계획에 달려 있었다.
+#
+#   전체 회차  공지 전부를 읽으므로 조건이 없다 -> 차례 훑기(Seq Scan) -> 물리적 차례
+#   증분 회차  바뀐 공지만 읽는다(IN 목록)     -> 색인 훑기(Index Scan) -> 색인 차례
+#
+# 같은 자료를 두 길로 읽고 다른 차례를 얻으니 바이트가 어긋났다. 전체 회차끼리도
+# 어긋났다. 작업 메모리가 2MB 라 해시 결합이 여러 판으로 쪼개지면서 회차마다 차례가
+# 달라졌기 때문이다(상세의 sources[] 가 그렇게 흔들렸다).
+#
+# 그래서 조회 차례에 기대지 않고, 읽어 온 뒤 파이썬에서 배열마다 차례를 고정한다.
+# 데이터베이스에 ORDER BY 를 맡기지 않는 이유는 수만 행 정렬이 작업 메모리를 넘겨
+# 임시 파일을 만들기 때문이다. 공지 하나가 들고 있는 줄은 몇 개뿐이라 여기서 세우는
+# 값이 싸다.
+
+# 주제는 사전에 적힌 차례를 따른다(화면의 탭 차례와 같다).
+CATEGORY_ORDER = {code: index for index, code in enumerate(CATEGORY_LABELS)}
+# 대상은 좁은 것부터 넓은 것으로 보여 준다.
+AUDIENCE_ORDER = {"organization": 0, "campus": 1, "university": 2, "undetermined": 3}
+
+
+def _category_key(row: m.NoticeCategory) -> tuple:
+    """대표 주제가 먼저, 나머지는 사전 차례. 모르는 코드는 맨 뒤에 둔다."""
+    return (
+        0 if row.is_primary else 1,
+        CATEGORY_ORDER.get(row.category_code, len(CATEGORY_ORDER)),
+        row.category_code,
+    )
+
+
+def _audience_key(entry: tuple[m.NoticeAudience, str | None, str | None]) -> tuple:
+    """대상의 차례. 이름이 아니라 식별자로 세운다(이름은 바뀌어도 차례가 안 흔들리게)."""
+    row = entry[0]
+    return (
+        AUDIENCE_ORDER.get(row.audience_type, len(AUDIENCE_ORDER)),
+        row.organization_id or "",
+        row.campus_id or "",
+        row.id,
+    )
+
+
 # ------------------------------------------------------------------ 공지
 
 
@@ -330,13 +374,15 @@ def _build_notice(
     now: datetime,
     proxy_base: str = "",
 ) -> api.Notice:
-    primary = next((c for c in categories if c.is_primary), None)
-    secondary = [c for c in categories if not c.is_primary]
+    # 조회가 돌려준 차례를 믿지 않는다. 위 "배열의 차례" 설명 참고.
+    ordered_categories = sorted(categories, key=_category_key)
+    primary = next((c for c in ordered_categories if c.is_primary), None)
+    secondary = [c for c in ordered_categories if not c.is_primary]
     # 원문 날짜가 미래면 보이는 날짜만 "처음 본 시각"으로 바꾼다. 저장은 그대로 둔다.
     shown = _shown_published(notice, now)
 
     audiences: list[api.Audience] = []
-    for row, campus_name, org_name in audience_rows:
+    for row, campus_name, org_name in sorted(audience_rows, key=_audience_key):
         if row.audience_type == "campus":
             audiences.append(api.Audience(type="campus", id=row.campus_id, name=campus_name or "캠퍼스"))
         elif row.audience_type == "organization":
@@ -479,6 +525,40 @@ def _light_scan(session: Session) -> list[tuple[str, datetime | None, str | None
     return [(row[0], row[1], row[2]) for row in rows]
 
 
+# 본문을 한 번에 읽는 덩어리 크기. 개정 한 건의 본문은 평균 3KB 라 1,000건이면
+# 3MB 안팎이다. 기본 열쇠(pk_source_item_revisions)로 곧장 찾으므로 정렬도 해시도
+# 없다(2026-09-13 운영 EXPLAIN: Bitmap Heap Scan, 예상 1,000행).
+BODY_CHUNK = 1000
+
+
+def _load_bodies(
+    session: Session, revision_ids: list[str]
+) -> dict[str, tuple[str | None, str | None]]:
+    """개정 식별자로 본문 두 칸만 덩어리로 읽는다.
+
+    큰 조인이 본문을 끌고 다니지 않게 하려고 따로 읽는다. 전량 회차에서 공지는
+    약 23,800건이고 본문 합계는 약 70MB 인데, 운영의 work_mem 은 2,184kB 뿐이다.
+    조인·정렬·해시 노드를 그 폭으로 지나가게 두면 중간 결과가 메모리에 들어가지
+    못한다. 2026-09-13 Supabase 가 Disk IO 예산 고갈을 알려 왔고, 같은 날 실측에서
+    디스크 입출력의 거의 전부가 임시 파일이었다(회차당 약 9.3 GB).
+
+    읽는 총량은 예전과 같다. 같은 행의 같은 두 칸을 한 번씩 읽을 뿐이라 2026-09-09
+    에 맞춘 egress 예산(docs/수집_읽기량_측정_2026-09-09.md)을 깨지 않는다.
+    """
+    bodies: dict[str, tuple[str | None, str | None]] = {}
+    for offset in range(0, len(revision_ids), BODY_CHUNK):
+        chunk = revision_ids[offset : offset + BODY_CHUNK]
+        for revision_id, body_text, body_html in session.execute(
+            select(
+                m.SourceItemRevision.id,
+                m.SourceItemRevision.body_text,
+                m.SourceItemRevision.body_html,
+            ).where(m.SourceItemRevision.id.in_(chunk))
+        ):
+            bodies[revision_id] = (body_text, body_html)
+    return bodies
+
+
 def _load_notices(
     session: Session,
     now: datetime,
@@ -501,6 +581,13 @@ def _load_notices(
 
     열을 골라 읽는다. notices.search_text 는 내보내기에서 쓰지 않는데 회차마다
     16.5 MB 였고(2026-09-09 실측), source_items.detail_listing 도 2.0 MB 였다.
+
+    **행 조회에 order_by 를 걸지 않고, 본문 두 칸도 뽑지 않는다.** 목록 순서는 아래
+    built.sort 가 정한다. 정렬 열쇠 _entry_order 의 마지막 칸이 공지 id 라 같은 값이
+    나올 수 없고, 따라서 데이터베이스가 돌려준 순서는 결과에 영향을 주지 못한다.
+    쓰이지도 않는 정렬을 데이터베이스에 시킬 이유가 없다. 본문은 _load_bodies 가
+    개정 식별자로 따로 읽는다. 조인을 지나는 행 폭이 1,821바이트에서 882바이트로
+    줄어든다(2026-09-13 운영 EXPLAIN 실측). 근거는 docs/디스크IO_줄이기_2026-09-13.md.
     """
     if notice_ids is not None and not notice_ids:
         return [], []
@@ -517,7 +604,8 @@ def _load_notices(
         .group_by(m.NoticeSource.notice_id)
     )
     rows_query = (
-        select(m.Notice, m.SourceItem, m.SourceItemRevision, m.Source)
+        # 본문 두 칸은 여기서 뽑지 않는다. 아래 _load_bodies 가 개정 식별자로 따로 읽는다.
+        select(m.Notice, m.SourceItem, m.Source, m.SourceItemRevision.id)
         .join(m.SourceItem, m.SourceItem.id == m.Notice.primary_source_item_id)
         .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
         .join(m.Source, m.Source.id == m.SourceItem.source_id)
@@ -533,12 +621,8 @@ def _load_notices(
                 m.SourceItem.source_id, m.SourceItem.canonical_url,
                 m.SourceItem.original_status, m.SourceItem.is_pinned,
             ),
-            Load(m.SourceItemRevision).load_only(
-                m.SourceItemRevision.body_text, m.SourceItemRevision.body_html,
-            ),
             Load(m.Source).load_only(m.Source.name, m.Source.medium),
         )
-        .order_by(m.Notice.first_visible_at.desc(), m.Notice.id.desc())
     )
     if notice_ids is not None:
         wanted = list(notice_ids)
@@ -582,19 +666,28 @@ def _load_notices(
             return window_start is None or stamp >= window_start
         return floor is None or published >= floor
 
-    built: list[LoadedNotice] = []
     dropped: list[str] = []
-    for notice, item, revision, source in rows:
+    kept: list[tuple[m.Notice, m.SourceItem, m.Source, str]] = []
+    for notice, item, source, revision_id in rows:
         if not within_window(notice):
             dropped.append(notice.id)
             continue
+        kept.append((notice, item, source, revision_id))
+
+    # 본문은 범위 안에 남은 공지의 것만 읽는다. 범위 밖 공지의 본문은 예전에는 읽고
+    # 나서 버렸다.
+    bodies = _load_bodies(session, [revision_id for _, _, _, revision_id in kept])
+
+    built: list[LoadedNotice] = []
+    for notice, item, source, revision_id in kept:
+        body_text, body_html = bodies.get(revision_id, (None, None))
         built.append(
             LoadedNotice(
                 notice=_build_notice(
                     notice,
                     item,
-                    revision.body_text,
-                    revision.body_html,
+                    body_text,
+                    body_html,
                     source_ref=source_refs[source.id],
                     categories=categories.get(notice.id, []),
                     audience_rows=audiences.get(notice.id, []),
@@ -603,9 +696,9 @@ def _load_notices(
                     now=now,
                     proxy_base=proxy_base,
                 ),
-                revision_id=revision.id,
-                body_text=revision.body_text,
-                body_html=revision.body_html,
+                revision_id=revision_id,
+                body_text=body_text,
+                body_html=body_html,
             )
         )
     built.sort(key=lambda loaded: _entry_order(loaded.notice), reverse=True)
@@ -641,7 +734,7 @@ def _notice_detail(
             url=a.url,
             status=api.Coded(code=a.status, label="목록 확인됨" if a.status == "listed" else a.status),
         )
-        for a in attachment_rows
+        for a in sorted(attachment_rows, key=lambda a: (a.filename or "", a.id))
     ]
 
     if links_by_notice is None:
@@ -664,6 +757,8 @@ def _notice_detail(
         )
         for link, item, published in linked
     ]
+    # 대표 원문이 맨 앞. 나머지는 출처 이름으로 세우고, 이름이 같으면 식별자로 가른다.
+    sources.sort(key=lambda ref: (not ref.is_primary, ref.source.name, ref.source_item_id))
 
     mention_rows = (
         mentions_by_revision.get(revision_id, [])
@@ -689,7 +784,7 @@ def _notice_detail(
             ),
             contact_id=row.contact_id,
         )
-        for row in mention_rows
+        for row in sorted(mention_rows, key=lambda row: (row.raw_text or "", row.id))
     ]
 
     return api.NoticeDetail(
@@ -711,9 +806,14 @@ def _notice_detail(
 
 
 def _load_contacts(session: Session, org_paths: dict[str, list[str]]) -> list[api.Contact]:
+    # 공지와 같은 이유로 여기서도 조회 차례를 믿지 않는다("배열의 차례" 설명 참고).
+    # 연락처는 어느 방식이든 매 회차 전부 다시 읽으므로 증분·전체가 어긋나지는 않지만,
+    # 차례가 흔들리면 내용이 같은데도 회차마다 새 객체를 올리게 된다.
     channels: dict[str, list[m.ContactChannel]] = {}
-    for row in session.execute(select(m.ContactChannel).order_by(m.ContactChannel.priority)).scalars():
+    for row in session.execute(select(m.ContactChannel)).scalars():
         channels.setdefault(row.contact_id, []).append(row)
+    for channel_rows in channels.values():
+        channel_rows.sort(key=lambda c: (c.priority if c.priority is not None else 0, c.id))
 
     campuses: dict[str, list[api.Campus]] = {}
     for contact_id, campus_id, name in session.execute(
@@ -722,6 +822,8 @@ def _load_contacts(session: Session, org_paths: dict[str, list[str]]) -> list[ap
         )
     ).all():
         campuses.setdefault(contact_id, []).append(api.Campus(id=campus_id, name=name))
+    for campus_rows in campuses.values():
+        campus_rows.sort(key=lambda c: c.id)
 
     evidence: dict[str, list[api.Evidence]] = {}
     for ev, obs in session.execute(
@@ -734,14 +836,17 @@ def _load_contacts(session: Session, org_paths: dict[str, list[str]]) -> list[ap
                 field=ev.field, url=obs.url, source_name=obs.source_name, observed_at=obs.observed_at
             )
         )
+    for evidence_rows in evidence.values():
+        evidence_rows.sort(key=lambda e: (e.field or "", e.url or "", e.source_name or ""))
 
     out: list[api.Contact] = []
     rows = session.execute(
         select(m.ContactEntry, m.Organization)
         .join(m.Organization, m.Organization.id == m.ContactEntry.organization_id)
         .where(m.ContactEntry.status.in_(("verified", "stale", "conflict")))
-        .order_by(m.Organization.name, m.ContactEntry.service_name)
     ).all()
+    # 이름이 같은 조직·서비스가 있으면 식별자로 가른다. 이 값이 목록 쪽수도 가른다.
+    rows.sort(key=lambda pair: (pair[1].name or "", pair[0].service_name or "", pair[0].id))
 
     for entry, org in rows:
         out.append(
@@ -1025,6 +1130,8 @@ def _write_revision(
         )
     ).all():
         org_campuses.setdefault(org_id, []).append(api.Campus(id=campus_id, name=name))
+    for campus_rows in org_campuses.values():
+        campus_rows.sort(key=lambda c: c.id)
 
     organizations = [
         api.Organization(
@@ -1041,7 +1148,10 @@ def _write_revision(
             is_alias=bool(getattr(o, "is_alias", False)),
         )
         for o in session.execute(
-            select(m.Organization).where(m.Organization.is_active.is_(True)).order_by(m.Organization.name)
+            select(m.Organization)
+            .where(m.Organization.is_active.is_(True))
+            # 이름이 같은 조직이 있으면 식별자로 가른다. 차례가 흔들리면 내용이 같아도 새 객체가 된다.
+            .order_by(m.Organization.name, m.Organization.id)
         ).scalars()
     ]
     writer.put(
@@ -1066,7 +1176,7 @@ def _write_revision(
         select(m.Source, m.Organization)
         .join(m.Organization, m.Organization.id == m.Source.organization_id)
         .where(m.Source.is_public.is_(True))
-        .order_by(m.Source.name)
+        .order_by(m.Source.name, m.Source.id)
     ).all():
         health_row = health_rows.get(source.id)
         sources_out.append(
@@ -1262,7 +1372,7 @@ def _write_revision(
             last_scan_stop_reason=(health_rows.get(s.id).last_scan_stop_reason if health_rows.get(s.id) else None),
         )
         for s in session.execute(
-            select(m.Source).where(m.Source.is_public.is_(True)).order_by(m.Source.name)
+            select(m.Source).where(m.Source.is_public.is_(True)).order_by(m.Source.name, m.Source.id)
         ).scalars()
     ]
     status = api.RunStatus(
@@ -1391,7 +1501,7 @@ def export_static(
         source_refs = _source_refs(session)
         campuses = [
             api.Campus(id=c.id, name=c.name)
-            for c in session.execute(select(m.Campus).order_by(m.Campus.name)).scalars()
+            for c in session.execute(select(m.Campus).order_by(m.Campus.name, m.Campus.id)).scalars()
         ]
         organization_names = dict(
             session.execute(select(m.Organization.id, m.Organization.name)).all()
@@ -1567,7 +1677,7 @@ def refresh_public_status(
         ).scalar_one_or_none()
         sources = list(
             session.execute(
-                select(m.Source).where(m.Source.is_public.is_(True)).order_by(m.Source.name)
+                select(m.Source).where(m.Source.is_public.is_(True)).order_by(m.Source.name, m.Source.id)
             ).scalars()
         )
         lines = [

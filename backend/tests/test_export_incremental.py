@@ -515,3 +515,154 @@ def test_old_state_files_are_pruned(store, settings):
     assert left == {state_key("r3"), state_key("r4"), state_key("r5"), METRICS_KEY}
     # 회차 기록은 정리 대상이 아니다.
     assert prune_export_state(store, bucket, keep=3) == 0
+
+
+# ----------------------------------------- 줄이 여럿인 공지(2026-09-13 불일치)
+#
+# 증상과 원인은 docs/증분_대조_불일치_조사_2026-09-13.md 에 적었다. 요약하면 공지
+# 하나가 들고 있는 줄(주제·대상·원문)을 읽는 조회에 ORDER BY 가 없어, 전체 회차는
+# 차례 훑기로 증분 회차는 색인 훑기로 읽으며 배열의 차례가 갈렸다. 자료는 같은데
+# 파일 바이트가 달라 그림자 대조가 어긋났다.
+#
+# 아래 표본은 운영에서 실제로 갈라진 공지(ntc-3071cf54451e)를 본떴다. 주제를
+# 대표=career, 나머지=graduation, academic 차례로 넣는다. 넣은 차례와 코드 사전순이
+# 서로 달라, 두 길이 다른 차례를 돌려주면 바로 드러난다.
+#
+# 배열의 차례 자체는 tests/test_export_row_order.py 가 값으로 못 박는다. 여기서는
+# 실제 내보내기를 끝까지 돌려 개정 명세(= 파일 해시)가 같은지만 본다.
+
+
+def _seed_many_valued(session) -> None:
+    for index, name in ((1, "나 출처"), (2, "가 출처")):
+        session.add(
+            m.Source(
+                id=f"src-extra-{index}",
+                organization_id="org-hq",
+                name=name,
+                adapter="khu_board",
+                list_url=f"https://extra{index}.khu.ac.kr/list.do",
+                status="active",
+            )
+        )
+        session.add(m.SourceHealth(source_id=f"src-extra-{index}", last_list_success_at=BASE_TIME))
+    session.flush()
+
+    # 대표 원문 하나 + 다른 출처에서 온 원문 둘. 중복으로 묶인 공지의 모양이다.
+    for index, source_id in ((0, "src-hq"), (1, "src-extra-1"), (2, "src-extra-2")):
+        session.add(
+            m.SourceItem(
+                id=f"itm-rich-{index}",
+                source_id=source_id,
+                external_id=f"rich{index}",
+                canonical_url=f"https://www.khu.ac.kr/rich{index}",
+                current_revision_id=f"rev-rich-{index}",
+                original_status="available",
+            )
+        )
+        session.flush()
+        session.add(
+            m.SourceItemRevision(
+                id=f"rev-rich-{index}",
+                source_item_id=f"itm-rich-{index}",
+                content_hash=f"hashrich{index}",
+                title="줄이 여럿인 공지",
+                body_text="본문 " * 20,
+                body_html="<p>본문</p>",
+                published_date=BASE_TIME.date(),
+                published_precision="date",
+                extractor_version="test",
+            )
+        )
+        session.flush()
+
+    session.add(
+        m.Notice(
+            id="ntc-rich",
+            primary_source_item_id="itm-rich-0",
+            status="visible",
+            first_visible_at=BASE_TIME,
+            updated_at=BASE_TIME,
+            title="줄이 여럿인 공지",
+            excerpt="발췌",
+            # 앞선 날짜라 보이는 날짜가 "처음 본 시각"으로 바뀐다(published_adjusted).
+            # 그래서 이 공지는 증분 회차마다 다시 읽힌다 = 색인 훑기 쪽 길을 탄다.
+            published_date=(BASE_TIME + timedelta(days=120)).date(),
+            published_precision="date",
+        )
+    )
+    session.flush()
+
+    for index, is_primary in ((0, True), (1, False), (2, False)):
+        session.add(
+            m.NoticeSource(
+                id=f"lnk-rich-{index}",
+                notice_id="ntc-rich",
+                source_item_id=f"itm-rich-{index}",
+                is_active=True,
+                is_primary=is_primary,
+            )
+        )
+    for suffix, code, is_primary in (
+        ("a", "career", True), ("b", "graduation", False), ("c", "academic", False)
+    ):
+        session.add(
+            m.NoticeCategory(
+                id=f"cat-rich-{suffix}", notice_id="ntc-rich",
+                category_code=code, is_primary=is_primary,
+            )
+        )
+    session.add(
+        m.NoticeAudience(
+            id="aud-rich-a", notice_id="ntc-rich",
+            audience_type="campus", campus_id="campus-seoul",
+        )
+    )
+    session.add(
+        m.NoticeAudience(
+            id="aud-rich-b", notice_id="ntc-rich",
+            audience_type="organization", organization_id="org-hq",
+        )
+    )
+    session.flush()
+    session.commit()
+
+
+@pytest.fixture
+def seeded_many_valued(session_factory, settings: Settings):
+    with session_factory() as session:
+        _seed(session)
+        _seed_many_valued(session)
+        yield session
+
+
+def test_many_valued_notice_matches_however_the_edition_was_built(seeded_many_valued, cfg, store):
+    """전체로 읽든 증분으로 읽든 같은 파일이 나와야 한다. 2026-09-13 어긋난 자리다."""
+    export_static(cfg, store=store, revision="r-full-1", mode="full")
+    full = _entries(store, cfg, "r-full-1")
+
+    # 보이는 날짜가 저절로 움직이는 공지라 증분 회차가 늘 다시 읽는다.
+    result = export_static(cfg, store=store, revision="r-inc-1", mode="incremental")
+    assert result.mode == "incremental"
+    assert result.notices_changed == 1
+    incremental = _entries(store, cfg, "r-inc-1")
+
+    assert incremental["notices/ntc-rich.json"] == full["notices/ntc-rich.json"]
+    assert incremental == full
+
+
+def test_many_valued_notice_survives_a_carried_round_trip(seeded_many_valued, cfg, store):
+    """물려받은 항목과 새로 만든 항목이 한 목록에 섞여도 결과가 같아야 한다."""
+    export_static(cfg, store=store, revision="r-full-1", mode="full")
+    export_static(cfg, store=store, revision="r-inc-1", mode="incremental")
+    export_static(cfg, store=store, revision="r-full-2", mode="full")
+    assert _entries(store, cfg, "r-inc-1") == _entries(store, cfg, "r-full-2")
+
+
+def test_shadow_comparison_is_clean_for_a_many_valued_notice(seeded_many_valued, cfg, store):
+    """그림자 대조가 이 공지에서 어긋나지 않아야 한다(운영에서 본 증상 그대로)."""
+    export_static(cfg, store=store, revision="r-full-1", mode="full")
+    result = export_static(cfg, store=store, revision="r-shadow-1", mode="shadow")
+    assert result.mode == "full"
+    assert result.shadow is not None and result.shadow["ran"] is True
+    assert result.shadow["mismatched"] == 0, result.shadow["examples"]
+    assert result.shadow["matched"] is True
