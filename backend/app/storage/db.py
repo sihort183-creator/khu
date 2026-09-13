@@ -9,7 +9,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import threading
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, replace
 
 from sqlalchemy import Engine, create_engine, event, select, text
@@ -139,6 +139,61 @@ def reset_engine() -> None:
         _engine.dispose()
     _engine = None
     _session_factory = None
+
+
+# ------------------------------------------------------------ IN 목록 끊기
+
+# 왜 있나. 2026-09-13 Supabase 가 "Disk IO Budget 고갈" 을 알려 왔다. 같은 날 실측에서
+# 디스크를 두드리는 것의 거의 전부가 임시 파일이었는데, 그것을 쏟는 것은 우리 조회가
+# 아니라 Supabase 자신의 감시 수집기(postgres_exporter)였다. 그 수집기는 1분마다
+# pg_stat_statements 를 통째로 읽으면서 **질의문 본문을 전부 재구성**한다. 회차가 하나도
+# 돌지 않는 조용한 시간에도 임시 파일이 분당 약 163 MB(시간당 약 9.8 GB)씩 늘었다.
+#
+# 그 비용은 보관된 질의문 본문 파일의 크기에 비례하고, 그 파일을 102.6 MB 까지 키운 것이
+# 우리다. PostgreSQL 은 매개변수로 들어온 IN 목록을 하나로 접지 않는다. `IN ($1, …, $N)`
+# 의 N 이 달라질 때마다 pg_stat_statements 에 **다른 항목**이 생기고, 항목마다 그 긴 본문을
+# 따로 보관한다. 우리는 원소 23,800개짜리 목록을 그대로 보냈으니 항목 하나가 약 190 KB 다.
+#
+# 그래서 목록을 아래 길이들 중 하나로만 보낸다. 모자란 자리는 그 덩어리의 마지막 값을
+# 되풀이해 채운다. `IN` 은 집합이라 같은 값이 여러 번 들어가도 결과가 달라지지 않는다.
+#
+# 길이를 왜 1,000 에서 끊나. _load_bodies 가 2026-09-13 에 먼저 1,000 으로 끊어 두었고,
+# 그 크기에서 운영 EXPLAIN 이 Bitmap Heap Scan(정렬도 해시도 없음)으로 나왔다. 본문이
+# 실리는 조회에서 1,000건이면 3 MB 안팎이라 work_mem 2,184kB 를 크게 넘지 않는다.
+# 문장 하나의 본문도 약 5.6 KB 로 짧아진다.
+#
+# 왜 1,000 하나로 고정하지 않고 사다리를 쓰나. 마지막 조각을 무조건 1,000 으로 채우면
+# 항목은 자리마다 정확히 하나가 되지만, 원소가 3개뿐인 목록(중복 판정 묶음이 그렇다)에도
+# 997개의 중복을 실어 보내게 된다. 그러면 매개변수가 헛되이 오가고, PostgreSQL 이 행
+# 수를 1,000으로 어림잡아 index scan 대신 더 비싼 계획을 고를 수 있다. 2의 거듭제곱
+# 사다리를 쓰면 **덧붙이는 중복이 실제 길이를 절대 넘지 않고**(길이가 두 배를 넘지
+# 않는다), 자리마다 생길 수 있는 항목은 아래 11가지뿐이다.
+IN_CHUNK = 1000
+IN_SHAPES = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, IN_CHUNK)
+
+
+def in_chunks(values: Iterable[str]) -> list[list[str]]:
+    """`IN` 에 넣을 값을 길이가 IN_SHAPES 중 하나인 덩어리로 끊는다.
+
+    같은 값이 두 번 들어오면 먼저 지운다. `IN` 에서는 결과가 달라지지 않지만,
+    덩어리가 갈리면 같은 행이 두 덩어리에서 돌아와 부르는 쪽이 두 번 셀 수 있기
+    때문이다. 들어온 차례는 지킨다.
+
+    빈 목록은 덩어리를 하나도 만들지 않는다. 부르는 쪽이 조회를 아예 걸지 않도록
+    `for chunk in in_chunks(...)` 만으로 끝나게 하려는 것이다.
+    """
+    unique = list(dict.fromkeys(values))
+    chunks: list[list[str]] = []
+    for offset in range(0, len(unique), IN_CHUNK):
+        chunk = unique[offset : offset + IN_CHUNK]
+        # 사다리에 맞는 칸이 없으면(검사에서 IN_CHUNK 를 IN_SHAPES 의 마지막 칸보다
+        # 크게 바꾼 경우) 채우지 않고 그대로 보낸다. 운영에서는 IN_CHUNK 가 곧
+        # 사다리의 마지막 칸이라 이 갈래로 오지 않는다.
+        size = next((shape for shape in IN_SHAPES if shape >= len(chunk)), len(chunk))
+        # 남는 자리는 이 덩어리의 마지막 값으로 채운다. 같은 덩어리 안의 값이므로
+        # 다른 덩어리와 겹치지 않고, 돌아오는 행도 늘지 않는다.
+        chunks.append(chunk + [chunk[-1]] * (size - len(chunk)))
+    return chunks
 
 
 # --------------------------------------------------------------- 읽기량 계측
@@ -390,6 +445,8 @@ def measure_reads(engine: Engine | None = None) -> Iterator[list[ReadStats]]:
 
 
 __all__ = [
+    "IN_CHUNK",
+    "IN_SHAPES",
     "ConfigError",
     "EXPECTED_SCHEMA_VERSION",
     "ReadStats",
@@ -402,6 +459,7 @@ __all__ = [
     "enable_read_meter",
     "get_engine",
     "get_session_factory",
+    "in_chunks",
     "measure_reads",
     "ping",
     "read_schema_version",

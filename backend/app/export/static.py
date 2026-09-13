@@ -82,7 +82,7 @@ from app.export.state import (
     state_key,
 )
 from app.storage import models as m
-from app.storage.db import measure_reads, session_scope
+from app.storage.db import in_chunks, measure_reads, session_scope
 from app.storage.objects import ObjectStore, PutResult, build_store
 
 log = logging.getLogger("khu.export")
@@ -525,12 +525,6 @@ def _light_scan(session: Session) -> list[tuple[str, datetime | None, str | None
     return [(row[0], row[1], row[2]) for row in rows]
 
 
-# 본문을 한 번에 읽는 덩어리 크기. 개정 한 건의 본문은 평균 3KB 라 1,000건이면
-# 3MB 안팎이다. 기본 열쇠(pk_source_item_revisions)로 곧장 찾으므로 정렬도 해시도
-# 없다(2026-09-13 운영 EXPLAIN: Bitmap Heap Scan, 예상 1,000행).
-BODY_CHUNK = 1000
-
-
 def _load_bodies(
     session: Session, revision_ids: list[str]
 ) -> dict[str, tuple[str | None, str | None]]:
@@ -544,10 +538,12 @@ def _load_bodies(
 
     읽는 총량은 예전과 같다. 같은 행의 같은 두 칸을 한 번씩 읽을 뿐이라 2026-09-09
     에 맞춘 egress 예산(docs/수집_읽기량_측정_2026-09-09.md)을 깨지 않는다.
+
+    덩어리를 in_chunks 로 끊는 이유는 크기뿐이 아니다. 길이를 몇 가지로 고정해야
+    pg_stat_statements 에 항목이 하나로 모인다(app/storage/db.py 의 설명 참고).
     """
     bodies: dict[str, tuple[str | None, str | None]] = {}
-    for offset in range(0, len(revision_ids), BODY_CHUNK):
-        chunk = revision_ids[offset : offset + BODY_CHUNK]
+    for chunk in in_chunks(revision_ids):
         for revision_id, body_text, body_html in session.execute(
             select(
                 m.SourceItemRevision.id,
@@ -624,24 +620,32 @@ def _load_notices(
             Load(m.Source).load_only(m.Source.name, m.Source.medium),
         )
     )
-    if notice_ids is not None:
-        wanted = list(notice_ids)
-        categories_query = categories_query.where(m.NoticeCategory.notice_id.in_(wanted))
-        audiences_query = audiences_query.where(m.NoticeAudience.notice_id.in_(wanted))
-        counts_query = counts_query.where(m.NoticeSource.notice_id.in_(wanted))
-        rows_query = rows_query.where(m.Notice.id.in_(wanted))
+    # 증분 회차의 `IN (…)` 은 덩어리로 끊어 보낸다. 바뀐 공지가 수천 건이면 문장 하나가
+    # 수십 KB 가 되고, 그 길이가 회차마다 달라 pg_stat_statements 에 항목이 끝없이
+    # 쌓인다. 근거는 app/storage/db.py 의 in_chunks 설명과
+    # docs/디스크IO_줄이기_2026-09-13.md 5.1절.
+    #
+    # 덩어리를 여러 번 돌려도 결과는 한 번에 읽을 때와 같다. 아래 네 조회는 모두
+    # "공지 식별자로 걸러 사전에 모으는" 꼴이라 덩어리 사이에 순서도 집계도 걸치지
+    # 않는다(counts_query 의 group_by 도 공지별이라 덩어리를 넘나들지 않는다).
+    def _run(query, column):
+        if notice_ids is None:
+            yield from session.execute(query).all()
+            return
+        for chunk in in_chunks(sorted(notice_ids)):
+            yield from session.execute(query.where(column.in_(chunk))).all()
 
-    counts = dict(session.execute(counts_query).all())
+    counts = dict(_run(counts_query, m.NoticeSource.notice_id))
 
     categories: dict[str, list[m.NoticeCategory]] = {}
-    for row in session.execute(categories_query).scalars():
+    for (row,) in _run(categories_query, m.NoticeCategory.notice_id):
         categories.setdefault(row.notice_id, []).append(row)
 
     audiences: dict[str, list[tuple[m.NoticeAudience, str | None, str | None]]] = {}
-    for row, campus_name, org_name in session.execute(audiences_query).all():
+    for row, campus_name, org_name in _run(audiences_query, m.NoticeAudience.notice_id):
         audiences.setdefault(row.notice_id, []).append((row, campus_name, org_name))
 
-    rows = session.execute(rows_query).all()
+    rows = list(_run(rows_query, m.Notice.id))
 
     floor = window_floor(window_start)
 
@@ -918,32 +922,42 @@ def _load_notice_detail_parts(
     왕복이 공지 수에 비례한다. 개정 스냅샷의 식별자를 먼저 모은 뒤 세 번의
     조회로 전체 상세 자료를 준비한다. 증분 회차에서는 상세를 다시 만드는 공지만
     여기 들어오므로 이 세 조회도 그만큼만 읽는다.
+
+    **세 조회 모두 `IN` 목록을 덩어리로 끊는다.** 전량 회차에서는 이 목록이 공지
+    23,800개짜리가 되어 문장 하나가 약 190 KB 였고, 그 본문이 pg_stat_statements
+    보관 파일을 102.6 MB 까지 키웠다. 그 파일을 1분마다 통째로 재구성하는 것이
+    2026-09-13 디스크 입출력 고갈의 진짜 원인이다(app/storage/db.py 의 in_chunks 설명,
+    docs/디스크IO_줄이기_2026-09-13.md 2.3·5.1절).
+
+    끊어 읽어도 결과는 한 번에 읽을 때와 같다. 세 조회 모두 식별자로 걸러 사전에
+    모을 뿐이고, 정렬도 집계도 덩어리를 넘나들지 않는다. 차례는 어차피 _notice_detail
+    이 파이썬에서 다시 세운다.
     """
     revision_ids = [loaded.revision_id for loaded in notices]
     notice_ids = [loaded.notice.id for loaded in notices]
 
     attachments: dict[str, list[m.Attachment]] = {}
-    if revision_ids:
-        for row in session.execute(
-            select(m.Attachment).where(m.Attachment.revision_id.in_(revision_ids))
-        ).scalars():
+    for chunk in in_chunks(revision_ids):
+        for (row,) in session.execute(
+            select(m.Attachment).where(m.Attachment.revision_id.in_(chunk))
+        ).all():
             attachments.setdefault(row.revision_id, []).append(row)
 
     links: dict[str, list[tuple[m.NoticeSource, m.SourceItem, date | None]]] = {}
-    if notice_ids:
+    for chunk in in_chunks(notice_ids):
         rows = session.execute(
             _linked_sources_query().where(
-                m.NoticeSource.notice_id.in_(notice_ids), m.NoticeSource.is_active.is_(True)
+                m.NoticeSource.notice_id.in_(chunk), m.NoticeSource.is_active.is_(True)
             )
         ).all()
         for link, item, published in rows:
             links.setdefault(link.notice_id, []).append((link, item, published))
 
     mentions: dict[str, list[m.NoticeContactMention]] = {}
-    if revision_ids:
-        for row in session.execute(
-            select(m.NoticeContactMention).where(m.NoticeContactMention.revision_id.in_(revision_ids))
-        ).scalars():
+    for chunk in in_chunks(revision_ids):
+        for (row,) in session.execute(
+            select(m.NoticeContactMention).where(m.NoticeContactMention.revision_id.in_(chunk))
+        ).all():
             mentions.setdefault(row.revision_id, []).append(row)
     return attachments, links, mentions
 

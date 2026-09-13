@@ -188,9 +188,9 @@ def test_big_join_does_not_carry_bodies_and_does_not_sort(session_factory, cfg, 
 
 def test_bodies_are_read_in_chunks(session_factory, cfg, store, engine, monkeypatch):
     """본문은 한 번에 다 읽지 않고 덩어리로 나눠 읽는다."""
-    from app.export import static as static_mod
+    from app.storage import db as db_mod
 
-    monkeypatch.setattr(static_mod, "BODY_CHUNK", 3)
+    monkeypatch.setattr(db_mod, "IN_CHUNK", 3)
     with session_factory() as session:
         _seed_frame(session)
         _seed_notices(session, list(range(1, 9)))
