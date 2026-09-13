@@ -9,7 +9,7 @@ from sqlalchemy import event, func, select
 
 from app.domain import ids
 from app.domain.audiences import AudienceDecision, AudienceTarget
-from app.domain.categories import classify
+from app.domain.categories import CategoryDecision, classify
 from app.domain.dates import NO_DEADLINE, parse_published
 from app.ingestion.base import FetchedAttachment, FetchedDetail, ListedItem
 from app.storage import models as m
@@ -506,3 +506,186 @@ def test_preload_listing_items_does_not_read_bodies(db, source, engine, session_
             assert len(statements) > before
     finally:
         event.remove(engine, "before_cursor_execute", _capture)
+
+
+# --------------------------------------------- 안 바뀐 행을 다시 쓰지 않기
+#
+# 2026-09-13 Supabase 가 Disk IO 예산 고갈을 알려 왔다. 회차마다 "이번에도 봤다"는
+# 사실만 다시 쓰거나 같은 분류를 지웠다 넣으면, 값은 그대로인데 쓰기만 쌓인다.
+# 게다가 분류·대상 표에는 0004 트리거가 걸려 있어 헛된 삭제·삽입이 공지의 수정
+# 시각까지 올린다. 그러면 증분 공개가 바뀌지도 않은 공지를 다시 만든다.
+# 근거와 실측은 docs/디스크IO_줄이기_2026-09-13.md 에 있다.
+
+
+def _statements(engine, work):
+    """work() 가 실제로 데이터베이스에 내보낸 문장을 모은다."""
+    captured: list[str] = []
+
+    def _capture(conn, cursor, statement, parameters, context, executemany):
+        captured.append(" ".join(statement.split()))
+
+    event.listen(engine, "before_cursor_execute", _capture)
+    try:
+        work()
+    finally:
+        event.remove(engine, "before_cursor_execute", _capture)
+    return captured
+
+
+def _writes(statements, table):
+    return [
+        sql for sql in statements
+        if table in sql and sql.split(" ", 1)[0].upper() in {"UPDATE", "INSERT", "DELETE"}
+    ]
+
+
+def test_recently_seen_item_is_not_written_again(db, source, engine):
+    """방금 본 글을 다시 봐도 원본 행을 건드리지 않는다."""
+    listed = _listed()
+    _write(db, source, listed, _detail(listed))
+    db.commit()
+
+    def again():
+        repo.touch_item_from_listing(db, source_id=source.id, listed=listed)
+        db.flush()
+
+    assert _writes(_statements(engine, again), "source_items") == []
+
+
+def test_item_not_seen_for_a_long_time_is_written(db, source, engine):
+    """기준 시간(6시간)보다 오래된 값은 갱신한다. 멈춰 있으면 안 된다."""
+    listed = _listed()
+    written = _write(db, source, listed, _detail(listed))
+    item = db.get(m.SourceItem, written.item_id)
+    stale = datetime.now(UTC) - repo.LAST_SEEN_REFRESH - timedelta(minutes=1)
+    item.last_seen_at = stale
+    db.commit()
+
+    def again():
+        repo.touch_item_from_listing(db, source_id=source.id, listed=listed)
+        db.flush()
+
+    assert _writes(_statements(engine, again), "source_items")
+    db.refresh(item)
+    assert repo._aware(item.last_seen_at) > stale
+
+
+def test_unchanged_content_does_not_rewrite_the_revision(db, source, engine):
+    """내용이 그대로면 관찰 시각만 올리자고 이력 행을 다시 쓰지 않는다."""
+    listed = _listed()
+    _write(db, source, listed, _detail(listed))
+    db.commit()
+
+    def again():
+        _write(db, source, listed, _detail(listed))
+        db.flush()
+
+    statements = _statements(engine, again)
+    assert _writes(statements, "source_item_revisions") == []
+
+
+def test_same_classification_writes_nothing(db, source, engine):
+    """같은 판정이 다시 와도 분류·대상 표에 삭제도 삽입도 나가지 않는다."""
+    listed = _listed(title="[장학] 국가장학금 신청 안내")
+    written = _write(db, source, listed, _detail(listed, title=listed.title, body="장학금 신청"))
+    _notice_for(db, written, title=listed.title, body="장학금 신청")
+    db.commit()
+
+    def again():
+        _notice_for(db, written, title=listed.title, body="장학금 신청")
+        db.flush()
+
+    statements = _statements(engine, again)
+    assert _writes(statements, "notice_categories") == []
+    assert _writes(statements, "notice_audiences") == []
+
+
+def test_changed_classification_is_applied(db, source, engine):
+    """판정이 달라지면 대표 주제가 실제로 바뀐다. 대표는 여전히 하나뿐이다."""
+    listed = _listed(title="[장학] 국가장학금 신청 안내")
+    written = _write(db, source, listed, _detail(listed, title=listed.title, body="장학금 신청"))
+    _notice_for(db, written, title=listed.title, body="장학금 신청")
+    db.flush()
+    notice_id = ids.notice_id(written.item_id)
+
+    before = repo.notice_category_codes(db, [notice_id])[notice_id]
+    assert before[0] == "scholarship"
+
+    def change():
+        repo.replace_notice_categories(
+            db,
+            notice_id,
+            CategoryDecision(primary="recruit", secondary=("event",), rule_name="검사", rule_version="t/1"),
+        )
+        db.flush()
+
+    statements = _statements(engine, change)
+    assert _writes(statements, "notice_categories"), "바뀌었으면 써야 한다"
+    after = repo.notice_category_codes(db, [notice_id])[notice_id]
+    assert after == ("recruit", ("event",))
+    primaries = db.execute(
+        select(func.count(m.NoticeCategory.id)).where(
+            m.NoticeCategory.notice_id == notice_id, m.NoticeCategory.is_primary.is_(True)
+        )
+    ).scalar()
+    assert primaries == 1
+
+
+def test_category_role_swap_keeps_the_unique_rules(db, source, engine):
+    """대표와 보조가 자리를 맞바꿔도 유일 제약에 걸리지 않는다."""
+    listed = _listed(title="자리 맞바꿈")
+    written = _write(db, source, listed, _detail(listed))
+    _notice_for(db, written)
+    db.flush()
+    notice_id = ids.notice_id(written.item_id)
+
+    repo.replace_notice_categories(
+        db, notice_id,
+        CategoryDecision(primary="recruit", secondary=("event",), rule_name="검사", rule_version="t/1"),
+    )
+    db.flush()
+    repo.replace_notice_categories(
+        db, notice_id,
+        CategoryDecision(primary="event", secondary=("recruit",), rule_name="검사", rule_version="t/1"),
+    )
+    db.flush()
+
+    assert repo.notice_category_codes(db, [notice_id])[notice_id] == ("event", ("recruit",))
+    rows = db.execute(
+        select(m.NoticeCategory).where(m.NoticeCategory.notice_id == notice_id)
+    ).scalars().all()
+    assert len(rows) == 2
+    assert sum(1 for row in rows if row.is_primary) == 1
+
+
+def test_dedupe_window_picks_ids_first(db, source, engine):
+    """중복 후보는 식별자만 세워 고른다. 본문을 실은 채 정렬하지 않는다."""
+    for number in range(3):
+        listed = _listed(external_id=str(500 + number), title=f"중복 후보 {number}")
+        written = _write(db, source, listed, _detail(listed, body=f"본문 {number}" * 30))
+        _notice_for(db, written, title=listed.title, body=f"본문 {number}")
+    db.commit()
+
+    captured = []
+
+    def _capture(conn, cursor, statement, parameters, context, executemany):
+        captured.append(" ".join(statement.split()))
+
+    event.listen(engine, "before_cursor_execute", _capture)
+    try:
+        rows = repo.recent_items_for_dedupe(db, limit=2)
+    finally:
+        event.remove(engine, "before_cursor_execute", _capture)
+
+    assert len(rows) == 2
+    # 본문은 고른 뒤에 읽는다. 정렬(ORDER BY)이 붙은 문장에는 본문이 없어야 한다.
+    ordered = [sql for sql in captured if "ORDER BY" in sql and "observed_at" in sql]
+    assert ordered, "고르는 문장을 가로채지 못했다"
+    for sql in ordered:
+        assert "body_text" not in sql, sql
+        assert "body_html" not in sql, sql
+    # 돌려준 값은 예전과 같은 모양이다. 본문도, 바깥 조인으로 붙는 공지도 그대로다.
+    item, revision, notice = rows[0]
+    assert revision.body_text
+    assert revision.id == item.current_revision_id
+    assert notice is not None and notice.primary_source_item_id == item.id

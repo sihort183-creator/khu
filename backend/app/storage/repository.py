@@ -27,10 +27,45 @@ from app.storage import models as m
 # 목록에서 사라졌다고 바로 지우지 않는다. 이 횟수만큼 연속으로 사라져야 상태를 바꾼다(4절 9항).
 MISSING_STREAK_FOR_REMOVED = 3
 
+# "이번에도 봤다"는 사실만 다시 쓰지 않기 위한 기준 시간. 저장된 값이 이 시간 안이면
+# 손대지 않는다. 수집은 매시 17분에 돈다(.github/workflows/collect.yml)이므로 6시간이면
+# 원본 하나의 last_seen_at 은 하루 24번이 아니라 4번만 쓰인다.
+#
+# 근거. 2026-09-05 이후 누계로 ``UPDATE source_items SET last_seen_at=$1 WHERE id=$2``
+# 가 279,866회 불렸다. 대부분은 목록에 그대로 있는 글을 다시 본 것뿐이라 값이 달라지지
+# 않는다. 2026-09-13 실측에서 회차당 WAL 은 약 12MB 라 이 항목으로 줄어드는 양 자체는
+# 크지 않다. 그래도 쓰지 않아도 될 것을 쓰지 않는 편이 옳고, 0004 트리거를 헛되이
+# 깨우지도 않는다(docs/디스크IO_줄이기_2026-09-13.md).
+#
+# 안전성. last_seen_at 을 읽는 곳은 mark_items_missing 의 120일 창 하나뿐이다.
+# 목록에 계속 보이는 글은 최대 6시간 낡을 뿐이고, 사라진 글은 값이 멈춰 있어 6시간
+# 차이로 창을 드나들 일이 없다. 게다가 사라진 글은 연속 3회만에 removed 가 되어
+# 그 창에서 아예 빠진다(MISSING_STREAK_FOR_REMOVED).
+LAST_SEEN_REFRESH = timedelta(hours=6)
+
+# 내용이 그대로인 이력의 observed_at 기준. 이 값이 곧 중복 판정 대상 400건을 고르는
+# 순서(recent_items_for_dedupe 의 order_by)라서 last_seen_at 보다 짧게 잡는다.
+# 상세 재확인 간격은 아무리 짧아도 하루(detail_is_due 의 interval_days)이므로 1시간
+# 기준에 걸리는 경우는 사실상 실패 재시도가 겹칠 때뿐이고, 그때도 같은 글이 한 시간
+# 안에 두 번 관찰된 것이라 400건 선정 순서가 바뀌지 않는다. 기준을 하루 넘게 키우면
+# 쓰기는 줄지만 중복 판정 창의 구성이 달라진다. 그 대가는 측정 없이 치르지 않는다.
+REVISION_OBSERVED_REFRESH = timedelta(hours=1)
+
 # 연속 실패 시 다음 시도 간격(시간). 최대 24시간에서 멈춘다(7.4절).
 BACKOFF_HOURS = (1, 2, 4, 8, 24)
 
 SEARCH_TEXT_LIMIT = 4000
+
+
+def _is_fresh(stored: datetime | None, now: datetime, window: timedelta) -> bool:
+    """저장된 시각이 기준 시간 안이면 참. 이때는 같은 뜻의 값을 다시 쓰지 않는다.
+
+    시간대가 없는 값(sqlite)은 UTC 로 본다. 저장된 값이 미래면(시계 어긋남) 최근으로
+    친다. 어느 쪽이든 "지금 본 사실"을 잃지 않는다. 값이 기준보다 낡았을 때만 쓴다.
+    """
+    if stored is None:
+        return False
+    return now - _aware(stored) < window
 
 
 @dataclass
@@ -389,18 +424,25 @@ def preload_listing_items(session: Session, source_id: str, listings: list[Liste
 
 def ensure_item_stub(session: Session, *, source: m.Source, listed: ListedItem) -> m.SourceItem:
     """상세를 열지 못한 목록 항목도 재시도할 수 있게 최소 원본을 만든다."""
+    now = utcnow()
     item = item_for_listing(session, source.id, listed.external_id)
     if item is not None:
-        item.detail_listing = asdict(listed)
-        item.last_seen_at = utcnow()
-        item.is_pinned = bool(listed.is_pinned)
+        # 값이 같으면 대입하지 않는다. SQLAlchemy 도 같은 값 대입은 UPDATE 에 싣지
+        # 않지만(검사 test_repository.py 로 확인), 여기서 눈에 보이게 걸러 둔다.
+        listing = asdict(listed)
+        if item.detail_listing != listing:
+            item.detail_listing = listing
+        if not _is_fresh(item.last_seen_at, now, LAST_SEEN_REFRESH):
+            item.last_seen_at = now
+        if bool(item.is_pinned) != bool(listed.is_pinned):
+            item.is_pinned = bool(listed.is_pinned)
         return item
     item = m.SourceItem(
         id=ids.source_item_id(source.id, listed.external_id),
         source_id=source.id,
         external_id=listed.external_id,
         canonical_url=ids.canonical_url(listed.url),
-        last_seen_at=utcnow(),
+        last_seen_at=now,
         original_status="available",
         is_pinned=bool(listed.is_pinned),
         detail_listing=asdict(listed),
@@ -473,10 +515,17 @@ def touch_item_from_listing(
     item = item_for_listing(session, source_id, listed.external_id)
     if item is None:
         return False
-    item.last_seen_at = now
-    item.original_status = "available"
-    item.missing_streak = 0
-    item.is_pinned = bool(listed.is_pinned)
+    # 이 갈래는 상세를 열지 않은, 즉 아무것도 달라지지 않은 글이다. 회차마다 목록에
+    # 있는 모든 글이 여기를 지나므로 여기서 한 줄이라도 쓰면 그대로 회차당 수만 번의
+    # 쓰기가 된다. 실제로 달라지는 값만 대입한다.
+    if not _is_fresh(item.last_seen_at, now, LAST_SEEN_REFRESH):
+        item.last_seen_at = now
+    if item.original_status != "available":
+        item.original_status = "available"
+    if int(item.missing_streak or 0) != 0:
+        item.missing_streak = 0
+    if bool(item.is_pinned) != bool(listed.is_pinned):
+        item.is_pinned = bool(listed.is_pinned)
     _restore_notice_for_item(session, item.id)
     return True
 
@@ -532,14 +581,23 @@ def upsert_item_and_revision(
         session.add(item)
         session.flush()
 
+    # 이 갈래는 상세를 실제로 다시 받은 경우다. last_detail_checked_at 은 반드시
+    # 달라지므로 행은 어차피 한 번 쓰인다. 열을 하나 더 싣는 값은 들지 않으니
+    # last_seen_at 은 여기서 그대로 적어 둔다. 나머지는 같은 값이면 대입하지 않는다.
     item.last_seen_at = now
-    item.original_status = "available"
-    item.missing_streak = 0
-    item.is_pinned = bool(listed.is_pinned)
     item.last_detail_checked_at = now
-    item.detail_attempts = 0
-    item.next_detail_attempt_after = None
-    item.last_detail_error = None
+    if item.original_status != "available":
+        item.original_status = "available"
+    if int(item.missing_streak or 0) != 0:
+        item.missing_streak = 0
+    if bool(item.is_pinned) != bool(listed.is_pinned):
+        item.is_pinned = bool(listed.is_pinned)
+    if int(item.detail_attempts or 0) != 0:
+        item.detail_attempts = 0
+    if item.next_detail_attempt_after is not None:
+        item.next_detail_attempt_after = None
+    if item.last_detail_error is not None:
+        item.last_detail_error = None
 
     digest = make_content_hash(detail.title, detail.body_text, detail.attachments)
 
@@ -548,8 +606,12 @@ def upsert_item_and_revision(
     if (current is not None and current.content_hash == digest
             and current.published_date == published.date and current.published_at == published.at
             and current.published_raw == published.raw and current.board_category == detail.board_category):
-        current.observed_at = now
-        if raw_object_key:
+        # 내용이 그대로다. 관찰 시각만 올리자고 이력 행을 다시 쓰지 않는다. 다만 상세
+        # 재확인 간격이 하루 이상이라(detail_is_due) 기준 1시간에 걸리는 일은 드물다.
+        # 기준을 더 키우면 중복 판정 창(recent_items_for_dedupe)의 구성이 달라진다.
+        if not _is_fresh(current.observed_at, now, REVISION_OBSERVED_REFRESH):
+            current.observed_at = now
+        if raw_object_key and current.raw_object_key != raw_object_key:
             current.raw_object_key = raw_object_key
         _restore_notice_for_item(session, item.id)
         return ItemWriteResult(item.id, current.id, is_new_item, False, digest)
@@ -781,44 +843,93 @@ def _search_text(revision: m.SourceItemRevision) -> str:
     return joined[:SEARCH_TEXT_LIMIT]
 
 
-def _replace_categories(session: Session, notice_id: str, category: CategoryDecision) -> None:
-    session.query(m.NoticeCategory).filter(m.NoticeCategory.notice_id == notice_id).delete(
-        synchronize_session=False
-    )
-    session.add(
-        m.NoticeCategory(
-            id=ids._digest(notice_id, category.primary, "primary"),
-            notice_id=notice_id,
-            category_code=category.primary,
-            is_primary=True,
-            rule_name=category.rule_name,
-            rule_version=category.rule_version,
-            evidence_text=category.evidence,
-        )
-    )
+def _wanted_categories(notice_id: str, category: CategoryDecision) -> dict[str, dict]:
+    """판정 결과가 남겨야 할 주제 행. 열쇠는 주제 코드다(공지별로 유일하다)."""
+    wanted: dict[str, dict] = {
+        category.primary: {
+            "id": ids._digest(notice_id, category.primary, "primary"),
+            "is_primary": True,
+            "rule_name": category.rule_name,
+            "rule_version": category.rule_version,
+            "evidence_text": category.evidence,
+        }
+    }
     for code in category.secondary:
-        if code == category.primary:
+        if code == category.primary or code in wanted:
             continue
+        wanted[code] = {
+            "id": ids._digest(notice_id, code, "secondary"),
+            "is_primary": False,
+            "rule_name": category.rule_name,
+            "rule_version": category.rule_version,
+            "evidence_text": None,
+        }
+    return wanted
+
+
+def _replace_categories(session: Session, notice_id: str, category: CategoryDecision) -> None:
+    """공지 하나의 주제 행을 판정 결과에 맞춘다. **같으면 아무것도 쓰지 않는다.**
+
+    예전에는 공지마다 통째로 지우고 다시 넣었다. 대부분의 호출은 같은 결과를 다시
+    쓰는 것이라 그 삭제·삽입이 그대로 헛쓰기였다(2026-09-05 이후 누계로 DELETE
+    39,040회·INSERT 51,284회. 다만 그 누계에는 전체 재분류 같은 일회성 작업이 섞여
+    있어, 정상 운영에서 줄어드는 WAL 자체는 크지 않다).
+
+    더 큰 이유는 따로 있다. notice_categories 에는 0004 마이그레이션의 문단위 트리거가
+    걸려 있어 지우고 넣을 때마다 notices.updated_at 이 올라간다. 그 값이 증분 공개의
+    판정 기준이므로, 바뀌지도 않은 공지의 상세를 다시 만들고 다시 올리게 만든다.
+    여기서 막으면 헛쓰기와 헛된 재생성이 함께 줄어든다(docs/디스크IO_줄이기_2026-09-13.md).
+    """
+    wanted = _wanted_categories(notice_id, category)
+    existing = list(
+        session.scalars(select(m.NoticeCategory).where(m.NoticeCategory.notice_id == notice_id))
+    )
+    removed = False
+    for row in existing:
+        want = wanted.get(row.category_code)
+        if want is None or want["id"] != row.id:
+            # 대표<->보조가 바뀌면 식별자도 바뀐다. 그 행은 지우고 새로 넣는다.
+            session.delete(row)
+            removed = True
+            continue
+        del wanted[row.category_code]
+        for field, value in want.items():
+            if field != "id" and getattr(row, field) != value:
+                setattr(row, field, value)
+    if wanted and removed:
+        # (공지, 주제) 는 유일하고 대표 주제도 공지마다 하나뿐이다. 한 번의 flush 에서
+        # SQLAlchemy 는 INSERT 를 DELETE 보다 먼저 내보내므로, 먼저 지워 두지 않으면
+        # 그 두 제약에 걸린다.
+        session.flush()
+    for code, want in wanted.items():
         session.add(
-            m.NoticeCategory(
-                id=ids._digest(notice_id, code, "secondary"),
-                notice_id=notice_id,
-                category_code=code,
-                is_primary=False,
-                rule_name=category.rule_name,
-                rule_version=category.rule_version,
-            )
+            m.NoticeCategory(notice_id=notice_id, category_code=code, **want)
         )
 
 
 def _replace_audiences(session: Session, notice_id: str, audience: AudienceDecision) -> None:
-    session.query(m.NoticeAudience).filter(m.NoticeAudience.notice_id == notice_id).delete(
-        synchronize_session=False
-    )
-    for target in audience.targets:
+    """공지 하나의 대상 행을 판정 결과에 맞춘다. 주제와 같은 이유로 같으면 안 쓴다.
+
+    대상 행의 식별자는 대상 열쇠(type·campus_id·organization_id)로 만들어지고 그 셋이
+    곧 유일 제약이다. 그래서 식별자가 같으면 같은 대상이고, 달라질 수 있는 값은
+    rule_version 뿐이다. 주제와 달리 지움과 넣음이 같은 행을 다투지 않는다.
+    """
+    wanted = {
+        ids._digest(notice_id, target.key()): target for target in audience.targets
+    }
+    for row in session.scalars(
+        select(m.NoticeAudience).where(m.NoticeAudience.notice_id == notice_id)
+    ):
+        if row.id not in wanted:
+            session.delete(row)
+            continue
+        del wanted[row.id]
+        if row.rule_version != audience.rule_version:
+            row.rule_version = audience.rule_version
+    for row_id, target in wanted.items():
         session.add(
             m.NoticeAudience(
-                id=ids._digest(notice_id, target.key()),
+                id=row_id,
                 notice_id=notice_id,
                 audience_type=target.type,
                 campus_id=target.id if target.type == "campus" else None,
@@ -909,7 +1020,30 @@ def record_dedupe_decision(
 def recent_items_for_dedupe(
     session: Session, *, since: date | None = None, limit: int = 400
 ) -> list[tuple[m.SourceItem, m.SourceItemRevision, m.Notice | None]]:
-    """중복 후보 비교 대상. 최근 항목만 본다."""
+    """중복 후보 비교 대상. 최근 항목만 본다.
+
+    **두 걸음으로 나눠 읽는다.** 예전에는 한 문장으로 원본·이력·공지를 통째로 조인해
+    observed_at 으로 세운 뒤 앞에서 400건만 잘랐다. 2026-09-13 운영 EXPLAIN 으로 그
+    계획을 떴더니 ``Sort (rows=15094 width=3294)`` 였다. 즉 정렬 노드를 지나는 양이
+    약 50MB 인데 운영의 work_mem 은 2,184kB 뿐이라 회차마다 디스크로 넘어간다. 폭이
+    3,294바이트인 이유는 이력의 본문 두 칸과 공지의 search_text 까지 함께 실려서다.
+
+    그래서 먼저 **식별자만** 세워 400건을 고르고(폭 100바이트 남짓, 메모리에 들어간다),
+    그 다음에 고른 것만 기본 열쇠로 읽는다. 고르는 기준도, 돌려주는 값도 같다.
+    """
+    picker = (
+        select(m.SourceItem.id, m.SourceItemRevision.observed_at)
+        .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+        .where(m.SourceItem.original_status == "available")
+        .order_by(m.SourceItemRevision.observed_at.desc())
+        .limit(limit)
+    )
+    if since is not None:
+        picker = picker.where(m.SourceItemRevision.published_date >= since)
+    picked = [item_id for item_id, _ in session.execute(picker)]
+    if not picked:
+        return []
+
     stmt = (
         select(m.SourceItem, m.SourceItemRevision, m.Notice)
         .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
@@ -918,13 +1052,11 @@ def recent_items_for_dedupe(
             (m.NoticeSource.source_item_id == m.SourceItem.id) & m.NoticeSource.is_active.is_(True),
         )
         .outerjoin(m.Notice, m.Notice.id == m.NoticeSource.notice_id)
-        .where(m.SourceItem.original_status == "available")
-        .order_by(m.SourceItemRevision.observed_at.desc())
-        .limit(limit)
+        .where(m.SourceItem.id.in_(picked))
     )
-    if since is not None:
-        stmt = stmt.where(m.SourceItemRevision.published_date >= since)
-    return list(session.execute(stmt).all())
+    rows = {item.id: (item, revision, notice) for item, revision, notice in session.execute(stmt)}
+    # 고른 차례(최근 관찰 순)를 그대로 지킨다. 짝을 만드는 순서가 달라지지 않는다.
+    return [rows[item_id] for item_id in picked if item_id in rows]
 
 
 def all_source_audiences(session: Session) -> dict[str, tuple[AudienceTarget, ...]]:
