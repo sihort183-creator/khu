@@ -46,6 +46,7 @@ from app.storage.db import (
     WriteStats,
     assert_schema_ready,
     enable_read_meter,
+    in_chunks,
     read_stats,
     session_scope,
     write_stats,
@@ -929,7 +930,13 @@ def run_category_backfill(
     for rows in repo.iter_notices_for_category_recompute(session, chunk=chunk):
         current = repo.notice_category_codes(session, [row[0] for row in rows])
         notices = (
-            {n.id: n for n in session.execute(select(m.Notice).where(m.Notice.id.in_([r[0] for r in rows]))).scalars()}
+            # `IN` 목록은 덩어리로 끊어 보낸다. 마지막 덩어리의 길이가 회차마다 달라지면
+            # pg_stat_statements 에 항목이 하나씩 쌓인다(app/storage/db.py 의 in_chunks).
+            {
+                n.id: n
+                for chunk in in_chunks([r[0] for r in rows])
+                for n in session.execute(select(m.Notice).where(m.Notice.id.in_(chunk))).scalars()
+            }
             if apply
             else {}
         )

@@ -23,6 +23,7 @@ from app.domain.dedupe import content_hash as make_content_hash
 from app.ingestion.base import FetchedDetail, ListedItem
 from app.ingestion.sanitize import make_excerpt
 from app.storage import models as m
+from app.storage.db import in_chunks
 
 # 목록에서 사라졌다고 바로 지우지 않는다. 이 횟수만큼 연속으로 사라져야 상태를 바꾼다(4절 9항).
 MISSING_STREAK_FOR_REMOVED = 3
@@ -155,15 +156,20 @@ def _source_audiences(session: Session, source_id: str) -> tuple[AudienceTarget,
 
 
 def _source_audiences_many(session: Session, source_ids: list[str]) -> dict[str, tuple[AudienceTarget, ...]]:
-    if not source_ids:
-        return {}
-    rows = session.execute(
-        select(m.SourceAudience, m.Campus.name, m.Organization.name)
-        .outerjoin(m.Campus, m.Campus.id == m.SourceAudience.campus_id)
-        .outerjoin(m.Organization, m.Organization.id == m.SourceAudience.organization_id)
-        .where(m.SourceAudience.source_id.in_(source_ids))
-    ).all()
+    # all_source_audiences 는 출처를 전부 넘긴다(2026-09-09 명부 기준 게시판 2,222개).
+    # 그 길이를 그대로 `IN` 에 실으면 문장 하나가 수십 KB 이고, 출처가 하나 늘거나
+    # 멈출 때마다 pg_stat_statements 에 새 항목이 생긴다. 덩어리로 끊어 보낸다.
     grouped: dict[str, list[AudienceTarget]] = {}
+    rows = [
+        row
+        for chunk in in_chunks(source_ids)
+        for row in session.execute(
+            select(m.SourceAudience, m.Campus.name, m.Organization.name)
+            .outerjoin(m.Campus, m.Campus.id == m.SourceAudience.campus_id)
+            .outerjoin(m.Organization, m.Organization.id == m.SourceAudience.organization_id)
+            .where(m.SourceAudience.source_id.in_(chunk))
+        ).all()
+    ]
     for row, campus_name, org_name in rows:
         out = grouped.setdefault(row.source_id, [])
         if row.audience_type == "university":
@@ -1044,17 +1050,23 @@ def recent_items_for_dedupe(
     if not picked:
         return []
 
-    stmt = (
-        select(m.SourceItem, m.SourceItemRevision, m.Notice)
-        .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
-        .outerjoin(
-            m.NoticeSource,
-            (m.NoticeSource.source_item_id == m.SourceItem.id) & m.NoticeSource.is_active.is_(True),
+    rows = {
+        item.id: (item, revision, notice)
+        for chunk in in_chunks(picked)
+        for item, revision, notice in session.execute(
+            select(m.SourceItem, m.SourceItemRevision, m.Notice)
+            .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .outerjoin(
+                m.NoticeSource,
+                (m.NoticeSource.source_item_id == m.SourceItem.id)
+                & m.NoticeSource.is_active.is_(True),
+            )
+            .outerjoin(m.Notice, m.Notice.id == m.NoticeSource.notice_id)
+            # 고른 건수(기본 300~400)만큼 길이가 회차마다 달라지면 그때마다
+            # pg_stat_statements 항목이 하나씩 늘어난다. 덩어리로 끊어 길이를 고정한다.
+            .where(m.SourceItem.id.in_(chunk))
         )
-        .outerjoin(m.Notice, m.Notice.id == m.NoticeSource.notice_id)
-        .where(m.SourceItem.id.in_(picked))
-    )
-    rows = {item.id: (item, revision, notice) for item, revision, notice in session.execute(stmt)}
+    }
     # 고른 차례(최근 관찰 순)를 그대로 지킨다. 짝을 만드는 순서가 달라지지 않는다.
     return [rows[item_id] for item_id in picked if item_id in rows]
 
@@ -1072,16 +1084,20 @@ def replace_notice_audiences(session: Session, notice_id: str, audience: Audienc
 
 def notice_audience_keys(session: Session, notice_ids: list[str]) -> dict[str, set[str]]:
     """지금 저장된 대상을 AudienceTarget.key() 와 같은 표기로 읽는다."""
-    if not notice_ids:
-        return {}
-    rows = session.execute(
-        select(
-            m.NoticeAudience.notice_id,
-            m.NoticeAudience.audience_type,
-            m.NoticeAudience.campus_id,
-            m.NoticeAudience.organization_id,
-        ).where(m.NoticeAudience.notice_id.in_(notice_ids))
-    ).all()
+    # 부르는 쪽이 1,000건씩 넘기지만 마지막 덩어리는 길이가 다르다. 그대로 두면
+    # 되돌리기·재분류를 돌릴 때마다 pg_stat_statements 에 항목이 하나씩 는다.
+    rows = [
+        row
+        for chunk in in_chunks(notice_ids)
+        for row in session.execute(
+            select(
+                m.NoticeAudience.notice_id,
+                m.NoticeAudience.audience_type,
+                m.NoticeAudience.campus_id,
+                m.NoticeAudience.organization_id,
+            ).where(m.NoticeAudience.notice_id.in_(chunk))
+        ).all()
+    ]
     out: dict[str, set[str]] = {}
     for notice_id, audience_type, campus_id, organization_id in rows:
         if audience_type == "university":
@@ -1173,12 +1189,18 @@ def notice_category_codes(
     session: Session, notice_ids: list[str]
 ) -> dict[str, tuple[str, tuple[str, ...]]]:
     """지금 저장된 (대표 주제, 보조 주제들) 을 공지별로 읽는다. 보조는 코드순."""
-    if not notice_ids:
-        return {}
-    rows = session.execute(
-        select(m.NoticeCategory.notice_id, m.NoticeCategory.category_code, m.NoticeCategory.is_primary)
-        .where(m.NoticeCategory.notice_id.in_(notice_ids))
-    ).all()
+    # notice_audience_keys 와 같은 이유로 덩어리로 끊는다.
+    rows = [
+        row
+        for chunk in in_chunks(notice_ids)
+        for row in session.execute(
+            select(
+                m.NoticeCategory.notice_id,
+                m.NoticeCategory.category_code,
+                m.NoticeCategory.is_primary,
+            ).where(m.NoticeCategory.notice_id.in_(chunk))
+        ).all()
+    ]
     primary: dict[str, str] = {}
     secondary: dict[str, list[str]] = {}
     for notice_id, code, is_primary in rows:
@@ -1236,21 +1258,30 @@ def iter_item_bodies_for_dedupe(session: Session, *, chunk: int = 1000):
 def items_for_dedupe(
     session: Session, item_ids: list[str]
 ) -> list[tuple[m.SourceItem, m.SourceItemRevision, m.Notice | None]]:
-    """식별자로 지목한 원본만 비교 대상 모양으로 읽는다."""
-    if not item_ids:
-        return []
-    stmt = (
-        select(m.SourceItem, m.SourceItemRevision, m.Notice)
-        .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
-        .outerjoin(
-            m.NoticeSource,
-            (m.NoticeSource.source_item_id == m.SourceItem.id) & m.NoticeSource.is_active.is_(True),
-        )
-        .outerjoin(m.Notice, m.Notice.id == m.NoticeSource.notice_id)
-        .where(m.SourceItem.id.in_(item_ids))
-        .order_by(m.SourceItem.id)
-    )
-    return list(session.execute(stmt).all())
+    """식별자로 지목한 원본만 비교 대상 모양으로 읽는다.
+
+    중복 판정 묶음은 2개부터 400개(max_block)까지 크기가 제각각이고 묶음마다 한 번씩
+    불린다. 길이를 그대로 실으면 한 번 돌 때마다 pg_stat_statements 에 항목이 수백 개
+    생긴다. 덩어리로 끊어 길이를 몇 가지로 모은다. 끊어 읽은 뒤 식별자로 다시 세우므로
+    돌려주는 차례는 한 번에 읽을 때와 같다.
+    """
+    rows = [
+        row
+        for chunk in in_chunks(item_ids)
+        for row in session.execute(
+            select(m.SourceItem, m.SourceItemRevision, m.Notice)
+            .join(m.SourceItemRevision, m.SourceItemRevision.id == m.SourceItem.current_revision_id)
+            .outerjoin(
+                m.NoticeSource,
+                (m.NoticeSource.source_item_id == m.SourceItem.id)
+                & m.NoticeSource.is_active.is_(True),
+            )
+            .outerjoin(m.Notice, m.Notice.id == m.NoticeSource.notice_id)
+            .where(m.SourceItem.id.in_(chunk))
+        ).all()
+    ]
+    rows.sort(key=lambda row: row[0].id)
+    return rows
 
 
 def _aware(value: datetime) -> datetime:
