@@ -221,7 +221,7 @@ export interface FeedPreviewBody {
   campus_id: string | null;
   organization_ids: string[];
   subscribed_source_ids: string[];
-  filters?: Pick<NoticeQuery, "category_code" | "q" | "medium">;
+  filters?: Pick<NoticeQuery, "category_code" | "q" | "medium" | "sort">;
   cursor?: string | null;
   limit?: number;
 }

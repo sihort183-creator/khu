@@ -8,11 +8,21 @@ import { MediumIcon } from "./icons";
 import { Ad } from "./Ad";
 import { Box } from "./Shell";
 
+export type NoticeSort = "relevance" | "recent";
+
 interface Props {
   notices: Notice[];
   label: string;
   /** 라벨 옆에 붙는 짧은 한 줄. 지금은 검색이 캠퍼스 설정을 넘었다는 것만 알린다. */
   note?: string;
+  /**
+   * 지금 고른 차례. `onSort` 와 **둘 다** 주어야 고르는 단추가 나온다.
+   *
+   * 검색어가 없을 때는 주지 않는다. 연관도는 검색어가 있어야 뜻이 있는 값이라,
+   * 고를 수 없는 단추를 흐리게 남겨 두는 것보다 '최신순' 글자 하나만 두는 편이 낫다.
+   */
+  sort?: NoticeSort;
+  onSort?: (sort: NoticeSort) => void;
   loading?: boolean;
   error?: string | null;
   hasNext?: boolean;
@@ -21,7 +31,7 @@ interface Props {
   adAfter?: number;
 }
 
-export function NoticeList({ notices, label, note, loading, error, hasNext, onMore, onRetry, adAfter = 4 }: Props) {
+export function NoticeList({ notices, label, note, sort, onSort, loading, error, hasNext, onMore, onRetry, adAfter = 4 }: Props) {
   return (
     <Box>
       <div className="flex bg-cream px-4 py-2.5 text-xs text-gray">
@@ -31,8 +41,15 @@ export function NoticeList({ notices, label, note, loading, error, hasNext, onMo
           {/* 한 덩어리로 줄을 넘긴다. 좁은 화면에서 문구 끝만 다음 줄로 떨어지지 않게. */}
           {note && !error && <span className="ml-1.5 whitespace-nowrap">· {note}</span>}
         </span>
-        <span className="ml-auto flex gap-2.5">
-          <b className="font-medium text-ink">최신순</b>
+        <span className="ml-auto flex shrink-0 gap-2.5">
+          {sort && onSort ? (
+            <>
+              <SortButton active={sort === "relevance"} onClick={() => onSort("relevance")}>연관도순</SortButton>
+              <SortButton active={sort === "recent"} onClick={() => onSort("recent")}>최신순</SortButton>
+            </>
+          ) : (
+            <b className="font-medium text-ink">최신순</b>
+          )}
         </span>
       </div>
 
@@ -79,6 +96,20 @@ export function NoticeList({ notices, label, note, loading, error, hasNext, onMo
         </button>
       )}
     </Box>
+  );
+}
+
+/** 고른 쪽이 진하다. 머리글 줄 안에 사는 글자라 테두리나 칸을 두르지 않는다. */
+function SortButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={active ? "font-medium text-ink" : "text-gray hover:text-ink-2"}
+    >
+      {children}
+    </button>
   );
 }
 

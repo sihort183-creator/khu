@@ -18,7 +18,7 @@ import { useNoticeFeed } from "@/lib/useNoticeFeed";
 import { useCategorySelection } from "@/lib/useCategorySelection";
 import { Shell } from "@/components/Shell";
 import { CategoryChips } from "@/components/CategoryChips";
-import { NoticeList } from "@/components/NoticeList";
+import { NoticeList, type NoticeSort } from "@/components/NoticeList";
 import { organizationScopeLabel } from "@/components/OrganizationPicker";
 import { IconChevron, IconSearch } from "@/components/icons";
 
@@ -45,6 +45,15 @@ function AllFeed() {
   // 시작하기 전 화면으로 한 번에 간다.
   const q = (params.get("q") ?? "").trim().slice(0, 100);
   const qRef = useRef<HTMLInputElement>(null);
+  /**
+   * 정렬도 검색어와 같이 주소에만 산다. 상태로도 들고 있으면 뒤로 가기로 주소가 돌아왔는데
+   * 목록만 그대로인 어긋남이 생긴다.
+   *
+   * 검색어가 있을 때의 기본은 연관도순이라 주소에는 **최신순일 때만** 적는다. 기본값을
+   * 굳이 적어 두면 주소가 길어지기만 하고 뜻이 늘지 않는다. 검색어가 없으면 연관도 자체가
+   * 뜻이 없으므로 값을 읽지 않는다 — 그때는 단추도 나오지 않는다.
+   */
+  const sort: NoticeSort = q && params.get("sort") !== "recent" ? "relevance" : "recent";
 
   // 검색 상자는 늘 보인다(2026-09-08 사용자 결정: 헤더 돋보기를 빼고 상자는 그대로).
   // ?focus=q 는 옛 링크 호환으로 초점만 준다.
@@ -57,15 +66,29 @@ function AllFeed() {
    * 검색어를 주소에 적는다. 기록을 쌓지 않도록 replaceState 만 쓴다(Next 가 이 호출을
    * useSearchParams 와 이어 주므로 위 q 도 함께 바뀐다).
    */
-  const search = (next: string) => {
+  const replaceParams = (edit: (sp: URLSearchParams) => void) => {
     const sp = new URLSearchParams(window.location.search);
-    if (next) sp.set("q", next);
-    else sp.delete("q");
+    edit(sp);
     // 돋보기가 붙인 한 번짜리 표시다. 검색이 끝났으면 남길 이유가 없다.
     sp.delete("focus");
     const s = sp.toString();
     window.history.replaceState(null, "", s ? `?${s}` : window.location.pathname);
   };
+
+  const search = (next: string) => replaceParams((sp) => {
+    if (next) sp.set("q", next);
+    // 검색어를 지우면 정렬도 함께 지운다. 연관도순은 검색어가 있어야 뜻이 있는 값이라,
+    // 남겨 두면 주소에는 sort=recent 가 있는데 화면에는 고른 자국이 없는 꼴이 된다.
+    else {
+      sp.delete("q");
+      sp.delete("sort");
+    }
+  });
+
+  const chooseSort = (next: NoticeSort) => replaceParams((sp) => {
+    if (next === "recent") sp.set("sort", "recent");
+    else sp.delete("sort");
+  });
 
   const feed = useNoticeFeed({
     kind: "list",
@@ -76,7 +99,7 @@ function AllFeed() {
       category_code: cats.codes,
       medium: medium ? [medium] : [],
       q: q || undefined,
-      sort: q ? "relevance" : "recent",
+      sort,
     },
   });
 
@@ -132,7 +155,19 @@ function AllFeed() {
       </div>
 
       {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.choose} />}
-      <NoticeList notices={feed.items} label={label} note={note} loading={feed.loading} error={feed.error} hasNext={feed.hasNext} onMore={feed.more} onRetry={feed.retry} />
+      {/* 정렬 단추는 검색어가 있을 때만 준다. 연관도는 검색어가 있어야 뜻이 있는 값이다. */}
+      <NoticeList
+        notices={feed.items}
+        label={label}
+        note={note}
+        sort={q ? sort : undefined}
+        onSort={q ? chooseSort : undefined}
+        loading={feed.loading}
+        error={feed.error}
+        hasNext={feed.hasNext}
+        onMore={feed.more}
+        onRetry={feed.retry}
+      />
     </Shell>
   );
 }

@@ -421,77 +421,329 @@ export function audiencesInOrganizationScope(audiences: string[], scope: Organiz
 }
 
 /**
- * 조회 한 번이 쓰는 검색 한 벌.
+ * 검색어와 공지 글자를 맞춰 볼 수 있는 꼴로 고친다.
  *
- * `words` 는 검색어를 낱말로 쪼갠 것, `text` 는 항목 하나가 검색에 내보이는 글자다.
- * 둘 다 조회마다 한 번씩만 만든다. 예전에는 색인 항목 24,000줄마다 검색어를 다시 쪼개고
- * 제목을 다시 소문자로 바꿨다 — 글자 하나 칠 때마다 그 일을 24,000번 했다는 뜻이다.
+ * NFKC → 소문자 → 숫자·영문·한글이 **아닌** 것은 전부 공백 → 공백 정리.
+ * "지울 구두점을 늘어놓는" 대신 "남길 글자만 정하는" 방식이라 빠뜨릴 구두점이 없다.
+ * 공지 제목에는 가운뎃점만 해도 `･`(U+FF65) `·` `∙` `・` 네 가지가 섞여 있고 대괄호·물결·
+ * 하이픈도 제각각이다. 이 한 줄이 그 문제를 통째로 없앤다.
  */
-type NoticeSearch = { words: string[]; text: (entry: StaticIndexEntry) => string };
+export function normalizeForSearch(value: string): string {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^0-9a-z가-힣]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 /**
- * 항목별 검색 글자는 개정마다 한 번만 만들어 그 개정 내내 다시 쓴다.
+ * 정규화한 뒤 공백까지 없앤 붙여쓰기 판.
  *
- * 색인은 개정 경로(`/v1/r/<개정>/…`)에 있어 불변이고 조직 이름도 같은 개정 안에서는
- * 바뀌지 않는다. 그래서 한 번 만든 글자는 그 개정에서 계속 옳다. 개정이 바뀌면 통째로
- * 버린다 — sharedFiles·indexCache 와 같은 규칙이다.
+ * `학석사연계` 로 쳐도 `학･석사연계` 가 잡히는 자리다. 낱말 경계를 잃으므로 정규화 판보다
+ * 헐거운 짝(`이전 과정` → `이전과정` 안의 `전과`)도 통과한다. 그래서 점수를 매길 때는
+ * 정규화 판에서 맞은 것을 위로 올리고 붙여쓰기 판에서만 맞은 것은 깎는다(COMPACT_ONLY).
  */
-let searchTextCache: { revision: string; texts: Map<string, string> } | null = null;
+export function compactForSearch(value: string): string {
+  return normalizeForSearch(value).replace(/\s+/g, "");
+}
+
+/** 검색이 들여다보는 밭 하나. 정규화 판과 붙여쓰기 판을 함께 든다. */
+type SearchField = { text: string; compact: string };
+
+const EMPTY_FIELD: SearchField = { text: "", compact: "" };
+
+const searchField = (value: string): SearchField => {
+  const text = normalizeForSearch(value);
+  return { text, compact: text.replace(/\s+/g, "") };
+};
 
 /**
- * 검색어가 볼 글자를 만든다: 제목 + **그 공지에 붙은 조직 자기 이름**.
+ * 밭 여러 개를 한 밭으로 잇는다(조직이 둘 이상 붙은 공지).
  *
- * 색인 한 줄에는 조직 이름이 없다. 이름 자리(`o`)는 운영 색인 24,324건 전부 비어 있고,
- * 대신 대상(`a`)에 `org:<id>` 로 조직 식별자가 들어 있다. 이름은 화면이 어차피 받는
- * organizations.json 에 있으므로 여기서 이어 붙인다. 색인을 다시 만들 필요가 없다.
- * '스페인어학과' 로 그 학과 공지를 찾을 수 있게 되는 자리다 — 제목에 학과 이름이 든
- * 공지는 7건뿐이지만 그 학과에 붙은 공지는 198건이다(2026-09-14 실측).
- *
- * 상위 경로(경희대학교·서울캠퍼스·외국어대학 …)는 **넣지 않는다**. 조직마다 path 가
- * 함께 오지만 그것까지 합치면 거의 모든 공지가 '경희대학교' 하나로 걸려 검색이
- * 사실상 꺼진다. 조직 자기 이름(name)만 본다.
- *
- * 본문은 색인에 없다. 그래서 본문은 여기서도 찾을 수 없고, 검색 상자 안내 문구도
- * 그 사실에 맞춰 두었다(src/app/page.tsx).
+ * 붙여쓰기 판은 공백으로 끊는다. 그냥 이으면 서로 다른 조직 이름의 끝과 시작이
+ * 붙어 없던 낱말이 생긴다. 한 이름 **안**에서 붙는 것은 노린 것이고(학･석사 → 학석사),
+ * 이름 **사이**가 붙는 것은 아니다.
  */
-function noticeSearchText(entry: StaticIndexEntry, organizationNames: Map<string, string>): string {
-  let text = entry.t.toLowerCase();
+const mergeFields = (fields: SearchField[]): SearchField => ({
+  text: fields.map((field) => field.text).join(" "),
+  compact: fields.map((field) => field.compact).join(" "),
+});
+
+/**
+ * 공지 하나가 검색에 내보이는 밭들.
+ *
+ * 색인에 본문은 없다. 제목 말고는 전부 **식별자**로만 들어 있어(조직은 대상 `a` 의
+ * `org:<id>`, 분류는 `c`, 출처는 `s`) 이름은 화면이 어차피 받는 사전에서 이어 붙인다.
+ * 그래서 색인 파일은 조금도 커지지 않는다.
+ */
+type NoticeSearchFields = {
+  title: SearchField;
+  organization: SearchField;
+  category: SearchField;
+  source: SearchField;
+  alias: SearchField;
+  /**
+   * 밭 다섯을 붙여쓰기 판으로 이어 놓은 것. **거르기 전용**이다.
+   *
+   * 낱말이 다섯 밭 어디에도 없으면 밭을 하나씩 들여다볼 이유가 없다. 여기서 한 번만
+   * 보고 없으면 곧바로 넘어간다. 낱말에는 공백이 없고 붙여쓰기 판은 정규화 판을
+   * 포함하므로, 여기 없는 낱말이 어느 밭에 있을 수는 없다(놓치는 짝이 생기지 않는다).
+   * 아래 fieldScore 의 한 번 훑기와 함께, 낱말 일곱 개짜리 검색을 87.5ms → 46.3ms 로
+   * 줄인 자리다(24,330건 실측).
+   */
+  blob: string;
+};
+
+const noticeSearchFields = (
+  title: SearchField,
+  organization: SearchField,
+  category: SearchField,
+  source: SearchField,
+  alias: SearchField,
+): NoticeSearchFields => ({
+  title,
+  organization,
+  category,
+  source,
+  alias,
+  // 공백으로 잇는다. 낱말에는 공백이 없으므로 밭과 밭 사이에 없던 낱말이 생기지 않는다.
+  blob: `${title.compact} ${organization.compact} ${category.compact} ${source.compact} ${alias.compact}`,
+});
+
+/**
+ * 밭마다의 무게. 앞이 검색어를 통째로 맞혔을 때, 뒤가 낱말 하나를 맞혔을 때다.
+ *
+ * - **별칭**이 가장 높다. 사람이 손으로 이어 준 짝이라 우연히 겹친 낱말보다 믿을 만하다.
+ * - **제목**이 그다음이다. 그 공지가 실제로 무엇에 대한 글인지 말해 주는 유일한 밭이다.
+ * - **조직**은 셋째다. 스페인어학과에 붙은 공지는 정말 그 학과 일이지만, 그 학과 공지
+ *   198건이 전부 같은 점수를 받으므로 제목만큼 가려내지는 못한다.
+ * - **분류**는 넷째다. 열한 갈래뿐이라 수천 건이 한꺼번에 걸리지만, `취업·인턴` 처럼
+ *   화면에 적힌 말을 그대로 친 것은 우연이 아니라 뜻이 있는 검색이다.
+ * - **출처**가 가장 낮다. 게시판 이름은 대개 `<조직 이름> + 공지사항·장학·취업정보` 라
+ *   조직 밭과 겹친다. 새로 알려 주는 것이 가장 적어서 가장 낮다.
+ *
+ * 값 자체보다 사이 간격이 뜻을 가진다. 제목 하나 맞은 것(100)이 조직+분류+출처가 모두
+ * 맞은 것(55+40+25=120)보다 낮지 않도록 조직·분류·출처의 합을 제목 근처에 두었다.
+ */
+const SEARCH_WEIGHTS = {
+  alias: { phrase: 200, token: 120 },
+  title: { phrase: 120, token: 100 },
+  organization: { phrase: 60, token: 55 },
+  category: { phrase: 45, token: 40 },
+  source: { phrase: 30, token: 25 },
+} as const;
+
+/** 정규화 판에서는 못 맞고 붙여쓰기 판에서만 맞았을 때 남기는 비율. */
+const COMPACT_ONLY = 0.6;
+
+/**
+ * 낱말을 **전부** 맞힌 공지에 낱말 수만큼 얹는 값.
+ *
+ * 이번 수정의 고갱이다. 예전에는 "낱말이 전부 있어야 한다"가 **규칙**이어서 하나라도
+ * 빗나가면 0건이었다("스페인어학과 전과" 가 그랬다). 이제는 **보너스**다. 하나만 맞아도
+ * 나오되, 전부 맞은 것이 반드시 위로 온다.
+ */
+const ALL_TOKENS_BONUS = 25;
+
+/** 점수를 매기는 차례. 조회마다 배열을 새로 만들지 않으려고 밖에 둔다. */
+const SEARCH_FIELDS: readonly (readonly [(fields: NoticeSearchFields) => SearchField, { phrase: number; token: number }])[] = [
+  [(fields) => fields.alias, SEARCH_WEIGHTS.alias],
+  [(fields) => fields.title, SEARCH_WEIGHTS.title],
+  [(fields) => fields.organization, SEARCH_WEIGHTS.organization],
+  [(fields) => fields.category, SEARCH_WEIGHTS.category],
+  [(fields) => fields.source, SEARCH_WEIGHTS.source],
+];
+
+/**
+ * 검색 별칭 — **지금은 비어 있다. 사람이 채운다.**
+ *
+ * `match` 는 공지 쪽에 실제로 적혀 있는 글자(제목·조직·분류·출처 어디에 있어도 된다),
+ * `names` 는 학생이 그 대신 칠 법한 말이다. 예를 들어
+ *
+ * ```ts
+ * { match: "식단", names: ["학식", "메뉴표"] },
+ * ```
+ *
+ * 을 넣으면 `학식` 으로 찾아도 제목에 `식단` 이 든 공지가 나온다. 글자는 원문 그대로
+ * 적으면 된다 — 여기서 normalizeForSearch 를 거치므로 가운뎃점·괄호를 신경 쓸 필요가 없다.
+ * 별칭 밭은 무게가 가장 높아(SEARCH_WEIGHTS.alias) 맞은 공지가 맨 위로 온다.
+ *
+ * 목록이 비어 있는 동안에는 buildAliasField 가 곧바로 빈 밭을 주므로 비용이 0이다.
+ */
+const SEARCH_ALIASES: readonly { match: string; names: readonly string[] }[] = [];
+
+let aliasRules: { match: string; field: SearchField }[] | null = null;
+
+function buildAliasField(fields: SearchField[]): SearchField {
+  if (SEARCH_ALIASES.length === 0) return EMPTY_FIELD;
+  aliasRules ??= SEARCH_ALIASES.map((rule) => ({
+    match: compactForSearch(rule.match),
+    field: searchField(rule.names.join(" ")),
+  }));
+  const hit = aliasRules.filter((rule) => rule.match && fields.some((field) => field.compact.includes(rule.match)));
+  if (hit.length === 0) return EMPTY_FIELD;
+  return hit.length === 1 ? hit[0].field : mergeFields(hit.map((rule) => rule.field));
+}
+
+/**
+ * 이름 사전. 조직 485곳·분류 11갈래·게시판 514개뿐이라 **항목마다가 아니라 한 번만** 고친다.
+ *
+ * 이것이 성능의 핵심이다. 공지 24,330건마다 조직·분류·출처 이름을 정규화하면 첫 조회가
+ * 몇백 밀리초씩 걸린다. 사전에서 만든 밭은 그대로 **함께 가리킨다** — 같은 학과 공지
+ * 198건이 같은 글자 한 벌을 나눠 쓰므로 메모리도 함께 줄어든다. 항목마다 새로 만드는 것은
+ * 제목뿐이다.
+ */
+type SearchDictionaries = {
+  organizations: Map<string, SearchField>;
+  categories: Map<string, SearchField>;
+  sources: Map<string, SearchField>;
+};
+
+function buildNoticeSearchFields(entry: StaticIndexEntry, dictionaries: SearchDictionaries): NoticeSearchFields {
+  const organizations: SearchField[] = [];
   for (const audience of entry.a) {
     if (!audience.startsWith("org:")) continue;
-    const name = organizationNames.get(audience.slice(4));
-    if (name) text += ` ${name}`;
+    const field = dictionaries.organizations.get(audience.slice(4));
+    if (field) organizations.push(field);
   }
-  return text;
+  const title = searchField(entry.t);
+  const organization = organizations.length === 0
+    ? EMPTY_FIELD
+    : organizations.length === 1 ? organizations[0] : mergeFields(organizations);
+  const category = dictionaries.categories.get(entry.c) ?? EMPTY_FIELD;
+  const source = dictionaries.sources.get(entry.s) ?? EMPTY_FIELD;
+  return noticeSearchFields(title, organization, category, source, buildAliasField([title, organization, category, source]));
 }
+
+/**
+ * 밭 하나에서 얻는 점수.
+ *
+ * 정규화 판에서 맞으면 제값, 붙여쓰기 판에서만 맞으면 깎아서 준다. 낱말에는 공백이 없으므로
+ * "정규화 판에서 맞았다"면 붙여쓰기 판에서도 반드시 맞는다 — 그래서 두 번 세지 않고
+ * 센 쪽만 고른다.
+ */
+function fieldScore(field: SearchField, text: string, compact: string, weight: number): number {
+  // 헐거운 쪽(붙여쓰기 판)을 먼저 본다. 여기서 안 걸리면 정규화 판에도 없다 — 못 맞은
+  // 밭에 훑기를 두 번 하지 않으려는 것이다. 걸린 뒤에야 제값인지 깎을지 가른다.
+  if (!field.compact.includes(compact)) return 0;
+  return field.text.includes(text) ? weight : Math.round(weight * COMPACT_ONLY);
+}
+
+/** 조회 한 번이 쓰는 검색어 한 벌. 낱말은 정규화를 거쳤으므로 공백이 없다(= 붙여쓰기 판과 같다). */
+type PreparedQuery = {
+  tokens: string[];
+  /** 낱말이 둘 이상일 때만 있다. 하나뿐이면 낱말 점수와 같은 것을 두 번 세게 된다. */
+  phrase: { text: string; compact: string } | null;
+};
+
+function scoreNoticeFields(fields: NoticeSearchFields, query: PreparedQuery): number {
+  const blob = fields.blob;
+  let score = 0;
+  if (query.phrase && blob.includes(query.phrase.compact)) {
+    for (const [pick, weight] of SEARCH_FIELDS) {
+      score += fieldScore(pick(fields), query.phrase.text, query.phrase.compact, weight.phrase);
+    }
+  }
+  let matchedTokens = 0;
+  for (const token of query.tokens) {
+    // 어느 밭에도 없는 낱말은 여기서 끝난다. 다섯 밭을 열어 볼 필요가 없다.
+    if (!blob.includes(token)) continue;
+    let hit = 0;
+    for (const [pick, weight] of SEARCH_FIELDS) hit += fieldScore(pick(fields), token, token, weight.token);
+    if (hit > 0) {
+      matchedTokens += 1;
+      score += hit;
+    }
+  }
+  // 하나도 못 맞히면 버린다. 검색어를 통째로 맞힌 점수만 남는 일은 없다 —
+  // 통째로 맞았다면 그 안의 낱말도 맞았기 때문이다.
+  if (matchedTokens === 0) return 0;
+  if (matchedTokens === query.tokens.length) score += ALL_TOKENS_BONUS * matchedTokens;
+  return score;
+}
+
+/**
+ * 조회 한 번이 쓰는 검색 한 벌.
+ *
+ * `score` 는 공지 하나의 점수를 준다(0이면 걸러낸다). 매긴 점수는 `scores` 에 남겨,
+ * 거르고 난 뒤 연관도순으로 세울 때 24,000건을 다시 채점하지 않게 한다.
+ */
+type NoticeSearch = {
+  query: PreparedQuery;
+  scores: Map<string, number>;
+  score: (entry: StaticIndexEntry) => number;
+};
+
+/**
+ * 항목별 검색 밭은 개정마다 한 번만 만들어 그 개정 내내 다시 쓴다.
+ *
+ * 색인은 개정 경로(`/v1/r/<개정>/…`)에 있어 불변이고 조직·분류·게시판 이름도 같은 개정
+ * 안에서는 바뀌지 않는다. 그래서 한 번 만든 밭은 그 개정에서 계속 옳다. 개정이 바뀌면
+ * 통째로 버린다 — sharedFiles·indexCache 와 같은 규칙이다.
+ */
+let searchFieldsCache: {
+  revision: string;
+  /** 이름 사전도 함께 붙들어 둔다. 없으면 글자 하나 칠 때마다 이름 1,010개를 다시 고친다. */
+  dictionaries: SearchDictionaries;
+  fields: Map<string, NoticeSearchFields>;
+} | null = null;
+
+const buildDictionaries = (
+  organizations: Map<string, Organization>,
+  categoryLabels?: Map<string, string>,
+  sourceNames?: Map<string, string>,
+): SearchDictionaries => ({
+  organizations: new Map([...organizations].map(([id, organization]) => [id, searchField(organization.name)])),
+  categories: new Map([...(categoryLabels ?? [])].map(([code, label]) => [code, searchField(label)])),
+  sources: new Map([...(sourceNames ?? [])].map(([id, name]) => [id, searchField(name)])),
+});
 
 /**
  * 조회 한 번이 쓸 검색 한 벌을 준비한다. 검색어가 없으면 null 을 준다.
  *
- * 조직 목록이 비어 있으면(받아오지 못했거나 부르는 쪽이 빠뜨렸으면) 제목만 보던 옛
- * 동작으로 돌아간다. 그 결과를 개정 캐시에 남기면 조직 목록이 생긴 뒤에도 그 개정
- * 내내 제목만 보게 되므로, 그때는 기억하지 않는다.
+ * 사전이 하나라도 비어 있으면(받아오지 못했거나 부르는 쪽이 빠뜨렸으면) 있는 것만으로
+ * 찾되 그 결과를 **개정 캐시에 남기지 않는다**. 남기면 사전이 생긴 뒤에도 그 개정 내내
+ * 반쪽짜리 밭을 보게 된다.
  */
 function prepareNoticeSearch(
   q: string | undefined,
   pointer: StaticLatest,
   organizations: Map<string, Organization>,
+  categoryLabels?: Map<string, string>,
+  sourceNames?: Map<string, string>,
 ): NoticeSearch | null {
-  const words = (q ?? "").toLowerCase().split(/\s+/).filter(Boolean);
-  if (!words.length) return null;
-  if (!organizations.size) return { words, text: (entry) => entry.t.toLowerCase() };
+  const tokens = normalizeForSearch(q ?? "").split(" ").filter(Boolean);
+  if (!tokens.length) return null;
 
-  const names = new Map<string, string>();
-  for (const [id, organization] of organizations) names.set(id, organization.name.toLowerCase());
-  if (searchTextCache?.revision !== pointer.revision) searchTextCache = { revision: pointer.revision, texts: new Map() };
-  const texts = searchTextCache.texts;
+  const complete = organizations.size > 0 && !!categoryLabels?.size && !!sourceNames?.size;
+  if (complete && searchFieldsCache?.revision !== pointer.revision) {
+    searchFieldsCache = {
+      revision: pointer.revision,
+      dictionaries: buildDictionaries(organizations, categoryLabels, sourceNames),
+      fields: new Map(),
+    };
+  }
+  const cache = complete ? searchFieldsCache!.fields : null;
+  const dictionaries = complete
+    ? searchFieldsCache!.dictionaries
+    : buildDictionaries(organizations, categoryLabels, sourceNames);
+  const phrase = tokens.length > 1 ? { text: tokens.join(" "), compact: tokens.join("") } : null;
+  const query: PreparedQuery = { tokens, phrase };
+  const scores = new Map<string, number>();
+
   return {
-    words,
-    text: (entry) => {
-      const hit = texts.get(entry.id);
-      if (hit !== undefined) return hit;
-      const text = noticeSearchText(entry, names);
-      texts.set(entry.id, text);
-      return text;
+    query,
+    scores,
+    score: (entry) => {
+      let fields = cache?.get(entry.id);
+      if (!fields) {
+        fields = buildNoticeSearchFields(entry, dictionaries);
+        cache?.set(entry.id, fields);
+      }
+      const score = scoreNoticeFields(fields, query);
+      if (score > 0) scores.set(entry.id, score);
+      return score;
     },
   };
 }
@@ -504,7 +756,7 @@ type NoticeMatchContext = {
    * 검색어 한 벌(prepareNoticeSearch). 검색어가 없으면 null.
    *
    * 빠뜨릴 수 없게 반드시 주도록 두었다. 검색어를 여기서 query.q 로 다시 읽으면 부르는
-   * 쪽이 조직 목록을 안 받아 왔는지 알 길이 없고, 그것이 바로 검색이 기관 이름을 못 보던
+   * 쪽이 사전을 안 받아 왔는지 알 길이 없고, 그것이 바로 검색이 기관 이름을 못 보던
    * 원인이었다.
    */
   search: NoticeSearch | null;
@@ -512,10 +764,6 @@ type NoticeMatchContext = {
 
 /** 조직 범위를 뺀 나머지 필터(검색어·주제·출처·매체·캠퍼스). 조직은 위 두 함수가 맡는다. */
 function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, context: NoticeMatchContext) {
-  if (context.search) {
-    const text = context.search.text(entry);
-    if (!context.search.words.every((word) => text.includes(word))) return false;
-  }
   if (query.category_code?.length && !query.category_code.includes(entry.c)) return false;
   if (query.source_id?.length && !query.source_id.includes(entry.s)) return false;
   if (query.medium?.length) {
@@ -535,6 +783,8 @@ function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, contex
     const organizations = context.organizations ?? new Map<string, Organization>();
     if (!entry.a.some((audience) => audienceMatchesCampus(audience, context.campusIds!, organizations))) return false;
   }
+  // 채점이 이 가운데 가장 비싸다. 값싼 조건으로 먼저 줄여 놓고 마지막에 부른다.
+  if (context.search && context.search.score(entry) === 0) return false;
   return true;
 }
 
@@ -548,6 +798,35 @@ async function staticSourceMedia(pointer: StaticLatest): Promise<Map<string, str
   const response = await cachedStaticGet<ListResponse<Source>>("sources.json", pointer);
   if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
   return new Map(response.data.map((source) => [source.id, source.medium.code]));
+}
+
+/**
+ * 검색이 쓸 이름 사전 둘. 검색어가 있을 때만 부른다.
+ *
+ * 둘 다 화면이 어차피 받는 파일이고(catalog.json 1.5KB, sources.json 29KB brotli),
+ * 개정 경로라 브라우저가 영구 캐시한다. cachedStaticGet 이 같은 개정 안에서 한 번만 받는다.
+ *
+ * **실패해도 검색을 멈추지 않는다.** 사전 하나를 못 받았다고 검색 상자가 통째로 죽으면
+ * 곤란하다. 빈 사전을 주면 그 밭만 빠진 채로 찾고(제목·조직은 그대로 찾힌다),
+ * prepareNoticeSearch 가 그 결과를 개정 캐시에 남기지 않는다.
+ */
+async function staticCategoryLabels(pointer: StaticLatest): Promise<Map<string, string>> {
+  try {
+    const response = await cachedStaticGet<ItemResponse<Catalog>>("catalog.json", pointer);
+    return new Map(response.data.categories.map((category) => [category.code, category.label]));
+  } catch {
+    return new Map();
+  }
+}
+
+async function staticSourceNames(pointer: StaticLatest): Promise<Map<string, string>> {
+  try {
+    const response = await cachedStaticGet<ListResponse<Source>>("sources.json", pointer);
+    if (response.page.dataset_revision !== pointer.revision) throw feedChanged();
+    return new Map(response.data.map((source) => [source.id, source.name]));
+  } catch {
+    return new Map();
+  }
 }
 
 function normalizeNotice(notice: Notice): Notice {
@@ -765,15 +1044,19 @@ async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> 
   const organizations = needsOrganizations ? await staticOrganizations(pointer) : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
   const sourceMedia = query.medium?.length ? await staticSourceMedia(pointer) : undefined;
+  // 분류·게시판 이름 사전. 검색어가 있을 때만 받는다(둘 다 실패해도 검색은 계속된다).
+  const [categoryLabels, sourceNames] = query.q
+    ? await Promise.all([staticCategoryLabels(pointer), staticSourceNames(pointer)])
+    : [undefined, undefined];
   const scope = organizationScope(organizations, query.organization_id ?? [], !!query.include_descendants);
-  const search = prepareNoticeSearch(query.q, pointer, organizationMap);
+  const search = prepareNoticeSearch(query.q, pointer, organizationMap, categoryLabels, sourceNames);
   let entries = index.entries.filter((entry) => audiencesInOrganizationScope(entry.a, scope) && staticNoticeMatches(entry, query, {
     campusIds: query.campus_id?.length ? new Set(query.campus_id) : undefined,
     organizations: organizationMap,
     sourceMedia,
     search,
   }));
-  entries = sortIndexEntries(entries);
+  entries = sortMatchedEntries(entries, query.sort, search);
   const selected = entries.slice(offset, offset + limit);
   const data = await loadNoticesForEntries(pointer, index, selected);
   const hasNext = offset + data.length < entries.length;
@@ -799,7 +1082,10 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
   const scope = organizationScope(organizations, body.organization_ids, true);
   const subscribed = new Set(body.subscribed_source_ids);
   const sourceMedia = filters.medium?.length ? await staticSourceMedia(pointer) : undefined;
-  const search = prepareNoticeSearch(filters.q, pointer, organizationMap);
+  const [categoryLabels, sourceNames] = filters.q
+    ? await Promise.all([staticCategoryLabels(pointer), staticSourceNames(pointer)])
+    : [undefined, undefined];
+  const search = prepareNoticeSearch(filters.q, pointer, organizationMap, categoryLabels, sourceNames);
   const selected = index.entries.filter((entry) => {
     const campusIds = body.campus_id ? new Set([body.campus_id]) : new Set<string>();
     const inCampus = !campusIds.size || entry.a.some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap));
@@ -811,7 +1097,7 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
       search,
     });
   });
-  const ordered = sortIndexEntries(selected);
+  const ordered = sortMatchedEntries(selected, filters.sort, search);
   const offset = staticOffset(body.cursor, pointer.revision);
   const limit = body.limit ?? 20;
   const slice = ordered.slice(offset, offset + limit);
@@ -902,18 +1188,40 @@ const matchesCampus = (n: Notice, campusIds: string[]) => {
  * 반대로 p 가 있을 때 안정성에 기대지 않는 이유는, 그러면 화면의 정확성이 산출물의
  * 순서에 조용히 매여 스스로 검증할 수 없기 때문이다.
  */
-const sortIndexEntries = (entries: StaticIndexEntry[]) => {
+const recentComparator = (entries: StaticIndexEntry[]) => {
   const byDay = (a: StaticIndexEntry, b: StaticIndexEntry) => (b.d ?? "").localeCompare(a.d ?? "");
   // 옛 개정 판별: 항목에 p 키 자체가 없다. p 가 null 인 것(시각을 모르는 공지)과 다르다.
-  if (!entries.some((entry) => entry.p !== undefined)) return [...entries].sort(byDay);
-  return [...entries].sort((a, b) => (
+  if (!entries.some((entry) => entry.p !== undefined)) return byDay;
+  return (a: StaticIndexEntry, b: StaticIndexEntry) => (
     byDay(a, b)
     // 시각을 모르는 공지는 ""가 되어 그날의 맨 아래로 간다. 언제 올라왔는지 모르는
     // 글이 방금 올라온 것이 확실한 글을 밀어내지 않게 한다.
     || (b.p ?? "").localeCompare(a.p ?? "")
     || (b.v ?? "").localeCompare(a.v ?? "")
     || a.id.localeCompare(b.id)
-  ));
+  );
+};
+
+/**
+ * 걸러낸 항목을 화면이 고른 차례로 세운다.
+ *
+ * 연관도순은 검색어가 있을 때만 뜻이 있다. 그래서 검색어가 없으면(search === null)
+ * sort 값이 무엇이든 최신순이다 — 화면도 그때는 고르는 단추를 감춘다.
+ * 검색어가 있는데 sort 를 주지 않았으면 연관도순이 기본이다(화면의 기본과 같다).
+ *
+ * **동점은 최신순으로 가른다.** 해치(참고한 구현)는 동점을 이름 가나다순으로 갈랐는데,
+ * 그것은 그쪽 자료에 시각이 없기 때문이다. 우리는 동점이 아주 흔하다 — '채용' 한 낱말로
+ * 5,000건이 넘게 걸리고 그 대부분이 '제목에 맞음' 하나로 똑같은 점수를 받는다. 그 5,000건을
+ * 가나다순으로 늘어놓으면 검색 결과가 아니라 사전이 된다. 같은 점수면 새 공지가 위다.
+ */
+const sortMatchedEntries = (
+  entries: StaticIndexEntry[],
+  sort: NoticeQuery["sort"],
+  search: NoticeSearch | null,
+) => {
+  const recent = recentComparator(entries);
+  if (!search || sort === "recent" || sort === "published") return [...entries].sort(recent);
+  return [...entries].sort((a, b) => (search.scores.get(b.id) ?? 0) - (search.scores.get(a.id) ?? 0) || recent(a, b));
 };
 
 /**
@@ -923,27 +1231,54 @@ const sortIndexEntries = (entries: StaticIndexEntry[]) => {
  * 목록이 뒤죽박죽으로 보인다. 발행일이 같으면 시각으로, 시각을 모르면 처음 본 시각으로
  * 가른다. 서버가 내보내는 순서와 같은 규칙이다.
  *
- * 검색 결과도 같은 순서로 준다. 예전에는 sort 값에 따라 갈랐으나 어느 쪽이든 처음 본
- * 시각으로 세워 결과가 같았고, 화면에도 "최신순" 한 가지만 있다.
+ * 연관도순은 검색어가 있을 때만 뜻이 있다. 점수를 함께 주면 그것으로 먼저 세우고,
+ * 동점은 여기 최신순으로 가른다(정적 경로의 sortMatchedEntries 와 같은 규칙이다).
  */
-const sortNotices = (list: Notice[]) => {
+const sortNotices = (list: Notice[], scores?: Map<string, number>) => {
   const key = (n: Notice) => [
     n.published_date ?? n.published_at?.slice(0, 10) ?? "",
     n.published_at ?? "",
     n.first_visible_at,
   ];
   return [...list].sort((a, b) => {
+    if (scores) {
+      const byScore = (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0);
+      if (byScore) return byScore;
+    }
     const [ad, at, af] = key(a);
     const [bd, bt, bf] = key(b);
     return bd.localeCompare(ad) || bt.localeCompare(at) || bf.localeCompare(af) || a.id.localeCompare(b.id);
   });
 };
 
-const textMatch = (n: Notice, q?: string) => {
-  if (!q) return true;
-  const hay = `${n.title} ${n.excerpt ?? ""} ${n.primary_source.name}`.toLowerCase();
-  return q.toLowerCase().split(/\s+/).every((w) => hay.includes(w));
-};
+/**
+ * 가상 데이터 경로의 검색. 정적 경로와 **같은 함수로 같은 점수**를 매긴다.
+ *
+ * 규칙이 두 벌이면 가상 데이터로 도는 화면만 딴 답을 낸다(2026-09-08 조직 범위에서
+ * 겪은 일이다). 가상 데이터에는 공지가 몇십 건뿐이라 캐시도 사전도 필요 없다.
+ * 점수를 0이 아닌 것만 남기고, 그 점수를 sortNotices 에 넘겨 연관도순을 만든다.
+ */
+function mockSearchScores(list: Notice[], q?: string): Map<string, number> | null {
+  const tokens = normalizeForSearch(q ?? "").split(" ").filter(Boolean);
+  if (!tokens.length) return null;
+  const query: PreparedQuery = { tokens, phrase: tokens.length > 1 ? { text: tokens.join(" "), compact: tokens.join("") } : null };
+  const scores = new Map<string, number>();
+  for (const notice of list) {
+    const organization = notice.audiences.filter((audience) => audience.type === "organization" && audience.name).map((audience) => audience.name);
+    const score = scoreNoticeFields(noticeSearchFields(
+      searchField(notice.title),
+      searchField(organization.join(" ")),
+      searchField(notice.primary_category.label),
+      searchField(notice.primary_source.name),
+      EMPTY_FIELD,
+    ), query);
+    if (score > 0) scores.set(notice.id, score);
+  }
+  return scores;
+}
+
+/** 검색어가 있으면 점수가 붙은 것만 남긴다. 없으면 전부 통과다. */
+const textMatch = (n: Notice, scores: Map<string, number> | null) => !scores || scores.has(n.id);
 
 /* ---------- public API ---------- */
 export async function getCatalog(): Promise<ItemResponse<Catalog>> {
@@ -1005,8 +1340,10 @@ export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse
   if (query.source_id?.length) list = list.filter((n) => query.source_id!.includes(n.primary_source.id));
   const scope = organizationScope(M.organizations, query.organization_id ?? [], !!query.include_descendants);
   list = list.filter((n) => audiencesInOrganizationScope(noticeAudienceKeys(n), scope));
-  list = list.filter((n) => textMatch(n, query.q));
-  return paginate(sortNotices(list), query.limit ?? 20, query.cursor);
+  const scores = mockSearchScores(list, query.q);
+  list = list.filter((n) => textMatch(n, scores));
+  const byRelevance = scores && query.sort !== "recent" && query.sort !== "published";
+  return paginate(sortNotices(list, byRelevance ? scores : undefined), query.limit ?? 20, query.cursor);
 }
 
 export async function getNotice(id: string): Promise<ItemResponse<NoticeDetail>> {
@@ -1035,8 +1372,10 @@ export async function previewFeed(body: FeedPreviewBody): Promise<ListResponse<N
   const f = body.filters ?? {};
   if (f.category_code?.length) list = list.filter((n) => f.category_code!.includes(n.primary_category.code));
   if (f.medium?.length) list = list.filter((n) => f.medium!.includes(n.primary_source.medium.code));
-  list = list.filter((n) => textMatch(n, f.q));
-  return paginate(sortNotices(list), body.limit ?? 20, body.cursor);
+  const scores = mockSearchScores(list, f.q);
+  list = list.filter((n) => textMatch(n, scores));
+  const byRelevance = scores && f.sort !== "recent" && f.sort !== "published";
+  return paginate(sortNotices(list, byRelevance ? scores : undefined), body.limit ?? 20, body.cursor);
 }
 
 export async function listSources(params: { campus_id?: string; q?: string } = {}): Promise<ListResponse<Source>> {

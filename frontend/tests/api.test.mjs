@@ -119,6 +119,33 @@ const sourceRefs = {
   "src-ig": { id: "src-ig", name: "인스타 출처", medium: coded("instagram", "인스타그램") },
 };
 
+/** 운영 catalog.json 의 분류 이름 그대로. 검색이 분류 이름을 보므로 시험도 같은 글자를 쓴다. */
+const CATEGORIES = [
+  coded("academic", "학사"),
+  coded("graduation", "졸업"),
+  coded("scholarship", "장학"),
+  coded("career", "취업·인턴"),
+  coded("event", "행사"),
+  coded("other", "기타"),
+];
+
+const catalogFile = (categories = CATEGORIES) => ({
+  data: { campuses: [], organization_types: [], categories, media: [], features: {} },
+  meta: { request_id: "static-r1", generated_at: "2026-09-06T00:00:00Z" },
+});
+
+/** sources.json 한 줄. 검색은 이름(name)만 본다. */
+const sourceFile = (ref, organizationName = "경희대학교") => ({
+  ...ref,
+  organization: { id: "org-any", name: organizationName, campuses: [] },
+  content_kind: coded("notice", "공지"),
+  url: null,
+  status: coded("active", "정상"),
+  status_message: null,
+  last_success_at: null,
+  initial_window_days: null,
+});
+
 const audienceFromKey = (key) => {
   if (key === "university") return { type: "university", id: null, name: "경희대학교" };
   if (key.startsWith("campus:")) return { type: "campus", id: key.slice(7), name: key };
@@ -512,6 +539,8 @@ test("검색은 제목과 그 공지에 붙은 조직 이름을 함께 본다(�
     if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
     if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
     if (path.endsWith("/organizations.json")) return { ok: true, json: async () => organizations };
+    if (path.endsWith("/catalog.json")) return { ok: true, json: async () => catalogFile() };
+    if (path.endsWith("/sources.json")) return { ok: true, json: async () => page(Object.values(sourceRefs).map(sourceFile)) };
     const pageFile = pages(path);
     if (pageFile) return { ok: true, json: async () => pageFile };
     throw new Error(`Unexpected path ${path}`);
@@ -520,7 +549,10 @@ test("검색은 제목과 그 공지에 붙은 조직 이름을 함께 본다(�
   const ids = (response) => Array.from(response.data, (item) => item.id);
 
   // (가) 제목에 학과 이름이 없어도 그 학과에 붙은 공지가 나온다. 제목으로 걸린 것과 합쳐진다.
-  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", limit: 20 })), ["dept-job", "title-hit"]);
+  //      차례는 연관도순이다 - 제목에 든 것(title-hit)이 조직으로만 걸린 것(dept-job)보다 위다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", limit: 20 })), ["title-hit", "dept-job"]);
+  // 최신순을 고르면 같은 결과가 날짜 차례로 선다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", sort: "recent", limit: 20 })), ["dept-job", "title-hit"]);
   // 캠퍼스·조직 필터가 없어도 조직 목록을 받아 와야 이름을 볼 수 있다. 예전에는
   // 캠퍼스를 고른 경우에만 받아 와서, 검색이 이름을 아예 못 봤다.
   assert.equal(asked.some((path) => path.endsWith("/organizations.json")), true);
@@ -530,14 +562,17 @@ test("검색은 제목과 그 공지에 붙은 조직 이름을 함께 본다(�
   assert.deepEqual(ids(await api.listNotices({ q: "외국어대학", limit: 20 })), ["college-note"]);
   assert.deepEqual(ids(await api.listNotices({ q: "경희대학교", limit: 20 })), []);
 
-  // (다) "낱말이 전부 있어야 한다"는 규칙은 그대로다. 그래서 '스페인어학과 전과'는
-  // 여전히 0건이다 - 전과 공지는 전교 공지라 그 학과가 붙어 있지 않다.
-  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 전과", limit: 20 })), []);
-  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 채용", limit: 20 })), ["dept-job"]);
+  // (다) "낱말이 전부 있어야 한다"는 이제 규칙이 아니라 보너스다(2026-09-14). 예전에는
+  // '스페인어학과 전과'가 0건이었다 - 전과 공지는 전교 공지라 그 학과가 붙어 있지 않다.
+  // 이제는 한 낱말만 맞은 것도 나오고, 전부 맞은 것이 없으면 제목으로 맞은 것이 위다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 전과", limit: 20 })), ["univ-change", "title-hit", "dept-job"]);
+  // 전부 맞은 것이 있으면 그것이 맨 위다. dept-job 은 조직(스페인어학과)과 제목(채용)을
+  // 둘 다 맞혔고, title-hit 은 제목으로 한 낱말만 맞혔다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 채용", limit: 20 })), ["dept-job", "title-hit"]);
 
   // (라) '내 공지'도 같은 규칙을 쓴다.
   const mine = await api.previewFeed({ campus_id: null, organization_ids: [], subscribed_source_ids: [], filters: { q: "스페인어학과" }, limit: 20 });
-  assert.deepEqual(ids(mine), ["dept-job", "title-hit"]);
+  assert.deepEqual(ids(mine), ["title-hit", "dept-job"]);
 
   // (마) 검색어가 없는 기본 목록은 예전처럼 목록 페이지를 훑는 경로로 돈다.
   assert.deepEqual(ids(await api.listNotices({ limit: 20 })), ["dept-job", "college-note", "univ-change", "title-hit"]);
@@ -632,4 +667,150 @@ test("검색은 캠퍼스 설정을 넘어가고, 검색어가 없으면 넘지 
 
   // (라) 검색어를 지우면 다시 서울 것만 보인다. 캠퍼스를 영영 푸는 것이 아니다.
   assert.deepEqual(ids(await api.listNotices({ campus_id: campus, limit: 20 })), ["seoul-note", "seoul-campus"]);
+});
+
+/**
+ * 검색 채점 시험에서 함께 쓰는 조회 응답 한 벌.
+ *
+ * 검색어가 있으면 화면이 조직·분류·게시판 이름 사전을 함께 받는다. 셋 다 있어야 항목별
+ * 검색 밭이 개정 캐시에 남으므로, 시험도 셋을 모두 내어 준다.
+ */
+function searchFetch({ entries, organizations = [], categories = CATEGORIES, sources = Object.values(sourceRefs), revision = "r1", asked = [] }) {
+  const pages = noticePages(entries, revision);
+  return async (url) => {
+    const path = staticPath(url);
+    asked.push(path);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest(revision) };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(revision), count: entries.length, entries }) };
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => page(organizations, revision) };
+    if (path.endsWith("/catalog.json")) return { ok: true, json: async () => catalogFile(categories) };
+    if (path.endsWith("/sources.json")) return { ok: true, json: async () => page(sources.map((ref) => sourceFile(ref)), revision) };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
+    throw new Error(`Unexpected path ${path}`);
+  };
+}
+
+const entry = (id, title, extra = {}) => ({
+  id,
+  t: title,
+  c: "other",
+  o: null,
+  s: "src-web",
+  d: "2026-09-14",
+  p: "2026-09-14T06:00:00Z",
+  v: "2026-09-14T06:00:00Z",
+  a: ["university"],
+  ...extra,
+});
+
+test("검색어를 고르는 글자만 남기고 맞춰 본다 - 가운뎃점·괄호를 넘어간다", async () => {
+  // 원문에 가운뎃점이 네 가지나 섞여 있다: `･`(U+FF65) `·`(U+00B7) `∙`(U+2219) `・`(U+30FB).
+  // 그래서 '학석사연계'로 찾으면 '학･석사연계'가 안 잡혔다(2026-09-14 사용자 실측 0건,
+  // 실제로는 47건). 지울 구두점을 늘어놓는 대신 남길 글자(숫자·영문·한글)만 정해 두면
+  // 이 문제가 통째로 사라진다.
+  const entries = [
+    entry("ff65", "[일반대학원] 2027학년도 전기 학･석사연계과정 모집", { p: "2026-09-14T09:00:00Z" }),
+    entry("b7", "공과대학 (학·석사연계) 설명회 안내", { p: "2026-09-14T08:00:00Z" }),
+    entry("plain", "대학원 신입생 모집 안내", { p: "2026-09-14T07:00:00Z" }),
+  ];
+  const api = await loadApi(searchFetch({ entries }));
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+
+  // 붙여쓰기 판이 하는 일이다. 정규화만으로는 '학 석사연계과정'이라 낱말이 갈라진다.
+  assert.equal(api.compactForSearch("학･석사연계"), "학석사연계");
+  assert.equal(api.compactForSearch("[일반대학원] 2027학년도 전기 학･석사연계과정"), "일반대학원2027학년도전기학석사연계과정");
+  assert.equal(api.normalizeForSearch("취업·인턴"), "취업 인턴");
+
+  assert.deepEqual(ids(await api.listNotices({ q: "학석사연계", limit: 20 })), ["ff65", "b7"]);
+  // 어느 가운뎃점으로 쳐도 앞의 둘이 맨 위다. 학생이 원문의 어느 글자를 복사해 왔는지
+  // 알 수 없으므로 넷 다 같아야 한다. 가운뎃점으로 치면 낱말이 '학'과 '석사연계' 둘로
+  // 갈리는데, 홑글자 '학'은 '대학원'에도 들어 있어 plain 도 딸려 온다 - 낱말 하나만
+  // 맞혔으므로 맨 아래다. 예전 규칙(전부 맞아야 통과)이라면 아예 안 나왔을 자리다.
+  assert.deepEqual(ids(await api.listNotices({ q: "학·석사연계", limit: 20 })), ["ff65", "b7", "plain"]);
+  assert.deepEqual(ids(await api.listNotices({ q: "학･석사연계", limit: 20 })), ["ff65", "b7", "plain"]);
+});
+
+test("낱말이 일부만 맞아도 나오되, 전부 맞은 것이 위에 온다", async () => {
+  // 예전에는 낱말이 전부 있어야 통과였다. '스페인어학과 전과'가 0건이던 이유다 -
+  // 전과 공지는 전교 공지라 학과가 붙어 있지 않다. 이제 "전부 맞음"은 규칙이 아니라
+  // 보너스여서, 하나만 맞은 것도 나오되 반드시 아래에 선다.
+  const campuses = [{ id: "campus-global", name: "국제캠퍼스" }];
+  const organizations = [
+    { id: "org-dept", name: "스페인어학과", type: coded("department", "학과·전공"), parent_id: null, campuses, has_children: false },
+  ];
+  const entries = [
+    entry("dept-only", "스페인어학과 종강 총회 안내", { a: ["org:org-dept"], c: "event", p: "2026-09-14T09:00:00Z" }),
+    entry("change-only", "2026-2학기 전과 신청 안내", { c: "academic", p: "2026-09-14T08:00:00Z" }),
+    // 일부러 가장 오래된 것으로 두었다. 점수가 날짜를 이겨야 한다.
+    entry("both", "[외국어대학] 스페인어학과 전과 신청 안내", { a: ["org:org-dept"], c: "academic", p: "2026-09-13T07:00:00Z" }),
+    entry("none", "도서관 휴관 안내", { p: "2026-09-14T10:00:00Z" }),
+  ];
+  const api = await loadApi(searchFetch({ entries, organizations }));
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+
+  // 맨 위는 두 낱말을 다 맞힌 공지다. 가장 오래된 글인데도 그렇다.
+  // 그다음은 제목+조직으로 한 낱말을 맞힌 것, 그다음이 제목으로만 맞힌 것이다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 전과", limit: 20 })), ["both", "dept-only", "change-only"]);
+  // 한 낱말도 못 맞힌 공지는 나오지 않는다. '안내'는 넷 다 들어 있지만 검색어에 없다.
+  assert.equal(ids(await api.listNotices({ q: "스페인어학과 전과", limit: 20 })).includes("none"), false);
+
+  // 최신순으로 바꾸면 같은 결과가 날짜 차례로 선다. 결과의 '무엇'은 그대로고 '차례'만 바뀐다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 전과", sort: "recent", limit: 20 })), ["dept-only", "change-only", "both"]);
+});
+
+test("분류(주제) 이름으로도 찾힌다", async () => {
+  // 화면에는 '취업·인턴'이라고 적혀 있는데 그대로 치면 0건이었다(2026-09-14 사용자 실측).
+  // 색인에는 분류 코드(c)만 있고 이름은 catalog.json 에 있다 - 조직 이름을 이어 붙인 것과
+  // 같은 방법으로 화면에서 잇는다. 색인 파일은 한 글자도 커지지 않는다.
+  const entries = [
+    entry("job-1", "2026 하반기 신입사원 모집", { c: "career", p: "2026-09-14T09:00:00Z" }),
+    entry("job-2", "동계 현장실습 신청 안내", { c: "career", p: "2026-09-14T08:00:00Z" }),
+    entry("fest", "가을 축제 안내", { c: "event", p: "2026-09-14T07:00:00Z" }),
+  ];
+  const api = await loadApi(searchFetch({ entries }));
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+
+  assert.deepEqual(ids(await api.listNotices({ q: "취업·인턴", limit: 20 })), ["job-1", "job-2"]);
+  // 가운뎃점을 빼고 쳐도 같다(붙여쓰기 판).
+  assert.deepEqual(ids(await api.listNotices({ q: "취업인턴", limit: 20 })), ["job-1", "job-2"]);
+  // 분류 이름의 한 낱말만 쳐도 잡힌다.
+  assert.deepEqual(ids(await api.listNotices({ q: "인턴", limit: 20 })), ["job-1", "job-2"]);
+  assert.deepEqual(ids(await api.listNotices({ q: "행사", limit: 20 })), ["fest"]);
+  // 분류 이름은 제목보다 무게가 가볍다. 제목에 '행사'가 든 공지가 분류가 '행사'인 것보다 위다.
+  const titleHit = await loadApi(searchFetch({
+    entries: [
+      entry("cat", "가을 축제 안내", { c: "event", p: "2026-09-14T09:00:00Z" }),
+      entry("title", "행사 도우미 모집", { c: "other", p: "2026-09-14T08:00:00Z" }),
+    ],
+  }));
+  assert.deepEqual(ids(await titleHit.listNotices({ q: "행사", limit: 20 })), ["title", "cat"]);
+});
+
+test("검색어가 없으면 연관도는 뜻이 없다 - 언제나 최신순이다", async () => {
+  // 색인은 서버가 이미 최신순으로 내보낸다. 시험 자료도 그 순서로 둔다.
+  const entries = [
+    entry("new", "가을 축제 안내", { c: "event", d: "2026-09-14", p: "2026-09-14T09:00:00Z" }),
+    entry("mid", "등록금 납부 안내", { c: "scholarship", d: "2026-09-13", p: "2026-09-13T09:00:00Z" }),
+    entry("old", "교내 장학금 신청 안내", { c: "scholarship", d: "2026-09-12", p: "2026-09-12T09:00:00Z" }),
+  ];
+  const asked = [];
+  const api = await loadApi(searchFetch({ entries, asked }));
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+
+  // 화면은 검색어가 없으면 정렬 단추를 감춘다. 주소에 옛 sort 값이 남아 있어도
+  // 여기서 최신순으로 되돌아가야 목록과 머리글이 어긋나지 않는다.
+  assert.deepEqual(ids(await api.listNotices({ sort: "relevance", limit: 20 })), ["new", "mid", "old"]);
+  assert.deepEqual(ids(await api.listNotices({ limit: 20 })), ["new", "mid", "old"]);
+  // 이름 사전은 검색어가 있을 때만 받는다. 그냥 목록을 볼 때 29KB 를 더 받을 이유가 없다.
+  assert.equal(asked.some((path) => path.endsWith("/sources.json")), false);
+  assert.equal(asked.some((path) => path.endsWith("/catalog.json")), false);
+
+  // 검색어가 있으면 연관도가 날짜를 이긴다. old 는 제목과 분류가 둘 다 '장학'이고
+  // mid 는 분류만 그렇다. 최신순으로 바꾸면 다시 날짜 차례다.
+  assert.deepEqual(ids(await api.listNotices({ q: "장학", limit: 20 })), ["old", "mid"]);
+  assert.deepEqual(ids(await api.listNotices({ q: "장학", sort: "recent", limit: 20 })), ["mid", "old"]);
+  await api.listNotices({ q: "공지", limit: 20 });
+  assert.equal(asked.some((path) => path.endsWith("/sources.json")), true);
+  assert.equal(asked.some((path) => path.endsWith("/catalog.json")), true);
 });
