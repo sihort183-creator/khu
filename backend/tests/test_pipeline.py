@@ -440,6 +440,86 @@ def test_future_dated_notice_is_published_as_first_seen(seeded, settings, store,
     assert session.get(m.Notice, future_day.id).published_date == date(2030, 10, 23)
 
 
+def test_old_pinned_notice_is_published_at_the_window_start(seeded, settings, store, board_fixture):
+    """게시판이 맨 위에 고정해 둔 글은 등록일이 범위보다 앞서도 공개한다.
+
+    사용자 결정(2026-09-14). 실제 사례는 "스페인어학과 전과 전출 내규(2026.03.01부
+    시행)"으로, 제목부터 현행 규정인데 등록일이 2026-02-23 이라 안 보였다.
+    보이는 날짜만 범위 시작일로 맞추고 원문 날짜는 original_published_* 로 함께 준다.
+
+    다만 게시판이 옛 소식을 고정해 둔 것까지 끌려오면 안 되므로 하한
+    (PINNED_WINDOW_FLOOR)보다 오래된 고정 공지는 계속 공개하지 않는다.
+    """
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+
+    notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+    assert len(notices) >= 4
+    pinned_old, pinned_ancient, plain_old, recent = notices[:4]
+    for notice in notices[4:]:
+        notice.status = "hidden"
+
+    def pin(notice: m.Notice, *, published: date, pinned: bool) -> None:
+        notice.published_date = published
+        notice.published_at = None
+        notice.published_precision = "date"
+        notice.first_visible_at = datetime(2026, 9, 14, 1, 0, tzinfo=UTC)
+        session.get(m.SourceItem, notice.primary_source_item_id).is_pinned = pinned
+
+    # 고정 + 하한 위 → 공개한다. 보이는 날짜는 2026-03-01.
+    pin(pinned_old, published=date(2026, 2, 23), pinned=True)
+    # 고정이지만 하한보다 오래됐다 → 계속 비공개(2020년 대회 소식 같은 것).
+    pin(pinned_ancient, published=date(2020, 10, 20), pinned=True)
+    # 고정이 아니면 범위 밖은 그대로 비공개다.
+    pin(plain_old, published=date(2026, 2, 23), pinned=False)
+    # 견줄 평범한 글. 범위 안이라 손대지 않는다.
+    pin(recent, published=date(2026, 5, 20), pinned=False)
+    session.commit()
+
+    windowed = replace(settings, initial_window_start=date(2026, 3, 1))
+    result = export_static(windowed, run_id="run-pinned01", store=store)
+    pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
+    base = pointer["base_path"]
+    page = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/page/1.json"))
+    index = json.loads(_read_export(store, settings.r2.bucket_public, f"{base}/notices/index.json"))
+    status = json.loads(_read_export(store, settings.r2.bucket_public, "v1/status.json"))
+
+    listed = {n["id"]: n for n in page["data"]}
+    assert set(listed) == {pinned_old.id, recent.id}
+    assert {e["id"] for e in index["entries"]} == {pinned_old.id, recent.id}
+    assert result.notices == 2
+    # 공개 총계도 같은 기준이어야 한다. 목록에는 있는데 숫자에는 없는 상태를 만들지 않는다.
+    assert status["notices_total"] == 2
+
+    shown = listed[pinned_old.id]
+    assert shown["published_adjusted"] is True
+    assert shown["published_date"] == "2026-03-01"
+    # 시각은 지어내지 않는다. 그날 실제로 올라온 글보다 위에 앉으면 안 된다.
+    assert shown["published_at"] is None
+    assert shown["published_precision"] == "date"
+    assert shown["original_published_date"] == "2026-02-23"
+    assert shown["is_pinned"] is True
+    # 상세 파일도 같은 값을 준다.
+    detail = json.loads(
+        _read_export(store, settings.r2.bucket_public, f"{base}/notices/{pinned_old.id}.json")
+    )["data"]
+    assert detail["published_date"] == "2026-03-01"
+    assert detail["original_published_date"] == "2026-02-23"
+
+    # 범위 안 글이 위다. 3월 1일로 맞춘 고정 공지가 목록 꼭대기를 차지하지 않는다.
+    assert [n["id"] for n in page["data"]][0] == recent.id
+
+    # 하한 아래 고정 공지와 고정 아닌 옛 글은 상세 주소로도 열리지 않는다.
+    for hidden in (pinned_ancient.id, plain_old.id):
+        with pytest.raises(FileNotFoundError):
+            _read_export(store, settings.r2.bucket_public, f"{base}/notices/{hidden}.json")
+
+    # DB 의 원문 날짜는 그대로다. 내보낼 때만 바꾼다.
+    session.expire_all()
+    assert session.get(m.Notice, pinned_old.id).published_date == date(2026, 2, 23)
+
+
 def test_revision_pointer_switches_only_after_files_exist(seeded, settings, store, board_fixture):
     """12절: 새 개정 파일을 모두 올린 뒤에 포인터를 바꾼다."""
     session, source = seeded

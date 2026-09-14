@@ -80,12 +80,29 @@ class NoticeState:
 
     @property
     def adjusted(self) -> bool:
-        """보이는 날짜가 "처음 본 시각"으로 바뀐 공지인가.
+        """보이는 날짜가 시간이 지나면 저절로 달라지는 공지인가.
 
-        원문 날짜가 미래인 공지는 시간이 지나면 미래가 아니게 되어 보이는 날짜가
-        저절로 달라진다. 수정 시각은 그대로이므로 이런 공지는 늘 다시 만든다.
+        보이는 날짜를 원문과 다르게 두는 경우가 둘인데(app.domain.dates 참고),
+        늘 다시 만들어야 하는 것은 하나뿐이다.
+
+        - **원문 날짜가 미래인 공지**는 그 날짜가 오면 보이는 날짜가 원문으로 돌아간다.
+          수정 시각은 그대로라 알아챌 방법이 없으므로 회차마다 다시 만든다.
+        - **수집 범위보다 오래된 고정 공지**는 보이는 날짜가 범위 시작일로 고정이라
+          시간이 지나도 달라지지 않는다. 다시 만들 이유가 없다(2026-09-14). 146건을
+          회차마다 본문까지 다시 읽으면 줄여 놓은 디스크 IO 를 도로 쓴다.
+
+        둘은 원문 날짜와 보이는 날짜의 앞뒤로 갈린다. 미래 쪽은 원문이 보이는 날짜와
+        같거나 뒤고(오늘 늦은 시각에 올라올 글이면 같은 날이다), 고정 공지 쪽은 원문이
+        반드시 앞이다. 날짜는 ISO 문자열이라 글자 그대로 견주면 된다.
         """
-        return bool((self.entry or {}).get("published_adjusted"))
+        entry = self.entry or {}
+        if not entry.get("published_adjusted"):
+            return False
+        original, shown = entry.get("original_published_date"), entry.get("published_date")
+        if not original or not shown:
+            # 어느 쪽인지 못 가리면 안전한 쪽(다시 만든다)을 고른다.
+            return True
+        return str(original) >= str(shown)
 
 
 @dataclass

@@ -224,6 +224,32 @@ def test_plan_rebuilds_notices_whose_shown_date_moves_on_its_own():
     assert plan.changed == {"a"}
 
 
+def test_plan_reuses_old_pinned_notices_whose_shown_date_is_fixed():
+    """범위보다 오래된 고정 공지는 보이는 날짜가 범위 시작일로 고정이라 다시 안 만든다.
+
+    원문 날짜가 미래인 공지와 달리 시간이 지나도 값이 달라지지 않는다. 146건을
+    회차마다 본문까지 다시 읽으면 줄여 놓은 디스크 IO 를 도로 쓴다(2026-09-14).
+    둘은 원문 날짜가 보이는 날짜보다 앞이냐 뒤냐로 갈린다.
+    """
+    stamp = datetime(2026, 6, 1, 0, 0, tzinfo=UTC)
+    state = _state()
+    state.notices["a"] = NoticeState(
+        "2026-06-01T00:00:00Z", "ra",
+        # 보이는 날짜 2026-03-01, 원문 2026-02-23 → 원문이 앞이다(고정 공지).
+        {"published_adjusted": True, "published_date": "2026-03-01",
+         "original_published_date": "2026-02-23"},
+    )
+    state.notices["b"] = NoticeState(
+        "2026-06-01T00:00:00Z", "rb",
+        # 오늘 늦은 시각에 올라올 글이라 원문과 보이는 날짜가 같다 → 다시 만든다.
+        {"published_adjusted": True, "published_date": "2026-06-01",
+         "original_published_date": "2026-06-01"},
+    )
+    plan = _plan([("a", stamp, "ra"), ("b", stamp, "rb")], state=state)
+    assert plan.reused == {"a"}
+    assert plan.changed == {"b"}
+
+
 # ------------------------------------------------------------- 자동 후퇴
 
 

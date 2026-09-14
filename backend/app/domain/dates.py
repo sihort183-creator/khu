@@ -184,7 +184,29 @@ class DisplayPublished:
     date: date | None
     at: datetime | None
     precision: str  # date | datetime | unknown
-    adjusted: bool  # 원문 날짜가 미래라 처음 본 시각으로 바꿨는가
+    adjusted: bool  # 원문 날짜를 그대로 쓰지 않고 보이는 날짜를 바꿨는가
+
+
+# 게시판 상단 고정 공지는 게시일이 수집 범위 시작일(2026-03-01)보다 앞서도 지금 유효하다.
+# 학과가 맨 위에 붙여 둔 글은 "계속 봐야 한다"는 표시이기 때문이다. 실제로
+# "스페인어학과 전과 전출 내규(2026.03.01부 시행)"은 등록일이 2026-02-23 이라 안 보였다.
+#
+# 사용자 결정(2026-09-14): 고정 공지는 공개하되, 게시판이 옛 소식을 고정해 둔 것까지
+# 끌려오지 않게 이 하한부터만 공개한다. 실측으로 범위 밖 고정 공지 229건 중 146건이
+# 이 하한 위에 있었고, 아래 83건에는 2020년 대회 소식 같은 지난 글이 섞여 있었다.
+#
+# **하한을 바꾸려면 이 값 하나만 고친다.** 공개 판정(within_window), 보이는 날짜
+# (display_published), 공개 총계 조회 세 자리가 모두 이 값을 본다.
+PINNED_WINDOW_FLOOR = date(2025, 1, 1)
+
+
+def pinned_exempt(*, is_pinned: bool, published_date: date | None) -> bool:
+    """수집 범위보다 오래된 이 고정 공지를 공개 예외로 볼 것인가.
+
+    범위 안에 있는 글에는 아무 뜻이 없다(어차피 공개된다). 범위 밖 글에만 묻는다.
+    발행일을 모르면 하한과 견줄 수 없으므로 예외로 보지 않는다.
+    """
+    return bool(is_pinned) and published_date is not None and published_date >= PINNED_WINDOW_FLOOR
 
 
 def is_future_published(
@@ -212,14 +234,24 @@ def display_published(
     published_precision: str | None,
     first_visible_at: datetime | None,
     now: datetime,
+    is_pinned: bool = False,
+    window_start: date | None = None,
 ) -> DisplayPublished:
     """화면에 보일 발행일을 정한다.
 
-    게시판이 고정 공지를 맨 위에 붙이려고 2099-12-31 같은 값을 넣는 일이 있다.
-    그 날짜를 그대로 보이면 목록 꼭대기에 몇 해 뒤 날짜가 박힌다. 사용자 결정
-    (2026-09-07)에 따라 그런 글도 공개하되, **보이는 날짜는 우리가 그 글을 처음 본
-    시각**으로 둔다. 원문 날짜는 버리지 않고 계약의 ``original_published_*`` 로 함께 준다.
-    데이터베이스의 원문 값은 건드리지 않는다 — 이 판정은 내보낼 때만 한다.
+    보이는 날짜를 원문과 다르게 두는 경우가 두 가지다. 둘 다 ``adjusted`` 로 표시하고,
+    원문 날짜는 버리지 않고 계약의 ``original_published_*`` 로 함께 준다.
+    데이터베이스의 원문 값은 어느 쪽에서도 건드리지 않는다 — 내보낼 때만 하는 판정이다.
+
+    **하나. 원문 날짜가 미래인 글.** 게시판이 고정 공지를 맨 위에 붙이려고 2099-12-31
+    같은 값을 넣는 일이 있다. 그 날짜를 그대로 보이면 목록 꼭대기에 몇 해 뒤 날짜가
+    박힌다. 사용자 결정(2026-09-07)에 따라 공개하되 보이는 날짜는 **우리가 그 글을
+    처음 본 시각**으로 둔다.
+
+    **둘. 수집 범위보다 오래된 고정 공지.** 사용자 결정(2026-09-14)에 따라 공개하되
+    보이는 날짜는 **범위 시작일**(2026-03-01)로 맞춘다. 시각은 두지 않는다 —
+    그날 실제로 올라온 글보다 위에 앉으면 안 되기 때문이다(시각 없는 글은 그날의
+    맨 아래로 간다, static.UNKNOWN_TIME 참고).
     """
     if first_visible_at is not None and is_future_published(
         published_date=published_date, published_at=published_at, now=now
@@ -228,6 +260,13 @@ def display_published(
         return DisplayPublished(
             date=seen.astimezone(KST).date(), at=seen, precision="datetime", adjusted=True
         )
+    if (
+        window_start is not None
+        and published_date is not None
+        and published_date < window_start
+        and pinned_exempt(is_pinned=is_pinned, published_date=published_date)
+    ):
+        return DisplayPublished(date=window_start, at=None, precision="date", adjusted=True)
     return DisplayPublished(
         date=published_date,
         at=published_at,

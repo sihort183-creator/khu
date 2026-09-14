@@ -59,10 +59,12 @@ from app.contracts.vocab import (
 from app.domain.body_html import sanitize_body_html
 from app.domain.dates import (
     KST,
+    PINNED_WINDOW_FLOOR,
     as_utc,
     display_published,
     freshness_code,
     is_future_published,
+    pinned_exempt,
     utcnow,
 )
 from app.domain.images import extract_images, poster_image
@@ -373,13 +375,15 @@ def _build_notice(
     last_checked: datetime | None,
     now: datetime,
     proxy_base: str = "",
+    window_start: date | None = None,
 ) -> api.Notice:
     # 조회가 돌려준 차례를 믿지 않는다. 위 "배열의 차례" 설명 참고.
     ordered_categories = sorted(categories, key=_category_key)
     primary = next((c for c in ordered_categories if c.is_primary), None)
     secondary = [c for c in ordered_categories if not c.is_primary]
-    # 원문 날짜가 미래면 보이는 날짜만 "처음 본 시각"으로 바꾼다. 저장은 그대로 둔다.
-    shown = _shown_published(notice, now)
+    # 원문 날짜가 미래면 "처음 본 시각"으로, 범위보다 오래된 고정 공지면 범위 시작일로
+    # 보이는 날짜만 바꾼다. 저장은 그대로 둔다.
+    shown = _shown_published(notice, now, is_pinned=bool(item.is_pinned), window_start=window_start)
 
     audiences: list[api.Audience] = []
     for row, campus_name, org_name in sorted(audience_rows, key=_audience_key):
@@ -483,7 +487,13 @@ def newest_first(
     )
 
 
-def _shown_published(notice: m.Notice, now: datetime):
+def _shown_published(
+    notice: m.Notice,
+    now: datetime,
+    *,
+    is_pinned: bool = False,
+    window_start: date | None = None,
+):
     """이 공지를 화면에 어떤 발행일로 내보낼지 정한다."""
     return display_published(
         published_date=notice.published_date,
@@ -491,6 +501,8 @@ def _shown_published(notice: m.Notice, now: datetime):
         published_precision=notice.published_precision,
         first_visible_at=notice.first_visible_at,
         now=now,
+        is_pinned=is_pinned,
+        window_start=window_start,
     )
 
 
@@ -649,13 +661,18 @@ def _load_notices(
 
     floor = window_floor(window_start)
 
-    def within_window(notice: m.Notice) -> bool:
+    def within_window(notice: m.Notice, item: m.SourceItem) -> bool:
         """공개 범위 안인지 판정한다."""
         if is_future_published(
             published_date=notice.published_date, published_at=notice.published_at, now=now
         ):
             # 사용자 결정(2026-09-07): 미래 날짜 글도 공개한다. 보이는 날짜는 우리가 처음
             # 본 시각이 되고(_shown_published), 그 시각은 언제나 범위 안이다.
+            return True
+        if pinned_exempt(is_pinned=item.is_pinned, published_date=notice.published_date):
+            # 사용자 결정(2026-09-14): 게시판이 맨 위에 고정해 둔 글은 등록일이 범위보다
+            # 앞서도 공개한다. 보이는 날짜는 _shown_published 가 범위 시작일로 맞춘다.
+            # 하한은 PINNED_WINDOW_FLOOR 한 자리에만 적혀 있다(아래 총계 조회도 같은 값).
             return True
         # sqlite 는 시간대 없이 돌려주므로 먼저 UTC 로 정규화한다.
         published = as_utc(notice.published_at)
@@ -673,7 +690,7 @@ def _load_notices(
     dropped: list[str] = []
     kept: list[tuple[m.Notice, m.SourceItem, m.Source, str]] = []
     for notice, item, source, revision_id in rows:
-        if not within_window(notice):
+        if not within_window(notice, item):
             dropped.append(notice.id)
             continue
         kept.append((notice, item, source, revision_id))
@@ -699,6 +716,7 @@ def _load_notices(
                     last_checked=health.get(source.id),
                     now=now,
                     proxy_base=proxy_base,
+                    window_start=window_start,
                 ),
                 revision_id=revision_id,
                 body_text=body_text,
@@ -1724,6 +1742,13 @@ def refresh_public_status(
             m.Notice.published_at.is_(None),
             m.Notice.published_date.is_not(None),
         )
+        # 범위보다 오래된 고정 공지도 공개한다(사용자 결정 2026-09-14). within_window 의
+        # pinned_exempt 와 같은 규칙이어야 화면 숫자가 목록과 어긋나지 않는다.
+        pinned_kept = and_(
+            m.SourceItem.is_pinned.is_(True),
+            m.Notice.published_date.is_not(None),
+            m.Notice.published_date >= PINNED_WINDOW_FLOOR,
+        )
         if floor is None:
             notices_query = notices_query.where(
                 or_(m.Notice.published_at.is_not(None), by_date)
@@ -1733,6 +1758,7 @@ def refresh_public_status(
                 or_(
                     m.Notice.published_at >= floor,
                     and_(by_date, m.Notice.published_date >= window_start),
+                    pinned_kept,
                 )
             )
         notices_total = int(session.execute(notices_query).scalar() or 0)
