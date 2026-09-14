@@ -1,0 +1,588 @@
+{
+ "meta": {
+  "decided_at": "2026-09-14",
+  "note": "게시판 맨 위에 고정돼 있지만 발행일이 공개 하한(app.domain.dates.PINNED_WINDOW_FLOOR, 2025-01-01)보다 앞서 그대로 두면 안 보이는 공지 가운데, 사람이 읽어 보고 \"지금도 유효한 상시 규정·지침\"이라고 판단한 것만 개별 예외로 공개한다. 하한 자체는 그대로 두고 여기 적힌 글만 예외다.",
+  "how": "판정은 url 로만 한다. 공지 식별자(ntc-…)는 출처+원본 글 번호에서 결정론적으로 만들어져 재수집·재분류에는 버티지만, 등록부의 list_url 이 바뀌면 함께 바뀌고 중복 병합으로 이 글이 다른 공지에 흡수되면 숨김이 된다(운영 DB 에 병합 기록 1,290건이 실재한다). 원문 주소는 그 둘에 흔들리지 않고 사람이 눌러 확인할 수도 있다. notice_id 는 2026-09-14 실측값을 참고로 적어 둔 것이며 판정에 쓰지 않는다.",
+  "edit": "빼려면 줄을 지우고 더하려면 url·title·organization·published_date·why 를 채워 넣는다. url 은 source_items.canonical_url 과 글자 그대로 같아야 한다(app.domain.ids.canonical_url 로 정규화한 꼴). 여기 있는데 DB 에서 못 찾은 글은 내보내기가 회차마다 경고로 남긴다.",
+  "source": "조사 기록은 3.0 판 작업의 standing_rules.md 에 있다. 대상 83건 가운데 상시 64건이 이 파일이고, 애매 12건과 뺀 것 7건은 넣지 않았다.",
+  "count": 64
+ },
+ "notices": [
+  {
+   "url": "https://afd.khu.ac.kr/bbs/board.php?bo_table=06_02&wr_id=9",
+   "title": "* 증명 관련 서류 발급 안내 *",
+   "organization": "아트퓨전디자인대학원",
+   "source": "아트퓨전디자인대학원 일반공지",
+   "published_date": "2015-06-03",
+   "notice_id": "ntc-86408c2bab0f",
+   "why": "재·휴학증명서 발급 경로 세 가지를 적은 절차 안내. 지금도 같은 방식이다."
+  },
+  {
+   "url": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00040/view.do?boardId=65994&menuNo=600018",
+   "title": "수학과 장학 규정(2017학년도 1학기부터 적용)",
+   "organization": "수학과",
+   "source": "수학과 장학",
+   "published_date": "2017-02-07",
+   "notice_id": "ntc-a7a9cd3c5ace",
+   "why": "학과 장학 규정 본문. 적용 시점만 2017학년도고 폐지 표시가 없다."
+  },
+  {
+   "url": "https://abeek.khu.ac.kr/abeek/user/bbs/BMSR00040/view.do?boardId=177662&menuNo=6600010",
+   "title": "[국제] 공학교육인증프로그램 이수확인증 발급 안내",
+   "organization": "공학교육혁신센터",
+   "source": "공학교육혁신센터 커뮤니티",
+   "published_date": "2017-11-06",
+   "notice_id": "ntc-7ef56b4e4a81",
+   "why": "공학교육인증 이수확인증 발급 절차(재학생·졸업생 구분, 제출 서류)."
+  },
+  {
+   "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/view.do?boardId=534436&menuNo=21300017",
+   "title": "다전공(복수전공) 및 전과 희망자 필독 사항 (2023.08.14 버전)",
+   "organization": "소프트웨어융합학과",
+   "source": "소프트웨어융합학과 공지사항",
+   "published_date": "2018-09-06",
+   "notice_id": "ntc-67753a6d6271",
+   "why": "다전공·전과 희망자가 따라야 할 학과 절차. 제목에 2023.08.14 버전으로 갱신 표시."
+  },
+  {
+   "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/view.do?boardId=534603&menuNo=21300017",
+   "title": "성적조회 및 졸업진단 시, 수강과목 이수구분 확인 관련",
+   "organization": "소프트웨어융합학과",
+   "source": "소프트웨어융합학과 공지사항",
+   "published_date": "2019-07-08",
+   "notice_id": "ntc-8c3e4344a9dd",
+   "why": "이수구분 확인 방법과 오류 시 정정 요청 절차. 시스템 사용법 안내."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s7_2&wr_id=8",
+   "title": "[서울] 2026 메이커스페이스 3D Library 이용 안내",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 오픈랩 프로그램 공지",
+   "published_date": "2020-07-01",
+   "notice_id": "ntc-618dc12a1486",
+   "why": "메이커스페이스 이용 안내. 제목이 2026으로 갱신돼 있어 지금 판이다."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s7_2&wr_id=15",
+   "title": "[서울] 2026학년도 오픈랩 미디어 장비 대여 서비스 시행 안…",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 오픈랩 프로그램 공지",
+   "published_date": "2020-11-02",
+   "notice_id": "ntc-7c7bbab049ee",
+   "why": "오픈랩 미디어 장비 대여 안내. 제목이 2026학년도로 갱신돼 있다."
+  },
+  {
+   "url": "https://khusm.khu.ac.kr/bbs/board.php?bo_table=s6_1&wr_id=3243",
+   "title": "일반 | 의학관 내 강의실 위치 안내",
+   "organization": "의과대학·의학전문대학원",
+   "source": "의과대학·의학전문대학원 공지사항",
+   "published_date": "2021-05-06",
+   "notice_id": "ntc-32993f756f0e",
+   "why": "의학관 강의실 위치 안내. 건물이 그대로면 계속 쓰이는 시설 정보."
+  },
+  {
+   "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/view.do?boardId=535065&menuNo=21300017",
+   "title": "트랙 변경 신청 방법 및 주의 사항 (2021.09.01 이후)",
+   "organization": "소프트웨어융합학과",
+   "source": "소프트웨어융합학과 공지사항",
+   "published_date": "2021-08-18",
+   "notice_id": "ntc-5c1a5ea44939",
+   "why": "트랙 변경 신청 기간·절차를 정한 학과 규칙(2021.09.01 이후 적용)."
+  },
+  {
+   "url": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_06_01&wr_id=328",
+   "title": "기숙사 카드키 재발급 절차 안내 회원",
+   "organization": "법학전문대학원",
+   "source": "법학전문대학원 세진원 기숙사",
+   "published_date": "2021-10-01",
+   "notice_id": "ntc-ea940cabe3e0",
+   "why": "기숙사 카드키 재발급 절차."
+  },
+  {
+   "url": "https://soc.khu.ac.kr/soc/user/bbs/BMSR00040/view.do?boardId=157227&menuNo=1100015",
+   "title": "사회학과 교육과정 시행세칙 (2018~2022학년도)",
+   "organization": "사회학과",
+   "source": "사회학과 학과알림",
+   "published_date": "2022-01-05",
+   "notice_id": "ntc-25b97308a1f7",
+   "why": "학과 교육과정 시행세칙. 2018~2022학번에게는 지금도 적용된다."
+  },
+  {
+   "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/view.do?boardId=535185&menuNo=21300017",
+   "title": "SW융합캡스톤디자인 및 졸업논문 운영방안 (2022.01.10 버전)",
+   "organization": "소프트웨어융합학과",
+   "source": "소프트웨어융합학과 공지사항",
+   "published_date": "2022-01-10",
+   "notice_id": "ntc-e37b91adddea",
+   "why": "캡스톤디자인·졸업논문 운영방안과 동시 수강 부칙."
+  },
+  {
+   "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/view.do?boardId=169671&menuNo=4400060",
+   "title": "재수강제도 관련 변경사항 안내",
+   "organization": "경제학과",
+   "source": "경제학과 학부",
+   "published_date": "2022-02-16",
+   "notice_id": "ntc-709d6f42eb41",
+   "why": "재수강 제도 변경 안내. 학사제도라 학번이 바뀌어도 계속 본다."
+  },
+  {
+   "url": "https://che.khu.ac.kr/che/user/bbs/BMSR00040/view.do?boardId=251671&menuNo=12700036",
+   "title": "[학부] [중요] 아동가족학과 졸업논문 이수 지침 안내 (필독) (2022.03.01.)",
+   "organization": "경희대학교 생활과학대학",
+   "source": "경희대학교 생활과학대학 공지사항(아가)",
+   "published_date": "2022-04-07",
+   "notice_id": "ntc-8380f38a48d2",
+   "why": "졸업논문 이수 지침(2022.03.01). 대상·신청·심사 절차를 정한다."
+  },
+  {
+   "url": "https://khsma.khu.ac.kr/khsma/user/bbs/BMSR00040/view.do?boardId=191737&menuNo=500019",
+   "title": "정경대학관 상시 개방 공간 안내",
+   "organization": "정경대학",
+   "source": "정경대학 일반 공지",
+   "published_date": "2022-06-13",
+   "notice_id": "ntc-8d8b8f2a894a",
+   "why": "제목부터 상시 개방 공간 안내. 출입 시간과 카드키 등록 절차를 적었다."
+  },
+  {
+   "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/view.do?boardId=191801&menuNo=4400060",
+   "title": "경제학과 다전공 선발 기준 변경 안내",
+   "organization": "경제학과",
+   "source": "경제학과 학부",
+   "published_date": "2022-06-14",
+   "notice_id": "ntc-04d0bea0d6d4",
+   "why": "다전공 선발 지원자격과 배점을 바꾼 공고(2022학년도 2학기부터 시행)."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s7_2&wr_id=56",
+   "title": "[서울] 2026학년도 서울캠퍼스 오픈랩 공간 및 대여방법 안내",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 오픈랩 프로그램 공지",
+   "published_date": "2022-09-13",
+   "notice_id": "ntc-63627d94020d",
+   "why": "오픈랩 공간·대여 방법. 제목이 2026학년도로 갱신돼 있다."
+  },
+  {
+   "url": "https://afd.khu.ac.kr/bbs/board.php?bo_table=05_02&wr_id=2",
+   "title": "한 학기별 등록금은 얼마인가요? (2026학년도 등록금)",
+   "organization": "아트퓨전디자인대학원",
+   "source": "아트퓨전디자인대학원 Q&amp;A",
+   "published_date": "2023-01-09",
+   "notice_id": "ntc-2ff64c4e2074",
+   "why": "등록금 액수 Q&A. 본문이 2026학년도 기준으로 갱신돼 있다."
+  },
+  {
+   "url": "https://soc.khu.ac.kr/soc/user/bbs/BMSR00040/view.do?boardId=245743&menuNo=1100015",
+   "title": "★필독★ 사회학과 타전공과목 인정 학점 확대 안내",
+   "organization": "사회학과",
+   "source": "사회학과 학과알림",
+   "published_date": "2023-01-12",
+   "notice_id": "ntc-5c080447c7af",
+   "why": "타전공 과목 인정 학점을 12학점으로 넓힌 교육과정 개정. 모든 학번 소급."
+  },
+  {
+   "url": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_06_01&wr_id=349",
+   "title": "법학전문대학원 기숙사 이용수칙",
+   "organization": "법학전문대학원",
+   "source": "법학전문대학원 세진원 기숙사",
+   "published_date": "2023-02-13",
+   "notice_id": "ntc-d0d3b4efcfeb",
+   "why": "기숙사 이용수칙 전문(2019.09.01 개정 시행). 조문 그대로 실려 있다."
+  },
+  {
+   "url": "https://communication.khu.ac.kr/bbs/board.php?bo_table=notice&wr_id=27173",
+   "title": "외국인 유학생 대상 등록금 대리납부 및 환전사기 등 각종 피해사례 안내",
+   "organization": "미디어커뮤니케이션대학원",
+   "source": "미디어커뮤니케이션대학원 커뮤니티",
+   "published_date": "2023-02-15",
+   "notice_id": "ntc-8b49e0482463",
+   "why": "등록금 대리납부 금지와 사기 피해 예방. 위반 시 재납부·징계까지 적었다."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s7_2&wr_id=59",
+   "title": "[서울] 2026학년도 오픈랩 장비 가이드 매뉴얼 별첨",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 오픈랩 프로그램 공지",
+   "published_date": "2023-02-27",
+   "notice_id": "ntc-4e5b0044e109",
+   "why": "오픈랩 장비 매뉴얼. 제목이 2026학년도로 갱신돼 있다."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s7_2&wr_id=58",
+   "title": "[서울] 오픈랩 FAQ (자주받는 질문)",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 오픈랩 프로그램 공지",
+   "published_date": "2023-02-27",
+   "notice_id": "ntc-55367f57572b",
+   "why": "오픈랩 자주 묻는 질문. 이용자가 계속 찾는 안내."
+  },
+  {
+   "url": "https://maths.khu.ac.kr/maths/user/bbs/BMSR00040/view.do?boardId=247783&menuNo=600017",
+   "title": "졸업논문 수강 관련 안내",
+   "organization": "수학과",
+   "source": "수학과 학사",
+   "published_date": "2023-03-02",
+   "notice_id": "ntc-c3b6691f56b0",
+   "why": "졸업논문을 졸업시험 3과목으로 대체하는 학과 규정과 수강신청 요건."
+  },
+  {
+   "url": "https://econ.khu.ac.kr/econ/user/bbs/BMSR00040/view.do?boardId=253006&menuNo=4400060",
+   "title": "경제학과 교육과정 시행세칙",
+   "organization": "경제학과",
+   "source": "경제학과 학부",
+   "published_date": "2023-03-09",
+   "notice_id": "ntc-96e933d6b812",
+   "why": "학과 교육과정 시행세칙 위치 안내."
+  },
+  {
+   "url": "https://communication.khu.ac.kr/bbs/board.php?bo_table=notice&wr_id=27188",
+   "title": "외국인 유학생 대상 건강보험제도·납부의무 안내",
+   "organization": "미디어커뮤니케이션대학원",
+   "source": "미디어커뮤니케이션대학원 커뮤니티",
+   "published_date": "2023-03-20",
+   "notice_id": "ntc-9032066971ca",
+   "why": "외국인 유학생 건강보험 가입·납부 의무 안내. 제도 자체가 상시다."
+  },
+  {
+   "url": "http://gradsport.khu.ac.kr/bbs/board.php?bo_table=07_02&wr_id=1102",
+   "title": "체육대학관 주차 위반 차량 단속 안내",
+   "organization": "체육대학원",
+   "source": "체육대학원 일반공지",
+   "published_date": "2023-04-12",
+   "notice_id": "ntc-60131a6775d4",
+   "why": "체육대학관 주차 위반 단속 안내. 계속 적용되는 시설 운영 규칙."
+  },
+  {
+   "url": "https://amie.khu.ac.kr/amie/user/bbs/BMSR00040/view.do?boardId=316550&menuNo=17700015",
+   "title": "[학부] ** 졸업논문 ** 현장실습 대체 안내",
+   "organization": "신소재공학과",
+   "source": "신소재공학과 학생광장",
+   "published_date": "2023-06-02",
+   "notice_id": "ntc-15fac676f26e",
+   "why": "현장실습으로 졸업논문을 대체하는 요건(8주 이상, 학과장 사전 승인 등)."
+  },
+  {
+   "url": "https://afd.khu.ac.kr/bbs/board.php?bo_table=06_02&wr_id=29",
+   "title": "ChatGPT 활용 가이드라인",
+   "organization": "아트퓨전디자인대학원",
+   "source": "아트퓨전디자인대학원 일반공지",
+   "published_date": "2023-09-04",
+   "notice_id": "ntc-56b3351473f5",
+   "why": "ChatGPT 활용 가이드라인. 본문은 비었고 첨부가 본체다."
+  },
+  {
+   "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/view.do?boardId=330914&menuNo=17300015",
+   "title": "[학사] [필독] 교육과정 변경으로 인한 이수구분 변경 안내",
+   "organization": "기계공학부",
+   "source": "기계공학부 학생광장",
+   "published_date": "2023-09-19",
+   "notice_id": "ntc-4d99f44426b7",
+   "why": "교육과정 변경에 따른 이수구분 변경 신청 방법과 제한(4학년 졸업대상자만)."
+  },
+  {
+   "url": "https://mediacom.khu.ac.kr/media/user/bbs/BMSR00040/view.do?boardId=281454&menuNo=4600044",
+   "title": "외국인 유학생 개인정보 업데이트(Info21) 안내",
+   "organization": "언론정보학과",
+   "source": "언론정보학과 학사 공지",
+   "published_date": "2023-10-11",
+   "notice_id": "ntc-d22ed7b012a3",
+   "why": "유학생 개인정보 업데이트 요청과 수정 항목. 체류관리에 계속 필요하다."
+  },
+  {
+   "url": "https://ois.khu.ac.kr/ois/user/bbs/BMSR00040/view.do?boardId=469982&menuNo=14000022",
+   "title": "웹메일 용량 쿼터제 시행 및 장기 미사용계정 삭제 안내",
+   "organization": "경희대학교 정보처",
+   "source": "경희대학교 정보처 공지 및 FAQ",
+   "published_date": "2023-12-05",
+   "notice_id": "ntc-0a8e37e59a27",
+   "why": "웹메일 신분별 쿼터 용량과 장기 미사용 계정 삭제 정책."
+  },
+  {
+   "url": "https://swcon.khu.ac.kr/swcon/user/bbs/BMSR00040/view.do?boardId=535909&menuNo=21300017",
+   "title": "소프트웨어융합학과 신입생 로드맵 (자유전공 참조)",
+   "organization": "소프트웨어융합학과",
+   "source": "소프트웨어융합학과 공지사항",
+   "published_date": "2024-01-25",
+   "notice_id": "ntc-56fbb98082fe",
+   "why": "학과 신입생 로드맵. 수강신청·트랙 선택까지 이어지는 안내."
+  },
+  {
+   "url": "https://pnc.khu.ac.kr/pnc/user/bbs/BMSR00049/view.do?boardId=299680&menuNo=800202",
+   "title": "사회복지사 2급 자격증 취득 과정 필수 및 선택 이수과목 안내",
+   "organization": "공공대학원",
+   "source": "공공대학원 커뮤니티",
+   "published_date": "2024-02-05",
+   "notice_id": "ntc-32b64a4eb25d",
+   "why": "사회복지사 2급 필수·선택 이수과목. 자격 요건이라 계속 본다."
+  },
+  {
+   "url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=05_06_01&wr_id=26",
+   "title": "체육대학 우수장학 지급 관련 안내",
+   "organization": "체육대학",
+   "source": "체육대학 장학안내",
+   "published_date": "2024-02-13",
+   "notice_id": "ntc-dd2f501807e1",
+   "why": "우수·모범장학 수혜 조건(교내장학 신청 필수 등)과 석차 산정 기준."
+  },
+  {
+   "url": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_06_01&wr_id=367",
+   "title": "기숙사 관리실 운영시간 및 주소 관련 안내",
+   "organization": "법학전문대학원",
+   "source": "법학전문대학원 세진원 기숙사",
+   "published_date": "2024-02-22",
+   "notice_id": "ntc-03330349a5e5",
+   "why": "기숙사 관리실 운영시간과 택배 주소."
+  },
+  {
+   "url": "https://ice.khu.ac.kr/ice/user/bbs/BMSR00040/view.do?boardId=247932&menuNo=5700037",
+   "title": "경희대학교 평생교육원(글로벌관) 오시는 길",
+   "organization": "평생교육원",
+   "source": "평생교육원 학점은행제",
+   "published_date": "2024-02-29",
+   "notice_id": "ntc-8c32bd382a06",
+   "why": "평생교육원 찾아오는 길."
+  },
+  {
+   "url": "https://che.khu.ac.kr/che/user/bbs/BMSR00040/view.do?boardId=331842&menuNo=12700079",
+   "title": "[학부] [중요/필독] 전공기초 과목 폐지로 인한 대체 인정 과목 안내",
+   "organization": "경희대학교 생활과학대학",
+   "source": "경희대학교 생활과학대학 공지사항(식영)",
+   "published_date": "2024-03-06",
+   "notice_id": "ntc-c501b21603df",
+   "why": "폐지된 전공기초 과목의 대체 인정 과목과 신청 방법."
+  },
+  {
+   "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/view.do?boardId=335380&menuNo=17300015",
+   "title": "[장학] 기계공학과 장학내규(2024.03 개정)",
+   "organization": "기계공학부",
+   "source": "기계공학부 학생광장",
+   "published_date": "2024-03-12",
+   "notice_id": "ntc-e080d81a94bd",
+   "why": "학과 장학내규(2024.03 개정)."
+  },
+  {
+   "url": "https://pnc.khu.ac.kr/pnc/user/bbs/BMSR00049/view.do?boardId=395305&menuNo=800202",
+   "title": "공공대학원 내규 개정(현장연수 폐지 안내)",
+   "organization": "공공대학원",
+   "source": "공공대학원 커뮤니티",
+   "published_date": "2024-03-22",
+   "notice_id": "ntc-a710d58e3a4d",
+   "why": "대학원 내규 개정으로 현장연수 이수가 폐지됐다는 안내(2024.03.01 개정)."
+  },
+  {
+   "url": "https://ee.khu.ac.kr/ee25/user/bbs/BMSR00040/view.do?boardId=403566&menuNo=21700019",
+   "title": "[공지] 출석인정사유 및 출석인정신청서",
+   "organization": "전자공학부",
+   "source": "전자공학부 학사/장학",
+   "published_date": "2024-03-29",
+   "notice_id": "ntc-61120fe0f5f2",
+   "why": "출석인정 사유표와 신청서. 2024년 개정 내용이 반영된 판이다."
+  },
+  {
+   "url": "https://me.khu.ac.kr/me/user/bbs/BMSR00040/view.do?boardId=403917&menuNo=17300015",
+   "title": "[학사] 전자출결시스템의 공결 출석신청 및 출석인정 전산화 시행 안내",
+   "organization": "기계공학부",
+   "source": "기계공학부 학생광장",
+   "published_date": "2024-04-01",
+   "notice_id": "ntc-0179abfd1d33",
+   "why": "공결 출석신청 전산화 시행 안내와 출석인정 항목표."
+  },
+  {
+   "url": "https://archi.khu.ac.kr/archi/user/bbs/BMSR00040/view.do?boardId=404978&menuNo=18100018",
+   "title": "[일반] 설계동 출력실 및 모형제작실 운영안내 +모형제작실 사용 안내서",
+   "organization": "건축학과",
+   "source": "건축학과 학생광장",
+   "published_date": "2024-04-09",
+   "notice_id": "ntc-4b72b11be4d0",
+   "why": "출력실·모형제작실 운영시간과 결제 방식 등 이용 규칙."
+  },
+  {
+   "url": "https://che.khu.ac.kr/che/user/bbs/BMSR00040/view.do?boardId=413046&menuNo=12700079",
+   "title": "[학부] [중요] 식품영양학과 캡스톤디자인 개설 안내",
+   "organization": "경희대학교 생활과학대학",
+   "source": "경희대학교 생활과학대학 공지사항(식영)",
+   "published_date": "2024-05-13",
+   "notice_id": "ntc-d78412eca2dd",
+   "why": "캡스톤디자인이 학기마다 어떤 이름으로 열리는지. 수강 계획에 계속 쓰인다."
+  },
+  {
+   "url": "https://zhongwen.khu.ac.kr/zhongwen/user/bbs/BMSR00040/view.do?boardId=413086&menuNo=2300011",
+   "title": "[신/편입생, 재학생 모두 필독] 입학부터 졸업시까지 중국어학과 전공생이라면 필히 알아두어야 할 학사 행정 (2026.06.30 updated)",
+   "organization": "중국어학과",
+   "source": "중국어학과 공지사항",
+   "published_date": "2024-05-13",
+   "notice_id": "ntc-689820e65da0",
+   "why": "입학부터 졸업까지 학과 학사 행정 총정리. 제목이 2026.06.30 갱신."
+  },
+  {
+   "url": "http://sports.khu.ac.kr/bbs/board.php?bo_table=05_01&wr_id=2135",
+   "title": "공지) 보험 관련 서류 안내 (24.05.31 이후)",
+   "organization": "체육대학",
+   "source": "체육대학 학사 공지",
+   "published_date": "2024-07-01",
+   "notice_id": "ntc-3814fcedc99f",
+   "why": "학생 보험 보상한도·인정기간·제출 서류(24.05.31 이후 기준)."
+  },
+  {
+   "url": "https://hot.khu.ac.kr/hot20_kor/user/bbs/BMSR00040/view.do?boardId=448172&menuNo=10900193",
+   "title": "[중요!!] 교환학생 학점 인정 관련 기준 안내",
+   "organization": "호텔관광대학",
+   "source": "호텔관광대학 국제화 공지사항",
+   "published_date": "2024-07-08",
+   "notice_id": "ntc-99559790a94a",
+   "why": "교환학생 학점 인정 기준과 Learning Agreement 절차."
+  },
+  {
+   "url": "https://ne.khu.ac.kr/ne/user/bbs/BMSR00040/view.do?boardId=448555&menuNo=17500023",
+   "title": "[장학] [장학]원자력공학과 장학 규정 변경 (2024.09.01 시행)",
+   "organization": "원자력공학과",
+   "source": "원자력공학과 게시판",
+   "published_date": "2024-07-12",
+   "notice_id": "ntc-a340288adc2c",
+   "why": "학부 장학금 규정(2024.09.01 시행)."
+  },
+  {
+   "url": "https://eduseoul.khu.ac.kr/edu_seoul/user/bbs/BMSR00040/view.do?boardId=452956&menuNo=12800124",
+   "title": "교육자과정 학생증(비금융) 신청 방법 안내",
+   "organization": "교육대학원 서울 캠퍼스",
+   "source": "교육대학원 서울 캠퍼스 전문교육자과정",
+   "published_date": "2024-09-01",
+   "notice_id": "ntc-664cb806219b",
+   "why": "학생증 신청 방법. 본문 신청 기간이 2026년으로 갱신돼 있다."
+  },
+  {
+   "url": "https://tourism.khu.ac.kr/bbs/board.php?bo_table=s5_1_1&wr_id=1279",
+   "title": "통합앱 및 모바일학생증 앱 설치 안내",
+   "organization": "관광대학원",
+   "source": "관광대학원 일반 공지",
+   "published_date": "2024-09-05",
+   "notice_id": "ntc-0c157643055a",
+   "why": "통합앱·모바일학생증 설치 안내."
+  },
+  {
+   "url": "https://communication.khu.ac.kr/bbs/board.php?bo_table=notice&wr_id=27405",
+   "title": "경희통합앱 신규 출시 및 설치 안내",
+   "organization": "미디어커뮤니케이션대학원",
+   "source": "미디어커뮤니케이션대학원 커뮤니티",
+   "published_date": "2024-09-06",
+   "notice_id": "ntc-812d390839fe",
+   "why": "경희 통합앱 주요 기능과 설치 방법."
+  },
+  {
+   "url": "https://pnc.khu.ac.kr/pnc/user/bbs/BMSR00049/view.do?boardId=452924&menuNo=800202",
+   "title": "[필수설치] 경희대학교 통합 앱 및 알림수신동의 방법 안내",
+   "organization": "공공대학원",
+   "source": "공공대학원 커뮤니티",
+   "published_date": "2024-09-06",
+   "notice_id": "ntc-e8a8c14f8162",
+   "why": "통합앱 설치와 알림수신동의 방법. 제목에 필수설치."
+  },
+  {
+   "url": "https://law.khu.ac.kr/bbs/board.php?bo_table=08_02_01&wr_id=1722",
+   "title": "실습과정 이수학점 신청 및 규정 안내(2025. 11. 11.)",
+   "organization": "법학전문대학원",
+   "source": "법학전문대학원 학생지도센터",
+   "published_date": "2024-10-02",
+   "notice_id": "ntc-c2aec9d0de3f",
+   "why": "실습과정 이수학점 신청 규정. 제목의 갱신일이 2025.11.11 로 최근이다."
+  },
+  {
+   "url": "https://globaleminence.khu.ac.kr/globaleminence/user/bbs/BMSR00040/view.do?boardId=458035&menuNo=19100012",
+   "title": "[공통] [학사] 출석인정에 관한 규정 및 절차 안내",
+   "organization": "자율전공학부",
+   "source": "자율전공학부 공지사항",
+   "published_date": "2024-10-15",
+   "notice_id": "ntc-ee9227d782b1",
+   "why": "출석인정에 관한 규정과 절차(시행일 2024.03.01). 항목표 전문."
+  },
+  {
+   "url": "https://globaleminence.khu.ac.kr/globaleminence/user/bbs/BMSR00040/view.do?boardId=458068&menuNo=19100012",
+   "title": "[글로벌비즈니스] [기타] (중요!/重要!) 등록금 납부 시 사설환전소 이용 금지 / 缴纳学费私人换钱所禁止使用",
+   "organization": "자율전공학부",
+   "source": "자율전공학부 공지사항",
+   "published_date": "2024-10-15",
+   "notice_id": "ntc-f667d32166f3",
+   "why": "등록금 납부 시 사설환전소 이용 금지 지침."
+  },
+  {
+   "url": "https://globaleminence.khu.ac.kr/globaleminence/user/bbs/BMSR00040/view.do?boardId=458057&menuNo=19100012",
+   "title": "[공통] [학사] 생리공결제도 운영지침 개정 안내",
+   "organization": "자율전공학부",
+   "source": "자율전공학부 공지사항",
+   "published_date": "2024-10-15",
+   "notice_id": "ntc-01158b6e1014",
+   "why": "생리공결제도 운영지침 조문(시행일 2021.03.01)."
+  },
+  {
+   "url": "https://globaleminence.khu.ac.kr/globaleminence/user/bbs/BMSR00040/view.do?boardId=458045&menuNo=19100012",
+   "title": "[공통] [학사] 조기취업자 출석인정에 관한 지침 안내",
+   "organization": "자율전공학부",
+   "source": "자율전공학부 공지사항",
+   "published_date": "2024-10-15",
+   "notice_id": "ntc-73e957e84086",
+   "why": "조기취업자 출석인정 지침 조문(시행일 2024.3.1)."
+  },
+  {
+   "url": "https://globaleminence.khu.ac.kr/globaleminence/user/bbs/BMSR00040/view.do?boardId=458349&menuNo=19100012",
+   "title": "[공통] 학생자치활동지원 신청안내 (신규양식 - 2024.10)",
+   "organization": "자율전공학부",
+   "source": "자율전공학부 공지사항",
+   "published_date": "2024-10-15",
+   "notice_id": "ntc-554e7fef8551",
+   "why": "학생자치활동 지원 신청 절차와 신규 양식(2024.10)."
+  },
+  {
+   "url": "https://globaleminence.khu.ac.kr/globaleminence/user/bbs/BMSR00040/view.do?boardId=458058&menuNo=19100012",
+   "title": "[공통] [학사] 재수강제도 변경 안내",
+   "organization": "자율전공학부",
+   "source": "자율전공학부 공지사항",
+   "published_date": "2024-10-16",
+   "notice_id": "ntc-b6ca209c06a6",
+   "why": "재수강 제도 변경 안내. 학사제도라 계속 적용된다."
+  },
+  {
+   "url": "https://dance.khu.ac.kr/dance/user/bbs/BMSR00041/view.do?boardId=458651&menuNo=300046",
+   "title": "자동심장충격기 설치 위치 및 심정지환자 대응방법 안내",
+   "organization": "무용학부",
+   "source": "무용학부 기타 공지",
+   "published_date": "2024-10-21",
+   "notice_id": "ntc-aa6d6c8f71c8",
+   "why": "자동심장충격기 설치 위치와 심정지 대응 방법. 안전 정보."
+  },
+  {
+   "url": "https://isss.khu.ac.kr/globalcenter/user/bbs/BMSR00040/view.do?boardId=461441&menuNo=7900065",
+   "title": "[서울_SEOUL] 외국인 유학생 개인 심리 상담 신청",
+   "organization": "국제처 글로벌교육지원팀",
+   "source": "국제처 글로벌교육지원팀 일반사항 · General",
+   "published_date": "2024-11-15",
+   "notice_id": "ntc-388314672755",
+   "why": "유학생 심리상담 창구. 위치·운영시간·연락처만 적힌 상시 안내."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s2_5&wr_id=307",
+   "title": "서울 | [‼️ 필독] 미래인재센터 프로그램 수료 및 페널티 기준 변경 안내",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 사회진출 프로그램 공지",
+   "published_date": "2024-11-28",
+   "notice_id": "ntc-2ac141cf5ea3",
+   "why": "프로그램 수료 인정과 페널티 기준. 참가 전에 계속 봐야 한다."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s4_1&wr_id=3449",
+   "title": "서울 | ⭐'현직자 동문 멘토 등록' 안내⭐",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 게시판",
+   "published_date": "2024-12-20",
+   "notice_id": "ntc-f8de5b3d2134",
+   "why": "동문 멘토 상시 등록 안내."
+  },
+  {
+   "url": "https://goodjob.khu.ac.kr/bbs/board.php?bo_table=s4_1&wr_id=3450",
+   "title": "서울 | ✔️동문 멘토링 신청 안내",
+   "organization": "미래인재센터",
+   "source": "미래인재센터 게시판",
+   "published_date": "2024-12-20",
+   "notice_id": "ntc-dd9c73c075c3",
+   "why": "동문 멘토링 신청 안내. 7번의 최신판으로 보인다."
+  }
+ ]
+}

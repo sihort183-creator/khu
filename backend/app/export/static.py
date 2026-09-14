@@ -68,6 +68,7 @@ from app.domain.dates import (
     utcnow,
 )
 from app.domain.images import extract_images, poster_image
+from app.domain.pinned_exceptions import exception_urls, warn_unmatched
 from app.export.state import (
     EXPORT_FORMAT_VERSION,
     STATE_PREFIX,
@@ -376,6 +377,7 @@ def _build_notice(
     now: datetime,
     proxy_base: str = "",
     window_start: date | None = None,
+    pinned_exceptions: frozenset[str] = frozenset(),
 ) -> api.Notice:
     # 조회가 돌려준 차례를 믿지 않는다. 위 "배열의 차례" 설명 참고.
     ordered_categories = sorted(categories, key=_category_key)
@@ -383,7 +385,14 @@ def _build_notice(
     secondary = [c for c in ordered_categories if not c.is_primary]
     # 원문 날짜가 미래면 "처음 본 시각"으로, 범위보다 오래된 고정 공지면 범위 시작일로
     # 보이는 날짜만 바꾼다. 저장은 그대로 둔다.
-    shown = _shown_published(notice, now, is_pinned=bool(item.is_pinned), window_start=window_start)
+    shown = _shown_published(
+        notice,
+        now,
+        is_pinned=bool(item.is_pinned),
+        window_start=window_start,
+        canonical_url=item.canonical_url,
+        pinned_exceptions=pinned_exceptions,
+    )
 
     audiences: list[api.Audience] = []
     for row, campus_name, org_name in sorted(audience_rows, key=_audience_key):
@@ -493,6 +502,8 @@ def _shown_published(
     *,
     is_pinned: bool = False,
     window_start: date | None = None,
+    canonical_url: str | None = None,
+    pinned_exceptions: frozenset[str] = frozenset(),
 ):
     """이 공지를 화면에 어떤 발행일로 내보낼지 정한다."""
     return display_published(
@@ -503,6 +514,8 @@ def _shown_published(
         now=now,
         is_pinned=is_pinned,
         window_start=window_start,
+        canonical_url=canonical_url,
+        pinned_exceptions=pinned_exceptions,
     )
 
 
@@ -660,6 +673,8 @@ def _load_notices(
     rows = list(_run(rows_query, m.Notice.id))
 
     floor = window_floor(window_start)
+    # 예외 목록은 회차마다 한 번만 읽는다. 판정 함수는 파일을 모른다.
+    pinned_exceptions = exception_urls()
 
     def within_window(notice: m.Notice, item: m.SourceItem) -> bool:
         """공개 범위 안인지 판정한다."""
@@ -669,10 +684,17 @@ def _load_notices(
             # 사용자 결정(2026-09-07): 미래 날짜 글도 공개한다. 보이는 날짜는 우리가 처음
             # 본 시각이 되고(_shown_published), 그 시각은 언제나 범위 안이다.
             return True
-        if pinned_exempt(is_pinned=item.is_pinned, published_date=notice.published_date):
+        if pinned_exempt(
+            is_pinned=item.is_pinned,
+            published_date=notice.published_date,
+            canonical_url=item.canonical_url,
+            exceptions=pinned_exceptions,
+        ):
             # 사용자 결정(2026-09-14): 게시판이 맨 위에 고정해 둔 글은 등록일이 범위보다
-            # 앞서도 공개한다. 보이는 날짜는 _shown_published 가 범위 시작일로 맞춘다.
-            # 하한은 PINNED_WINDOW_FLOOR 한 자리에만 적혀 있다(아래 총계 조회도 같은 값).
+            # 앞서도 공개한다. 하한 위면 고정됐다는 것만으로, 하한 아래면 사람이 고른
+            # 예외 목록에 있을 때만이다. 보이는 날짜는 _shown_published 가 범위 시작일로
+            # 맞춘다. 하한은 PINNED_WINDOW_FLOOR 한 자리에만, 목록은
+            # registry/pinned_exceptions.json 한 자리에만 있다(아래 총계 조회도 같은 값).
             return True
         # sqlite 는 시간대 없이 돌려주므로 먼저 UTC 로 정규화한다.
         published = as_utc(notice.published_at)
@@ -717,6 +739,7 @@ def _load_notices(
                     now=now,
                     proxy_base=proxy_base,
                     window_start=window_start,
+                    pinned_exceptions=pinned_exceptions,
                 ),
                 revision_id=revision_id,
                 body_text=body_text,
@@ -1743,11 +1766,20 @@ def refresh_public_status(
             m.Notice.published_date.is_not(None),
         )
         # 범위보다 오래된 고정 공지도 공개한다(사용자 결정 2026-09-14). within_window 의
-        # pinned_exempt 와 같은 규칙이어야 화면 숫자가 목록과 어긋나지 않는다.
+        # pinned_exempt 와 같은 규칙이어야 화면 숫자가 목록과 어긋나지 않는다. 하한 위면
+        # 고정됐다는 것만으로, 하한 아래면 사람이 고른 예외 목록에 있을 때만이다.
+        #
+        # 예외 주소는 64개뿐이라 덩어리 하나에 다 들어간다. 그래도 in_chunks 를 쓰는
+        # 것은 문장 길이를 사다리 칸(1·2·4…)에 맞춰 pg_stat_statements 에 항목이
+        # 쌓이지 않게 하려는 것이다(app/storage/db.py 의 설명 참고).
+        exception_chunks = in_chunks(sorted(exception_urls()))
         pinned_kept = and_(
             m.SourceItem.is_pinned.is_(True),
             m.Notice.published_date.is_not(None),
-            m.Notice.published_date >= PINNED_WINDOW_FLOOR,
+            or_(
+                m.Notice.published_date >= PINNED_WINDOW_FLOOR,
+                *(m.SourceItem.canonical_url.in_(chunk) for chunk in exception_chunks),
+            ),
         )
         if floor is None:
             notices_query = notices_query.where(
@@ -1762,6 +1794,25 @@ def refresh_public_status(
                 )
             )
         notices_total = int(session.execute(notices_query).scalar() or 0)
+        # 예외 목록에 적혔는데 실제로는 못 짚은 줄을 회차마다 큰 소리로 남긴다. 주소가
+        # 어긋났거나 글이 지워졌거나 중복 병합으로 다른 공지에 흡수된 경우인데, 조용히
+        # 넘기면 나중에 아무도 모른다. 목록을 고치는 것은 사람 몫이라 여기서 고치지 않는다.
+        found: set[str] = set()
+        for chunk in exception_chunks:
+            found.update(
+                session.execute(
+                    select(m.SourceItem.canonical_url)
+                    .join(m.Notice, m.Notice.primary_source_item_id == m.SourceItem.id)
+                    .join(m.Source, m.Source.id == m.SourceItem.source_id)
+                    .where(
+                        m.SourceItem.canonical_url.in_(chunk),
+                        m.SourceItem.is_pinned.is_(True),
+                        m.Notice.status == "visible",
+                        m.Source.is_public.is_(True),
+                    )
+                ).scalars()
+            )
+        warn_unmatched(found)
         contacts_total = int(
             session.execute(
                 select(func.count(m.ContactEntry.id)).where(

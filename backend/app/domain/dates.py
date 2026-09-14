@@ -200,13 +200,29 @@ class DisplayPublished:
 PINNED_WINDOW_FLOOR = date(2025, 1, 1)
 
 
-def pinned_exempt(*, is_pinned: bool, published_date: date | None) -> bool:
+def pinned_exempt(
+    *,
+    is_pinned: bool,
+    published_date: date | None,
+    canonical_url: str | None = None,
+    exceptions: frozenset[str] = frozenset(),
+) -> bool:
     """수집 범위보다 오래된 이 고정 공지를 공개 예외로 볼 것인가.
 
     범위 안에 있는 글에는 아무 뜻이 없다(어차피 공개된다). 범위 밖 글에만 묻는다.
-    발행일을 모르면 하한과 견줄 수 없으므로 예외로 보지 않는다.
+    발행일을 모르면 하한과도 목록과도 견줄 수 없으므로 예외로 보지 않는다.
+
+    하한 위면 고정돼 있다는 것만으로 공개한다. 하한 아래는 사람이 읽고 고른 것만
+    공개한다(사용자 결정 2026-09-14). 그 목록이 ``exceptions`` 로, 원문 주소를 담은
+    집합이다. 왜 목록을 데이터로 두고 왜 식별자가 아니라 주소로 짚는지는
+    app.domain.pinned_exceptions 에 적어 두었다. 이 함수는 파일을 읽지 않는다 —
+    부르는 쪽이 회차마다 한 번만 읽어 넘긴다.
     """
-    return bool(is_pinned) and published_date is not None and published_date >= PINNED_WINDOW_FLOOR
+    if not is_pinned or published_date is None:
+        return False
+    if published_date >= PINNED_WINDOW_FLOOR:
+        return True
+    return bool(canonical_url) and canonical_url in exceptions
 
 
 def is_future_published(
@@ -236,6 +252,8 @@ def display_published(
     now: datetime,
     is_pinned: bool = False,
     window_start: date | None = None,
+    canonical_url: str | None = None,
+    pinned_exceptions: frozenset[str] = frozenset(),
 ) -> DisplayPublished:
     """화면에 보일 발행일을 정한다.
 
@@ -251,7 +269,8 @@ def display_published(
     **둘. 수집 범위보다 오래된 고정 공지.** 사용자 결정(2026-09-14)에 따라 공개하되
     보이는 날짜는 **범위 시작일**(2026-03-01)로 맞춘다. 시각은 두지 않는다 —
     그날 실제로 올라온 글보다 위에 앉으면 안 되기 때문이다(시각 없는 글은 그날의
-    맨 아래로 간다, static.UNKNOWN_TIME 참고).
+    맨 아래로 간다, static.UNKNOWN_TIME 참고). 하한 아래라 예외 목록으로 공개하는
+    글도 똑같이 다룬다. 공개하는 길이 둘이어도 보이는 날짜 규칙은 하나다.
     """
     if first_visible_at is not None and is_future_published(
         published_date=published_date, published_at=published_at, now=now
@@ -264,7 +283,12 @@ def display_published(
         window_start is not None
         and published_date is not None
         and published_date < window_start
-        and pinned_exempt(is_pinned=is_pinned, published_date=published_date)
+        and pinned_exempt(
+            is_pinned=is_pinned,
+            published_date=published_date,
+            canonical_url=canonical_url,
+            exceptions=pinned_exceptions,
+        )
     ):
         return DisplayPublished(date=window_start, at=None, precision="date", adjusted=True)
     return DisplayPublished(

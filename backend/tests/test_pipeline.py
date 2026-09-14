@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from functools import cmp_to_key
@@ -17,8 +18,9 @@ from sqlalchemy import select
 
 from app.config import Settings
 from app.contracts import models as api
+from app.domain import pinned_exceptions
 from app.domain.dates import KST
-from app.export.static import export_static
+from app.export.static import export_static, refresh_public_status
 from app.ingestion.http import Fetcher
 from app.run.collect import TimeBudget, collect_source, run_dedupe_pass
 from app.storage import models as m
@@ -518,6 +520,138 @@ def test_old_pinned_notice_is_published_at_the_window_start(seeded, settings, st
     # DB 의 원문 날짜는 그대로다. 내보낼 때만 바꾼다.
     session.expire_all()
     assert session.get(m.Notice, pinned_old.id).published_date == date(2026, 2, 23)
+
+
+def test_only_pinned_notices_on_the_exception_list_get_past_the_floor(
+    seeded, settings, store, board_fixture, tmp_path, caplog, monkeypatch
+):
+    """하한보다 오래된 고정 공지는 사람이 고른 목록에 있을 때만 공개한다.
+
+    사용자 결정(2026-09-14). 하한(PINNED_WINDOW_FLOOR) 아래 83건에는
+    "소프트웨어융합학과 다전공 필독 사항"(2018) 같은 현행 규정과 "2020 QS 세계대학평가"
+    같은 지난 소식이 섞여 있어 기계로는 가릴 수 없다. 그래서 registry/pinned_exceptions.json
+    에 적힌 것만 공개한다. 목록에 없는 것은 고정돼 있어도 그대로 안 보인다.
+
+    보이는 날짜 규칙은 하한을 넘긴 고정 공지와 똑같다. 공개하는 길이 둘이어도
+    화면에 보이는 날짜는 범위 시작일 하나다.
+    """
+    session, source = seeded
+    asyncio.run(_collect(settings, session, source, store, _transport(board_fixture)))
+    session.commit()
+
+    notices = session.execute(select(m.Notice).order_by(m.Notice.id)).scalars().all()
+    assert len(notices) >= 3
+    listed_old, skipped_old, recent = notices[:3]
+    for notice in notices[3:]:
+        notice.status = "hidden"
+
+    def pin(notice: m.Notice, *, published: date, pinned: bool) -> str:
+        notice.published_date = published
+        notice.published_at = None
+        notice.published_precision = "date"
+        notice.first_visible_at = datetime(2026, 9, 14, 1, 0, tzinfo=UTC)
+        item = session.get(m.SourceItem, notice.primary_source_item_id)
+        item.is_pinned = pinned
+        return item.canonical_url
+
+    # 둘 다 고정이고 둘 다 하한(2025-01-01)보다 한참 오래됐다. 갈리는 것은 목록뿐이다.
+    listed_url = pin(listed_old, published=date(2018, 9, 6), pinned=True)
+    pin(skipped_old, published=date(2020, 3, 13), pinned=True)
+    pin(recent, published=date(2026, 5, 20), pinned=False)
+    session.commit()
+
+    # 목록에는 이 글 하나와, 일부러 어디에도 없는 주소 하나를 적는다. 뒤엣것은 주소가
+    # 어긋났거나 글이 지워진 경우로, 조용히 넘기지 않고 경고를 남기는지 보려는 것이다.
+    gone = "https://example.invalid/board/view.do?boardId=99999"
+    listing = tmp_path / "pinned_exceptions.json"
+    listing.write_text(
+        json.dumps(
+            {
+                "notices": [
+                    {
+                        "url": listed_url,
+                        "title": "다전공 및 전과 희망자 필독 사항",
+                        "organization": "소프트웨어융합학과",
+                        "published_date": "2018-09-06",
+                    },
+                    {
+                        "url": gone,
+                        "title": "사라진 글",
+                        "organization": "어딘가",
+                        "published_date": "2019-01-01",
+                    },
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(pinned_exceptions, "EXCEPTIONS_PATH", listing)
+    pinned_exceptions.load_exceptions.cache_clear()
+
+    try:
+        windowed = replace(settings, initial_window_start=date(2026, 3, 1))
+        result = export_static(windowed, run_id="run-pinnedex", store=store)
+        pointer = json.loads(_read_export(store, settings.r2.bucket_public, "v1/latest.json"))
+        base = pointer["base_path"]
+        page = json.loads(
+            _read_export(store, settings.r2.bucket_public, f"{base}/notices/page/1.json")
+        )
+        # 알렘빅을 쓰는 다른 검사(test_collection_migration)가 Config 를 만들 때
+        # logging.config.fileConfig 가 돌면서 그때까지 만들어진 로거를 모두 꺼 버린다
+        # (disable_existing_loggers 기본값이 True 다). 파일 하나만 돌리면 안 겪고 전체를
+        # 돌리면 겪는 차이가 여기서 난다. 운영에서는 알렘빅과 내보내기가 같은 프로세스에
+        # 있지 않으므로 검사 쪽에서만 되살린다.
+        logging.getLogger("khu.domain.pinned").disabled = False
+
+        # 공개 총계는 같은 규칙을 SQL 로 다시 쓴 자리다. 목록과 어긋나면 안 된다.
+        with caplog.at_level(logging.WARNING, logger="khu.domain.pinned"):
+            refresh_public_status(windowed, revision=result.revision, store=store)
+        status = json.loads(_read_export(store, settings.r2.bucket_public, "v1/status.json"))
+    finally:
+        pinned_exceptions.load_exceptions.cache_clear()
+
+    listed = {n["id"]: n for n in page["data"]}
+    # 목록에 든 것만 넘어온다. 같은 하한 아래 고정 공지라도 목록에 없으면 그대로다.
+    assert set(listed) == {listed_old.id, recent.id}
+    assert result.notices == 2
+    # 화면 숫자도 같은 기준이다. 목록에는 있는데 숫자에는 없는 상태를 만들지 않는다.
+    assert status["notices_total"] == 2
+
+    shown = listed[listed_old.id]
+    assert shown["published_adjusted"] is True
+    assert shown["published_date"] == "2026-03-01"
+    assert shown["published_at"] is None
+    assert shown["original_published_date"] == "2018-09-06"
+
+    # 목록에 없는 고정 공지는 상세 주소로도 열리지 않는다.
+    with pytest.raises(FileNotFoundError):
+        _read_export(store, settings.r2.bucket_public, f"{base}/notices/{skipped_old.id}.json")
+
+    # 못 찾은 줄은 큰 소리로 남긴다. 조용히 사라지면 나중에 아무도 모른다.
+    warnings = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
+    assert any(gone in message and "사라진 글" in message for message in warnings), warnings
+    # 잘 찾은 줄까지 경고에 끌어들이지는 않는다.
+    assert not any(listed_url in message for message in warnings), warnings
+
+    # DB 의 원문 날짜는 그대로다. 내보낼 때만 바꾼다.
+    session.expire_all()
+    assert session.get(m.Notice, listed_old.id).published_date == date(2018, 9, 6)
+
+
+def test_shipped_pinned_exception_list_is_readable():
+    """저장소에 실제로 든 목록이 읽히고, 각 줄에 사람이 알아볼 것이 붙어 있는가.
+
+    목록은 사람이 더하고 빼는 데이터다. 주소만 있고 제목·조직이 없으면 나중에 보는
+    사람이 그 줄이 무엇인지 판단할 수 없다. 주소가 겹치거나 비면 load_exceptions 가
+    올린다(그 자체가 검사다).
+    """
+    rows = pinned_exceptions.load_exceptions()
+    assert rows, "예외 목록이 비어 있습니다"
+    for row in rows:
+        assert row.url.startswith(("https://", "http://")), row
+        assert row.title and row.organization and row.published_date, row
+    assert len({row.url for row in rows}) == len(rows)
 
 
 def test_revision_pointer_switches_only_after_files_exist(seeded, settings, store, board_fixture):
