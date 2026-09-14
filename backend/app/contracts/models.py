@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -278,6 +278,10 @@ class Catalog(Strict):
     features: CatalogFeatures = Field(default_factory=CatalogFeatures)
     contract_version: str = "v1"
     initial_window_start: date | None = None
+    #: 바로가기 카드(설계문서 2절). 저장소 파일을 그대로 얹는다 — 카드마다 담는 칸이
+    #: 달라(rows·more·dept·watch·foot) 형을 박으면 카드를 고칠 때마다 계약이 따라
+    #: 움직인다. 화면 쪽 형은 frontend/src/lib/types.ts 의 ShortcutCard 가 갖는다.
+    shortcut_cards: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class SourceStatusLine(Strict):

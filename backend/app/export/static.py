@@ -7,7 +7,8 @@
 만드는 파일:
   v1/latest.json                       개정 포인터 (짧은 캐시)
   v1/status.json                       공개 상태 (18.2절)
-  v1/r/<rev>/catalog.json              분류 사전
+  v1/r/<rev>/catalog.json              분류 사전 + 바로가기 카드 13장
+  v1/r/<rev>/shortcuts/graduation.json 학과별 졸업요건(졸업요건 카드가 떴을 때만 받는다)
   v1/r/<rev>/organizations.json        조직 목록
   v1/r/<rev>/sources.json              출처 목록·수집 상태
   v1/r/<rev>/notices/page/<n>.json     공지 목록 페이지
@@ -69,6 +70,7 @@ from app.domain.dates import (
 )
 from app.domain.images import extract_images, poster_image
 from app.domain.pinned_exceptions import exception_urls, warn_unmatched
+from app.export.shortcuts import GRADUATION_KEY, load_cards, load_graduation
 from app.export.state import (
     EXPORT_FORMAT_VERSION,
     STATE_PREFIX,
@@ -1133,7 +1135,10 @@ def _write_revision(
     prefix = f"{BASE}/r/{rev}"
     health = {source_id: row.last_list_success_at for source_id, row in health_rows.items()}
 
-    # 분류 사전
+    # 분류 사전 + 바로가기 카드
+    #
+    # 카드는 저장소 파일(data/shortcuts/cards.json)에서 읽어 여기 얹는다. DB 를 타지
+    # 않고, 화면이 어차피 받는 파일이라 학생당 추가 요청이 0건이다(설계문서 6절).
     writer.put(
         f"{prefix}/catalog.json",
         api.ItemResponse[api.Catalog](
@@ -1146,10 +1151,20 @@ def _write_revision(
                 features=api.CatalogFeatures(accounts=False, instagram=False, deadlines=True),
                 contract_version=CONTRACT_VERSION,
                 initial_window_start=cfg.initial_window_start,
+                shortcut_cards=[dict(card) for card in load_cards()],
             ),
             meta=_meta(rev, now),
         ),
     )
+
+    # 학과별 졸업요건(88곳)은 gzip 41KB 라 얹지 않고 따로 둔다. 졸업요건 카드가 실제로
+    # 떴을 때만 받는다. 내용이 바뀌지 않으면 내용 해시가 같아 회차마다 다시 올리지 않는다.
+    graduation = load_graduation()
+    if graduation is not None:
+        writer.put(
+            f"{prefix}/{GRADUATION_KEY}",
+            {"data": graduation, "meta": _meta(rev, now).model_dump(mode="json")},
+        )
 
     # 조직
     child_counts = dict(
