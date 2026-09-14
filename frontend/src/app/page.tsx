@@ -82,6 +82,11 @@ function AllFeed() {
 
   const scope = org.ids.length ? organizationScopeLabel(orgs, org.selected) : campusScopeLabel(catalog?.campuses, settings.campus_id);
   const label = q ? `‘${q}’ 검색 결과` : scope;
+  // 검색은 캠퍼스 설정을 넘어간다(사용자 결정 2026-09-14, lib/api.ts 의 staticNoticeMatches).
+  // 서울캠퍼스로 두고 '스페인어학과'를 찾으면 국제캠퍼스 공지가 섞여 나온다. 왜 그런지
+  // 모르면 그것대로 이상하므로 라벨 옆에 한 줄만 덧붙인다 - 배너나 경고 상자는 두지 않는다.
+  // 검색어가 없거나 캠퍼스를 안 골랐으면 넘을 범위 자체가 없어 아무것도 적지 않는다.
+  const note = q && settings.campus_id ? "캠퍼스 구분 없이 찾았습니다" : undefined;
 
   return (
     <Shell categories={{ selected: cats.selected, toggle: cats.toggle }} orgPicker>
@@ -127,7 +132,7 @@ function AllFeed() {
       </div>
 
       {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.choose} />}
-      <NoticeList notices={feed.items} label={label} loading={feed.loading} error={feed.error} hasNext={feed.hasNext} onMore={feed.more} onRetry={feed.retry} />
+      <NoticeList notices={feed.items} label={label} note={note} loading={feed.loading} error={feed.error} hasNext={feed.hasNext} onMore={feed.more} onRetry={feed.retry} />
     </Shell>
   );
 }

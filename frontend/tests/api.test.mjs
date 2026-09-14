@@ -579,3 +579,57 @@ test("조직 이름을 붙인 검색 글자는 개정에 묶인다", async () =>
     Date.now = realNow;
   }
 });
+
+test("검색은 캠퍼스 설정을 넘어가고, 검색어가 없으면 넘지 않는다", async () => {
+  // 2026-09-14 사용자 실측·결정: 설정이 서울캠퍼스인 채로 '스페인어학과'를 찾으면 1건만
+  // 나왔다. 그 학과는 국제캠퍼스 소속이라 캠퍼스 설정이 198건을 막았다. 학과 이름을
+  // 똑똑히 적어 찾는 사람에게 설정이 답을 숨기는 것은 이상하다 - 검색할 때는 넘어간다.
+  // 다만 그냥 목록을 훑을 때는 설정이 곧 '내가 볼 범위'라, 그때는 그대로 좁힌다.
+  const entries = [
+    { id: "seoul-note", t: "행정학과 장학 안내", c: "scholarship", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T06:00:00Z", v: "2026-09-14T06:00:00Z", a: ["org:org-seoul-dept"] },
+    { id: "global-note", t: "가을 학술제 안내", c: "event", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T05:00:00Z", v: "2026-09-14T05:00:00Z", a: ["org:org-global-dept"] },
+    { id: "global-other", t: "가을 학술제 안내", c: "event", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T04:00:00Z", v: "2026-09-14T04:00:00Z", a: ["org:org-global-other"] },
+    { id: "seoul-campus", t: "서울캠퍼스 행사 안내", c: "event", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T03:00:00Z", v: "2026-09-14T03:00:00Z", a: ["campus:campus-seoul"] },
+  ];
+  const seoul = [{ id: "campus-seoul", name: "서울캠퍼스" }];
+  const global = [{ id: "campus-global", name: "국제캠퍼스" }];
+  const organizations = page([
+    { id: "org-seoul-dept", name: "행정학과", type: coded("department", "학과·전공"), parent_id: null, campuses: seoul, has_children: false },
+    { id: "org-global-dept", name: "스페인어학과", type: coded("department", "학과·전공"), parent_id: null, campuses: global, has_children: false },
+    { id: "org-global-other", name: "응용화학과", type: coded("department", "학과·전공"), parent_id: null, campuses: global, has_children: false },
+  ]);
+  const pages = noticePages(entries);
+  const fetchImpl = async (url) => {
+    const path = staticPath(url);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => organizations };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
+    throw new Error(`Unexpected path ${path}`);
+  };
+  const api = await loadApi(fetchImpl);
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+  const campus = ["campus-seoul"];
+
+  // (가) 검색어가 없으면 예전 그대로다. 서울 설정이면 서울 것만 보인다.
+  assert.deepEqual(ids(await api.listNotices({ campus_id: campus, limit: 20 })), ["seoul-note", "seoul-campus"]);
+
+  // (나) 검색할 때는 넘어간다. 서울 설정인데 국제캠퍼스 학과 이름으로 찾아도 나온다.
+  //      고친 자리 그대로 두면 여기가 0건이다.
+  assert.deepEqual(ids(await api.listNotices({ campus_id: campus, q: "스페인어학과", limit: 20 })), ["global-note"]);
+  assert.deepEqual(
+    ids(await api.listNotices({ campus_id: campus, q: "안내", limit: 20 })),
+    ["seoul-note", "global-note", "global-other", "seoul-campus"],
+  );
+
+  // (다) 조직은 설정이 아니라 학생이 지금 직접 고른 범위다. 검색 중에도 그대로 지킨다 -
+  //      같은 캠퍼스의 다른 학과(global-other)까지 딸려 오면 안 된다.
+  assert.deepEqual(
+    ids(await api.listNotices({ campus_id: campus, organization_id: ["org-global-dept"], include_descendants: true, q: "안내", limit: 20 })),
+    ["global-note"],
+  );
+
+  // (라) 검색어를 지우면 다시 서울 것만 보인다. 캠퍼스를 영영 푸는 것이 아니다.
+  assert.deepEqual(ids(await api.listNotices({ campus_id: campus, limit: 20 })), ["seoul-note", "seoul-campus"]);
+});

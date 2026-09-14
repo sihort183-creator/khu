@@ -522,7 +522,16 @@ function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, contex
     const medium = entry.m ?? context.sourceMedia?.get(entry.s);
     if (!medium || !query.medium.includes(medium)) return false;
   }
-  if (context.campusIds?.size) {
+  // 검색할 때는 캠퍼스를 넘어간다(사용자 결정 2026-09-14).
+  //
+  // 캠퍼스는 학생이 설정에서 한 번 고른 값이고, 검색어는 지금 찾고 있는 것이다. 서울캠퍼스로
+  // 두고 '스페인어학과'를 치면 1건만 나왔다 - 그 학과는 국제캠퍼스 소속이라 설정이 198건을
+  // 막았다. 학과 이름을 똑똑히 적어 찾는 사람에게 설정이 답을 숨기는 것은 이상하다.
+  // 검색어가 없는 목록(그냥 훑을 때)은 그대로 캠퍼스로 좁힌다. 그때는 설정이 바로 그
+  // '내가 볼 범위'라는 뜻이기 때문이다.
+  // 조직 필터는 여기서 손대지 않는다(audiencesInOrganizationScope). 그것은 설정이 아니라
+  // 학생이 지금 직접 고른 범위라, 검색 중에도 지켜야 한다.
+  if (!context.search && context.campusIds?.size) {
     const organizations = context.organizations ?? new Map<string, Organization>();
     if (!entry.a.some((audience) => audienceMatchesCampus(audience, context.campusIds!, organizations))) return false;
   }
@@ -989,7 +998,8 @@ export async function listOrganizationNoticeCounts(): Promise<NodeCounts> {
 export async function listNotices(query: NoticeQuery = {}): Promise<ListResponse<Notice>> {
   if (!useMock) return staticNotices(query);
   await delay(120);
-  let list = M.notices.filter((n) => matchesCampus(n, query.campus_id ?? []));
+  // 정적 경로(staticNoticeMatches)와 같은 규칙이다. 검색어가 있으면 캠퍼스를 보지 않는다.
+  let list = M.notices.filter((n) => matchesCampus(n, query.q ? [] : query.campus_id ?? []));
   if (query.category_code?.length) list = list.filter((n) => query.category_code!.includes(n.primary_category.code));
   if (query.medium?.length) list = list.filter((n) => query.medium!.includes(n.primary_source.medium.code));
   if (query.source_id?.length) list = list.filter((n) => query.source_id!.includes(n.primary_source.id));

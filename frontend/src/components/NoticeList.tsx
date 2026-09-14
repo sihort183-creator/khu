@@ -11,6 +11,8 @@ import { Box } from "./Shell";
 interface Props {
   notices: Notice[];
   label: string;
+  /** 라벨 옆에 붙는 짧은 한 줄. 지금은 검색이 캠퍼스 설정을 넘었다는 것만 알린다. */
+  note?: string;
   loading?: boolean;
   error?: string | null;
   hasNext?: boolean;
@@ -19,13 +21,15 @@ interface Props {
   adAfter?: number;
 }
 
-export function NoticeList({ notices, label, loading, error, hasNext, onMore, onRetry, adAfter = 4 }: Props) {
+export function NoticeList({ notices, label, note, loading, error, hasNext, onMore, onRetry, adAfter = 4 }: Props) {
   return (
     <Box>
       <div className="flex bg-cream px-4 py-2.5 text-xs text-gray">
         <span>
           {label}
-          {!loading && !error && <span className="ml-1">{notices.length}건{hasNext ? "+" : ""}</span>}
+          {!loading && !error && <span className="ml-1 whitespace-nowrap">{notices.length}건{hasNext ? "+" : ""}</span>}
+          {/* 한 덩어리로 줄을 넘긴다. 좁은 화면에서 문구 끝만 다음 줄로 떨어지지 않게. */}
+          {note && !error && <span className="ml-1.5 whitespace-nowrap">· {note}</span>}
         </span>
         <span className="ml-auto flex gap-2.5">
           <b className="font-medium text-ink">최신순</b>
