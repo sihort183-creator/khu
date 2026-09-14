@@ -2,6 +2,7 @@
 import type {
   Catalog,
   Contact,
+  GraduationRequirements,
   Notice,
   NoticeDetail,
   Organization,
@@ -640,3 +641,63 @@ export const contacts: Contact[] = cseeds.map((s) => {
     evidence: channels.map((ch) => ({ field: `channels.${ch.id}`, url: `https://example.org/${org.id}/contact`, source_name: `${org.name} 연락처 안내`, observed_at: verified_at })),
   };
 });
+
+/* ---------- 바로가기 카드 ---------- */
+// 가상 자료다. 실제 카드 13장은 저장소의 data/shortcuts/cards.json 에 있고 운영에서는
+// catalog.json 에 얹혀 온다. 여기 두 장은 카드가 세 모양으로 그려지는지 확인하려고
+// 모양만 맞춘 것이다 — **실제 경희대 학사 내용이 아니다.**
+export const shortcutCards: Catalog["shortcut_cards"] = [
+  {
+    id: "mock-credit-waiver",
+    title: "학점포기제도",
+    source: { name: "학사정보 › 학점포기", url: "https://example.test/haksa/credit-waiver" },
+    match: ["학점포기", "학점 포기", "성적포기"],
+    rows: [
+      { label: "포기 가능 학점", value: "졸업 전까지 총 0학점 이내(가상)", strong: true },
+      { label: "신청 자격", value: "재학생", cond: "가상 조건 — 휴학생 제외", sub: "가상 자료입니다" },
+    ],
+    more: { summary: "가상 더 보기", items: ["가상 항목 1", "가상 항목 2"] },
+    watch: ["학점포기"],
+    foot: [{ text: "가상 자료입니다" }, { link: "가상 원문", url: "https://example.test/haksa/credit-waiver" }],
+  },
+  {
+    id: "mock-graduation",
+    title: "졸업요건",
+    source: { name: "학사정보 › 졸업", url: "https://example.test/haksa/graduation" },
+    match: ["졸업요건", "졸업학점"],
+    rows: [
+      { label: "등록 학기", value: "총 등록학기 0학기 이상(가상)", strong: true },
+      { label: "평점평균", value: "전 학년 평점평균 0.00 이상(가상)", cond: "가상 조건 — 2004학년도 입학자부터" },
+    ],
+    watch: ["졸업논문"],
+    dept: { file: "graduation_requirements.json", key: "department", count: 2 },
+    foot: [{ text: "가상 자료입니다" }],
+  },
+];
+
+catalog.shortcut_cards = shortcutCards;
+
+export const graduationRequirements: GraduationRequirements = {
+  departments: [
+    {
+      department: "행정학과",
+      college: "정경대학",
+      campus: "seoul",
+      year: 2026,
+      source: { url: "https://example.test/rules/pa", kind: "가상", doc: "가상 시행세칙", page: 1 },
+      graduation_credits: { value: 120, article: "제4조(졸업이수학점)" },
+      major_credits: { tracks: { single: { required: 9, total: 60 }, multi: { total: 39 }, minor: { total: 21 } }, article: "제5조(전공이수학점)" },
+      thesis: { article: "제10조(졸업논문)", text: "가상 졸업논문 조문입니다.", applies_to: [], conditions: [] },
+      transfer_students: [{ article: "제12조(SW 기초교육 이수)", text: "가상 SW 조문입니다(편입생 제외).", conditions: ["편입생 제외"] }],
+    },
+    {
+      department: "경영학과",
+      college: "경영대학",
+      campus: "seoul",
+      year: 2025,
+      source: { url: "https://example.test/rules/biz", kind: "가상", doc: "가상 시행세칙", page: 2 },
+      graduation_credits: { value: 130, article: "제4조(졸업이수학점)" },
+      thesis: { article: "제9조(졸업시험)", text: "가상 졸업시험 조문입니다." },
+    },
+  ],
+};

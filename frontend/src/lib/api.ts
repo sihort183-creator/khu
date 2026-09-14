@@ -5,6 +5,7 @@ import type {
   Coded,
   Contact,
   FeedPreviewBody,
+  GraduationRequirements,
   ItemResponse,
   ListResponse,
   Notice,
@@ -12,9 +13,12 @@ import type {
   NoticeSource,
   NoticeQuery,
   Organization,
+  ShortcutCard,
   Source,
 } from "./types";
 import { countNoticesByNode, type NodeCounts } from "./orgTree";
+import { findDepartmentOrganization } from "./cards";
+import { compactForSearch, normalizeForSearch } from "./text";
 import * as M from "@/mocks/data";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
@@ -421,32 +425,10 @@ export function audiencesInOrganizationScope(audiences: string[], scope: Organiz
 }
 
 /**
- * 검색어와 공지 글자를 맞춰 볼 수 있는 꼴로 고친다.
- *
- * NFKC → 소문자 → 숫자·영문·한글이 **아닌** 것은 전부 공백 → 공백 정리.
- * "지울 구두점을 늘어놓는" 대신 "남길 글자만 정하는" 방식이라 빠뜨릴 구두점이 없다.
- * 공지 제목에는 가운뎃점만 해도 `･`(U+FF65) `·` `∙` `・` 네 가지가 섞여 있고 대괄호·물결·
- * 하이픈도 제각각이다. 이 한 줄이 그 문제를 통째로 없앤다.
+ * 검색어를 맞춰 볼 꼴로 고치는 두 함수는 lib/text.ts 로 옮겼다(바로가기 카드가 같은
+ * 규칙을 본다). 부르던 쪽이 그대로 쓰도록 여기서 다시 내보낸다.
  */
-export function normalizeForSearch(value: string): string {
-  return value
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/[^0-9a-z가-힣]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/**
- * 정규화한 뒤 공백까지 없앤 붙여쓰기 판.
- *
- * `학석사연계` 로 쳐도 `학･석사연계` 가 잡히는 자리다. 낱말 경계를 잃으므로 정규화 판보다
- * 헐거운 짝(`이전 과정` → `이전과정` 안의 `전과`)도 통과한다. 그래서 점수를 매길 때는
- * 정규화 판에서 맞은 것을 위로 올리고 붙여쓰기 판에서만 맞은 것은 깎는다(COMPACT_ONLY).
- */
-export function compactForSearch(value: string): string {
-  return normalizeForSearch(value).replace(/\s+/g, "");
-}
+export { compactForSearch, normalizeForSearch } from "./text";
 
 /** 검색이 들여다보는 밭 하나. 정규화 판과 붙여쓰기 판을 함께 든다. */
 type SearchField = { text: string; compact: string };
@@ -1316,6 +1298,145 @@ export async function getCatalog(): Promise<ItemResponse<Catalog>> {
   if (!useMock) return staticLatest().then((pointer) => cachedStaticGet<ItemResponse<Catalog>>("catalog.json", pointer));
   await delay(60);
   return { data: M.catalog, meta: meta() };
+}
+
+/* ---------- 바로가기 카드 ---------- */
+
+/**
+ * 카드 13장. `catalog.json` 에 얹혀 오므로 **따로 받는 파일이 없다**(설계문서 6절).
+ * 예전 개정에는 없으니 없으면 빈 목록이고, 그러면 카드를 한 장도 그리지 않는다.
+ */
+export async function getShortcutCards(): Promise<ShortcutCard[]> {
+  const catalog = await getCatalog();
+  return catalog.data.shortcut_cards ?? [];
+}
+
+/**
+ * 학과 88곳의 졸업요건(gzip 41KB). **졸업요건 카드가 실제로 떴을 때만** 부른다.
+ *
+ * 공지만 보는 학생은 이 파일을 평생 받지 않는다. 개정 경로 파일이라 한 번 받으면
+ * 브라우저 캐시가 붙들고, 같은 개정 안에서는 cachedStaticGet 이 두 번 받지 않는다.
+ */
+export async function getGraduationRequirements(): Promise<GraduationRequirements | null> {
+  if (useMock) {
+    await delay(60);
+    return M.graduationRequirements;
+  }
+  const pointer = await staticLatest();
+  const file = await cachedStaticGet<ItemResponse<GraduationRequirements>>("shortcuts/graduation.json", pointer);
+  return file.data;
+}
+
+/**
+ * 카드가 짚는 공지 한 줄.
+ *
+ * 상세도 목록 페이지도 받지 않는다. **이미 받아 둔 색인**에 제목·발행일·게시판·주제가
+ * 다 들어 있어 그대로 쓴다. 카드 때문에 늘어나는 요청이 0건이어야 한다(설계문서 6절).
+ */
+export type ShortcutNotice = {
+  id: string;
+  title: string;
+  date: string | null;
+  source: string;
+  category: Coded;
+};
+
+/**
+ * 색인 한 줄의 제목을 맞춰 볼 꼴로. **검색이 방금 만들어 둔 것이 있으면 그것을 쓴다.**
+ *
+ * 카드는 검색어가 있을 때만 뜨고, 그때는 바로 앞에서 목록 검색이 돌며 항목마다 밭을
+ * 만들어 캐시에 넣어 둔다(prepareNoticeSearch). 그 글자를 다시 만들면 최근 30일치
+ * 수천 건을 한 번 더 NFKC 정규화하는 셈이라 실측으로 14ms 가 더 들었다.
+ */
+function entryTitleCompact(pointer: StaticLatest, entry: StaticIndexEntry): string {
+  const cached = searchFieldsCache?.revision === pointer.revision
+    ? searchFieldsCache.fields.get(entry.id)
+    : undefined;
+  return cached ? cached.title.compact : compactForSearch(entry.t);
+}
+
+const shortcutNotice = (
+  entry: StaticIndexEntry,
+  sourceNames: Map<string, string>,
+  categoryLabels: Map<string, string>,
+): ShortcutNotice => ({
+  id: entry.id,
+  title: entry.t,
+  date: entry.d,
+  source: sourceNames.get(entry.s) ?? "",
+  category: { code: entry.c, label: categoryLabels.get(entry.c) ?? entry.c },
+});
+
+/**
+ * watch 에 적힌 말이 든 공지 가운데 **가장 최근 것 하나**. 없으면 null 이다.
+ *
+ * 색인은 발행일 내림차순이라 위에서부터 보다가 기준일보다 오래된 줄을 만나면 멈춘다.
+ * 24,330건을 다 훑지 않는다 — 30일이면 대개 앞쪽 2,000건 남짓에서 끝난다.
+ */
+export async function findShortcutWatchNotice(terms: readonly string[], since: string): Promise<ShortcutNotice | null> {
+  const needles = terms.map((term) => compactForSearch(term)).filter((term) => term.length > 1);
+  if (!needles.length) return null;
+  if (useMock) {
+    const hit = M.notices
+      .filter((n) => n.published_date && n.published_date >= since)
+      .find((n) => needles.some((needle) => compactForSearch(n.title).includes(needle)));
+    return hit
+      ? { id: hit.id, title: hit.title, date: hit.published_date, source: hit.primary_source.name, category: hit.primary_category }
+      : null;
+  }
+  const pointer = await staticLatest();
+  const [index, sourceNames, categoryLabels] = await Promise.all([
+    staticIndex(pointer),
+    staticSourceNames(pointer),
+    staticCategoryLabels(pointer),
+  ]);
+  for (const entry of index.entries) {
+    if (entry.d && entry.d < since) break;
+    if (!entry.d) continue;
+    const title = entryTitleCompact(pointer, entry);
+    if (needles.some((needle) => title.includes(needle))) {
+      return shortcutNotice(entry, sourceNames, categoryLabels);
+    }
+  }
+  return null;
+}
+
+/**
+ * 고른 학과가 올린 졸업 공지. 학과를 공지 조직에 못 맞추면 null 이다(3형 카드를 안 그린다).
+ *
+ * 빈 배열과 null 은 다르다. **빈 배열은 "그 학과 게시판에 아직 안 올라왔다"** 는 답이라
+ * 카드가 그렇게 말해야 하고, null 은 물을 게시판 자체를 못 찾은 것이라 카드를 안 그린다.
+ */
+export async function listShortcutDepartmentNotices(
+  department: string,
+  limit = 3,
+): Promise<{ organization: string; notices: ShortcutNotice[] } | null> {
+  if (useMock) {
+    const organization = M.organizations.find((org) => org.name === department);
+    if (!organization) return null;
+    const notices = M.notices
+      .filter((n) => n.primary_category.code === "graduation" && n.audiences.some((a) => a.id === organization.id))
+      .slice(0, limit)
+      .map((n) => ({ id: n.id, title: n.title, date: n.published_date, source: n.primary_source.name, category: n.primary_category }));
+    return { organization: organization.name, notices };
+  }
+  const pointer = await staticLatest();
+  const organizations = await staticOrganizations(pointer);
+  const organization = findDepartmentOrganization(department, organizations);
+  if (!organization) return null;
+  const [index, sourceNames, categoryLabels] = await Promise.all([
+    staticIndex(pointer),
+    staticSourceNames(pointer),
+    staticCategoryLabels(pointer),
+  ]);
+  const audiences = organization.ids.map((id) => `org:${id}`);
+  const notices: ShortcutNotice[] = [];
+  for (const entry of index.entries) {
+    if (entry.c !== "graduation" || !audiences.some((audience) => entry.a.includes(audience))) continue;
+    notices.push(shortcutNotice(entry, sourceNames, categoryLabels));
+    if (notices.length === limit) break;
+  }
+  return { organization: organization.name, notices };
 }
 
 export async function listOrganizations(params: { campus_id?: string; parent_id?: string | null } = {}): Promise<ListResponse<Organization>> {

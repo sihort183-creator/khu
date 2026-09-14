@@ -858,3 +858,114 @@ test("한 낱말이 여러 밭에서 맞아도 가장 높은 밭 하나만 센�
   }));
   assert.deepEqual(ids(await both.listNotices({ q: "스페인어학과 전과", limit: 20 })), ["two-words", "one-word"]);
 });
+
+/* ---------------- 바로가기 카드 ---------------- */
+
+/** 카드가 얹힌 catalog.json. 운영에서는 백엔드가 저장소 파일을 여기 넣어 내보낸다. */
+const cardCatalog = (cards) => ({
+  ...catalogFile(),
+  data: { ...catalogFile().data, shortcut_cards: cards },
+});
+
+const CARD = {
+  id: "haksa-credit-waiver",
+  title: "학점포기제도",
+  source: { name: "학사정보 › 학점포기", url: "https://haksa.test/25" },
+  match: ["학점포기", "학점 포기"],
+  rows: [{ label: "포기 가능 학점", value: "졸업 전까지 총 6학점 이내", strong: true }],
+  watch: ["학점포기"],
+};
+
+const GRADUATION_FILE = {
+  data: { departments: [{ department: "스페인어학과", college: "외국어대학", campus: "global", year: 2026, source: { url: "https://foreign.test/rules" }, graduation_credits: { value: 120 } }] },
+  meta: { request_id: "static-r1", generated_at: "2026-09-06T00:00:00Z" },
+};
+
+function cardFetch({ entries = [], organizations = [], cards = [CARD], asked = [] }) {
+  const pages = noticePages(entries);
+  return async (url) => {
+    const path = staticPath(url);
+    asked.push(path);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
+    if (path.endsWith("/catalog.json")) return { ok: true, json: async () => cardCatalog(cards) };
+    if (path.endsWith("/shortcuts/graduation.json")) return { ok: true, json: async () => GRADUATION_FILE };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => page(organizations) };
+    if (path.endsWith("/sources.json")) return { ok: true, json: async () => page(Object.values(sourceRefs).map((ref) => sourceFile(ref))) };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
+    throw new Error(`Unexpected path ${path}`);
+  };
+}
+
+test("카드 13장은 catalog.json 에 얹혀 오고 따로 받는 파일이 없다", async () => {
+  // 설계문서 6절: 화면이 어차피 받는 파일에 얹어 학생당 추가 요청을 0건으로 둔다.
+  const asked = [];
+  const api = await loadApi(cardFetch({ asked }));
+  const cards = await api.getShortcutCards();
+  assert.equal(cards.length, 1);
+  assert.equal(cards[0].id, "haksa-credit-waiver");
+  assert.deepEqual(asked.filter((path) => !path.endsWith("/catalog.json") && path !== "/v1/latest.json"), []);
+});
+
+test("학과별 졸업요건은 물어봤을 때만 받고, 같은 개정에서는 한 번만 받는다", async () => {
+  const asked = [];
+  const api = await loadApi(cardFetch({ asked }));
+  await api.getShortcutCards();
+  assert.equal(asked.some((path) => path.endsWith("/shortcuts/graduation.json")), false, "카드만 볼 때는 받지 않는다");
+
+  const file = await api.getGraduationRequirements();
+  assert.equal(file.departments[0].department, "스페인어학과");
+  await api.getGraduationRequirements();
+  assert.equal(asked.filter((path) => path.endsWith("/shortcuts/graduation.json")).length, 1);
+});
+
+test("watch 는 기준일 안의 가장 최근 공지 하나만 고른다", async () => {
+  const entries = [
+    entry("fresh", "[학사] 학점포기제도 운영지침 개정 안내", { d: "2026-09-08", p: "2026-09-08T01:00:00Z" }),
+    entry("older", "학점포기제도 개선 안내", { d: "2026-09-01", p: "2026-09-01T01:00:00Z" }),
+    entry("stale", "2025 학점포기 안내", { d: "2026-06-01", p: "2026-06-01T01:00:00Z" }),
+    entry("other", "가을 축제 안내", { d: "2026-09-14", p: "2026-09-14T01:00:00Z" }),
+  ];
+  const api = await loadApi(cardFetch({ entries }));
+
+  const hit = await api.findShortcutWatchNotice(["학점포기"], "2026-08-15");
+  assert.equal(hit.id, "fresh");
+  assert.equal(hit.date, "2026-09-08");
+
+  // 기준일보다 오래된 것만 남으면 줄을 붙이지 않는다.
+  assert.equal(await api.findShortcutWatchNotice(["학점포기"], "2026-09-10"), null);
+  // 공지가 아예 없는 영역(자퇴·재수강·와이파이 등 다섯 개)도 null 이다.
+  assert.equal(await api.findShortcutWatchNotice(["자퇴"], "2026-08-15"), null);
+});
+
+test("학과 졸업 공지는 색인에서 고르고, 없으면 빈 목록·못 맞추면 null 이다", async () => {
+  const campuses = [{ id: "campus-global", name: "국제캠퍼스" }];
+  const organizations = [
+    { id: "org-spanish", name: "스페인어학과", type: coded("department", "학과·전공"), parent_id: null, campuses, has_children: false },
+    // 운영 명부처럼 별칭 짝을 둔다. 공지는 별칭 쪽 게시판에 붙어 있다.
+    { id: "org-spanish-alias", name: "스페인어학과", type: coded("department", "학과·전공"), parent_id: "org-spanish", campuses, has_children: false, is_alias: true },
+    { id: "org-quiet", name: "프랑스어학과", type: coded("department", "학과·전공"), parent_id: null, campuses, has_children: false },
+  ];
+  const entries = [
+    entry("grad-1", "[중요] 2026-1학기 졸업대상자 자격증 제출 안내", { c: "graduation", a: ["org:org-spanish-alias"], d: "2026-03-25" }),
+    entry("grad-2", "2026학년도 졸업논문 계획서 제출 안내", { c: "graduation", a: ["org:org-spanish"], d: "2026-03-25" }),
+    entry("event", "학생회 안내", { c: "event", a: ["org:org-spanish"], d: "2026-09-01" }),
+    entry("other-dept", "타과 졸업 공지", { c: "graduation", a: ["org:org-quiet2"], d: "2026-09-01" }),
+  ];
+  const asked = [];
+  const api = await loadApi(cardFetch({ entries, organizations, asked }));
+
+  // 별칭 게시판에 붙은 공지도 함께 나온다. 하나만 골랐으면 197건이 통째로 빠졌다.
+  const found = await api.listShortcutDepartmentNotices("스페인어학과");
+  assert.equal(found.organization, "스페인어학과");
+  assert.deepEqual(Array.from(found.notices, (notice) => notice.id), ["grad-1", "grad-2"]);
+  // 상세 파일도 목록 페이지 파일도 받지 않는다. 색인에 제목·날짜·게시판이 다 있다.
+  assert.equal(asked.some((path) => /\/notices\/(page\/)?[^/]*\.json$/.test(path) && !path.endsWith("index.json")), false);
+
+  // 게시판은 찾았는데 졸업 공지가 없으면 빈 목록이다 — 화면이 "아직 올라오지 않았습니다"라고 말한다.
+  const quiet = await api.listShortcutDepartmentNotices("프랑스어학과");
+  assert.deepEqual(Array.from(quiet.notices), []);
+  // 공지를 올리는 조직 자체가 없는 학과는 null 이라 카드를 그리지 않는다.
+  assert.equal(await api.listShortcutDepartmentNotices("빅데이터응용학과"), null);
+});

@@ -52,6 +52,101 @@ export interface Catalog {
   media: Coded[];
   features: { accounts: boolean; instagram: boolean; deadlines: boolean };
   initial_window_start?: string | null;
+  /**
+   * 바로가기 카드(설계문서 2절). 화면이 어차피 받는 파일에 얹혀 오므로 학생당 추가
+   * 요청이 0건이다. 예전 개정에는 없으니 없을 수 있다.
+   */
+  shortcut_cards?: ShortcutCard[];
+}
+
+/* ---------- 바로가기 카드 ---------- */
+
+/**
+ * 카드 한 줄. 라벨과 값, 그리고 **조건**이다.
+ *
+ * `cond` 는 적용 대상 제한(편입생·외국인·학번·트랙)이다. 값에서 떼면 거짓말이 된다 —
+ * 편입생이 SW 6학점을 들어야 하는 줄 알고 한국 학생이 TOPIK 을 준비한다(설계문서 5.8).
+ * rows 64줄 중 34줄에 붙어 있다. 그리지 못할 바에는 줄을 통째로 빼는 것이 규칙이다
+ * (lib/cards.ts 의 keepRows).
+ */
+export interface ShortcutCardRow {
+  label: string;
+  value: string;
+  cond?: string;
+  /** 값 아래에 한 단 작게 붙는 덧붙임. 조건이 아니다. */
+  sub?: string;
+  strong?: boolean;
+}
+
+/** 카드 아래 띠 한 칸. 글만 있거나(text), 링크이거나(link+url) 둘 중 하나다. */
+export interface ShortcutCardFoot {
+  text?: string;
+  link?: string;
+  url?: string;
+}
+
+export interface ShortcutCard {
+  id: string;
+  title: string;
+  source: { name: string; url: string };
+  /** 이 말이 검색어에 들어 있을 때만 카드가 뜬다. */
+  match: string[];
+  rows: ShortcutCardRow[];
+  more?: { summary: string; items: string[] };
+  /** 이 말이 든 공지가 최근에 올라왔으면 "최근 안내가 올라왔습니다" 줄을 붙인다(5.6). */
+  watch?: string[];
+  foot?: ShortcutCardFoot[];
+  /** 있으면 2형(값 표시) 카드다. 학과별 값을 따로 받아 카드 안에서 보여 준다. */
+  dept?: { file: string; key: string; count?: number; fallback?: string };
+}
+
+/* ---------- 학과별 졸업요건 (별도 파일) ---------- */
+
+/** 시행세칙 조문 하나. 원문 text 를 그대로 들고, 대상 제한은 따로 표시한다. */
+export interface GraduationArticle {
+  article?: string;
+  text: string;
+  /** 적용 대상 제한. 비어 있지 않으면 조건으로 반드시 함께 그린다(5.8). */
+  applies_to?: string[];
+  conditions?: string[];
+  /** 전교 공통 조문과 값이 다르다는 표시. 학과가 더 엄할 수 있다. */
+  differs_from_common?: boolean;
+  note?: string;
+}
+
+export interface GraduationTrack {
+  basic?: number;
+  required?: number;
+  total?: number;
+}
+
+export interface GraduationDepartment {
+  department: string;
+  college: string;
+  campus: string;
+  /** 이 값을 뽑은 시행세칙의 학년도. 학생의 학번이 아니다. */
+  year: number | null;
+  source: { url: string; kind?: string; doc?: string; page?: number };
+  graduation_credits?: { value: number; article?: string; text?: string };
+  major_credits?: {
+    tracks?: { single?: GraduationTrack; multi?: GraduationTrack; minor?: GraduationTrack };
+    article?: string;
+    text?: string;
+    minor_article?: string;
+    minor_text?: string;
+  };
+  thesis?: GraduationArticle;
+  language_cert?: GraduationArticle[];
+  transfer_students?: GraduationArticle[];
+  area_requirements?: GraduationArticle;
+  shared_article_overrides?: Record<string, GraduationArticle>;
+  /** 원문에서 못 뽑은 칸과 그 사유. 값을 지어내지 않았다는 기록이다. */
+  not_extracted?: Record<string, string>;
+  shared_document_note?: string;
+}
+
+export interface GraduationRequirements {
+  departments: GraduationDepartment[];
 }
 
 /* ---------- organization ---------- */

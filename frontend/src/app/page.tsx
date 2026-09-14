@@ -19,6 +19,7 @@ import { useCategorySelection } from "@/lib/useCategorySelection";
 import { Shell } from "@/components/Shell";
 import { CategoryChips } from "@/components/CategoryChips";
 import { NoticeList, type NoticeSort } from "@/components/NoticeList";
+import { ShortcutCards } from "@/components/ShortcutCards";
 import { organizationScopeLabel } from "@/components/OrganizationPicker";
 import { IconChevron, IconSearch } from "@/components/icons";
 
@@ -155,6 +156,9 @@ function AllFeed() {
       </div>
 
       {catalog && <CategoryChips categories={catalog.categories} selected={cats.selected} onToggle={cats.choose} />}
+      {/* 바로가기 카드. 검색어가 카드의 match 에 걸릴 때만 목록 위에 뜬다(설계문서 2절).
+          안 걸리면 아무것도 그리지 않으므로 검색어가 없는 첫 화면은 지금 그대로다. */}
+      <ShortcutCards query={q} />
       {/* 정렬 단추는 검색어가 있을 때만 준다. 연관도는 검색어가 있어야 뜻이 있는 값이다. */}
       <NoticeList
         notices={feed.items}
