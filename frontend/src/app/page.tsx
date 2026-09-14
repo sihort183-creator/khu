@@ -95,7 +95,10 @@ function AllFeed() {
         <IconSearch className="text-gray" width={15} height={15} />
         {/* 값을 React 상태로 붙들지 않는다. key 를 주소의 검색어로 두어, 뒤로 가기로 주소가
             바뀌면 칸의 글자도 따라 바뀌게 한다(상태로 들고 있으면 목록만 되돌아간다). */}
-        <input key={q} ref={qRef} defaultValue={q} placeholder="제목·본문·기관명 검색" className="min-w-0 flex-1 bg-transparent text-sm outline-none" maxLength={100} aria-label="공지 검색" />
+        {/* 안내 문구는 실제로 찾아지는 것만 적는다. 예전에는 '제목·본문·기관명'이었는데
+            본문은 공지 색인에 아예 없어 지금도 앞으로도 찾아지지 않는다(lib/api.ts 의
+            noticeSearchText 주석 참고). 기관 이름은 2026-09-14 부터 찾아진다. */}
+        <input key={q} ref={qRef} defaultValue={q} placeholder="제목·기관명 검색" className="min-w-0 flex-1 bg-transparent text-sm outline-none" maxLength={100} aria-label="공지 검색" />
         {q && (
           <button
             type="button"

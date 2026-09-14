@@ -420,17 +420,101 @@ export function audiencesInOrganizationScope(audiences: string[], scope: Organiz
   return audiences.some((audience) => audience.startsWith("org:") && scope.ids.has(audience.slice(4)));
 }
 
+/**
+ * 조회 한 번이 쓰는 검색 한 벌.
+ *
+ * `words` 는 검색어를 낱말로 쪼갠 것, `text` 는 항목 하나가 검색에 내보이는 글자다.
+ * 둘 다 조회마다 한 번씩만 만든다. 예전에는 색인 항목 24,000줄마다 검색어를 다시 쪼개고
+ * 제목을 다시 소문자로 바꿨다 — 글자 하나 칠 때마다 그 일을 24,000번 했다는 뜻이다.
+ */
+type NoticeSearch = { words: string[]; text: (entry: StaticIndexEntry) => string };
+
+/**
+ * 항목별 검색 글자는 개정마다 한 번만 만들어 그 개정 내내 다시 쓴다.
+ *
+ * 색인은 개정 경로(`/v1/r/<개정>/…`)에 있어 불변이고 조직 이름도 같은 개정 안에서는
+ * 바뀌지 않는다. 그래서 한 번 만든 글자는 그 개정에서 계속 옳다. 개정이 바뀌면 통째로
+ * 버린다 — sharedFiles·indexCache 와 같은 규칙이다.
+ */
+let searchTextCache: { revision: string; texts: Map<string, string> } | null = null;
+
+/**
+ * 검색어가 볼 글자를 만든다: 제목 + **그 공지에 붙은 조직 자기 이름**.
+ *
+ * 색인 한 줄에는 조직 이름이 없다. 이름 자리(`o`)는 운영 색인 24,324건 전부 비어 있고,
+ * 대신 대상(`a`)에 `org:<id>` 로 조직 식별자가 들어 있다. 이름은 화면이 어차피 받는
+ * organizations.json 에 있으므로 여기서 이어 붙인다. 색인을 다시 만들 필요가 없다.
+ * '스페인어학과' 로 그 학과 공지를 찾을 수 있게 되는 자리다 — 제목에 학과 이름이 든
+ * 공지는 7건뿐이지만 그 학과에 붙은 공지는 198건이다(2026-09-14 실측).
+ *
+ * 상위 경로(경희대학교·서울캠퍼스·외국어대학 …)는 **넣지 않는다**. 조직마다 path 가
+ * 함께 오지만 그것까지 합치면 거의 모든 공지가 '경희대학교' 하나로 걸려 검색이
+ * 사실상 꺼진다. 조직 자기 이름(name)만 본다.
+ *
+ * 본문은 색인에 없다. 그래서 본문은 여기서도 찾을 수 없고, 검색 상자 안내 문구도
+ * 그 사실에 맞춰 두었다(src/app/page.tsx).
+ */
+function noticeSearchText(entry: StaticIndexEntry, organizationNames: Map<string, string>): string {
+  let text = entry.t.toLowerCase();
+  for (const audience of entry.a) {
+    if (!audience.startsWith("org:")) continue;
+    const name = organizationNames.get(audience.slice(4));
+    if (name) text += ` ${name}`;
+  }
+  return text;
+}
+
+/**
+ * 조회 한 번이 쓸 검색 한 벌을 준비한다. 검색어가 없으면 null 을 준다.
+ *
+ * 조직 목록이 비어 있으면(받아오지 못했거나 부르는 쪽이 빠뜨렸으면) 제목만 보던 옛
+ * 동작으로 돌아간다. 그 결과를 개정 캐시에 남기면 조직 목록이 생긴 뒤에도 그 개정
+ * 내내 제목만 보게 되므로, 그때는 기억하지 않는다.
+ */
+function prepareNoticeSearch(
+  q: string | undefined,
+  pointer: StaticLatest,
+  organizations: Map<string, Organization>,
+): NoticeSearch | null {
+  const words = (q ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return null;
+  if (!organizations.size) return { words, text: (entry) => entry.t.toLowerCase() };
+
+  const names = new Map<string, string>();
+  for (const [id, organization] of organizations) names.set(id, organization.name.toLowerCase());
+  if (searchTextCache?.revision !== pointer.revision) searchTextCache = { revision: pointer.revision, texts: new Map() };
+  const texts = searchTextCache.texts;
+  return {
+    words,
+    text: (entry) => {
+      const hit = texts.get(entry.id);
+      if (hit !== undefined) return hit;
+      const text = noticeSearchText(entry, names);
+      texts.set(entry.id, text);
+      return text;
+    },
+  };
+}
+
 type NoticeMatchContext = {
   campusIds?: Set<string>;
   organizations?: Map<string, Organization>;
   sourceMedia?: Map<string, string>;
+  /**
+   * 검색어 한 벌(prepareNoticeSearch). 검색어가 없으면 null.
+   *
+   * 빠뜨릴 수 없게 반드시 주도록 두었다. 검색어를 여기서 query.q 로 다시 읽으면 부르는
+   * 쪽이 조직 목록을 안 받아 왔는지 알 길이 없고, 그것이 바로 검색이 기관 이름을 못 보던
+   * 원인이었다.
+   */
+  search: NoticeSearch | null;
 };
 
 /** 조직 범위를 뺀 나머지 필터(검색어·주제·출처·매체·캠퍼스). 조직은 위 두 함수가 맡는다. */
 function staticNoticeMatches(entry: StaticIndexEntry, query: NoticeQuery, context: NoticeMatchContext) {
-  if (query.q) {
-    const words = query.q.toLowerCase().split(/\s+/).filter(Boolean);
-    if (!words.every((word) => entry.t.toLowerCase().includes(word))) return false;
+  if (context.search) {
+    const text = context.search.text(entry);
+    if (!context.search.words.every((word) => text.includes(word))) return false;
   }
   if (query.category_code?.length && !query.category_code.includes(entry.c)) return false;
   if (query.source_id?.length && !query.source_id.includes(entry.s)) return false;
@@ -666,15 +750,19 @@ async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> 
 
   const offset = scannable ? 0 : cursor?.offset ?? 0;
   const index = await staticIndex(pointer);
-  const needsOrganizations = Boolean(query.campus_id?.length || (query.organization_id?.length && query.include_descendants));
+  // 검색어가 있으면 조직 이름까지 뒤지므로 조직 목록이 반드시 있어야 한다. 예전에는
+  // 캠퍼스 필터를 쓸 때만 받아 와, 검색 상자가 기관 이름을 아예 못 봤다.
+  const needsOrganizations = Boolean(query.q || query.campus_id?.length || (query.organization_id?.length && query.include_descendants));
   const organizations = needsOrganizations ? await staticOrganizations(pointer) : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
   const sourceMedia = query.medium?.length ? await staticSourceMedia(pointer) : undefined;
   const scope = organizationScope(organizations, query.organization_id ?? [], !!query.include_descendants);
+  const search = prepareNoticeSearch(query.q, pointer, organizationMap);
   let entries = index.entries.filter((entry) => audiencesInOrganizationScope(entry.a, scope) && staticNoticeMatches(entry, query, {
     campusIds: query.campus_id?.length ? new Set(query.campus_id) : undefined,
     organizations: organizationMap,
     sourceMedia,
+    search,
   }));
   entries = sortIndexEntries(entries);
   const selected = entries.slice(offset, offset + limit);
@@ -690,7 +778,10 @@ async function staticNotices(query: NoticeQuery): Promise<ListResponse<Notice>> 
 async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice>> {
   const pointer = await staticLatest();
   const index = await staticIndex(pointer);
-  const organizations = body.organization_ids.length || body.campus_id
+  const filters = body.filters ?? {};
+  // 검색어가 있으면 '전체 공지'와 마찬가지로 조직 이름까지 뒤진다. 그러려면 여기서도
+  // 조직 목록을 받아 와야 한다.
+  const organizations = body.organization_ids.length || body.campus_id || filters.q
     ? await staticOrganizations(pointer)
     : [];
   const organizationMap = new Map(organizations.map((organization) => [organization.id, organization]));
@@ -698,8 +789,8 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
   // 구독한 게시판을 따로 얹는 것 하나뿐이다.
   const scope = organizationScope(organizations, body.organization_ids, true);
   const subscribed = new Set(body.subscribed_source_ids);
-  const filters = body.filters ?? {};
   const sourceMedia = filters.medium?.length ? await staticSourceMedia(pointer) : undefined;
+  const search = prepareNoticeSearch(filters.q, pointer, organizationMap);
   const selected = index.entries.filter((entry) => {
     const campusIds = body.campus_id ? new Set([body.campus_id]) : new Set<string>();
     const inCampus = !campusIds.size || entry.a.some((audience) => audienceMatchesCampus(audience, campusIds, organizationMap));
@@ -708,6 +799,7 @@ async function staticPreview(body: FeedPreviewBody): Promise<ListResponse<Notice
       campusIds: undefined,
       organizations: organizationMap,
       sourceMedia,
+      search,
     });
   });
   const ordered = sortIndexEntries(selected);

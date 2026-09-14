@@ -361,6 +361,8 @@ test("entries가 없는 색인은 모든 조각을 합치고 개정·건수 불�
     }
     if (path.endsWith("/notices/index/1.json")) return { ok: true, json: async () => ({ revision: "r1", generated_at: "2026-09-06T00:00:00Z", count: 1, entries: [shardEntries[0]] }) };
     if (path.endsWith("/notices/index/2.json")) return { ok: true, json: async () => ({ revision: "r1", generated_at: "2026-09-06T00:00:00Z", count: 1, entries: [shardEntries[1]] }) };
+    // 검색은 조직 이름까지 본다. 이 시험이 볼 것은 조각 합치기라 조직은 비워 둔다.
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => page([]) };
     const pageFile = pages(path);
     if (pageFile) return { ok: true, json: async () => pageFile };
     throw new Error(`Unexpected path ${path}`);
@@ -388,6 +390,8 @@ test("검색·조직 걸러내기는 상세 파일 대신 목록 페이지에서
     asked.push(path);
     if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
     if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    // 검색은 조직 이름까지 본다. 이 시험이 볼 것은 어떤 파일을 부르느냐라 조직은 비워 둔다.
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => page([]) };
     const pageFile = pages(path);
     if (pageFile) return { ok: true, json: async () => pageFile };
     throw new Error(`Unexpected path ${path}`);
@@ -478,4 +482,100 @@ test("실제 NoticeDetail 계약을 화면 소비 형태로 정규화한다", as
   assert.equal(response.data.contact_mentions[0].channel?.action_url, "tel:02-961-0000");
   assert.equal(response.data.contact_mentions.length, 2);
   assert.equal(response.data.contact_mentions[1].channel?.action_url, "mailto:help@example.org");
+});
+
+test("검색은 제목과 그 공지에 붙은 조직 이름을 함께 본다(상위 경로는 빼고)", async () => {
+  // 2026-09-14 사용자 실측: 안내 문구는 '기관명 검색'인데 실제로는 제목만 봤다.
+  // '스페인어학과'로 그 학과 공지를 찾으면 운영 색인에서 7건(제목에 이름이 든 것)만
+  // 나왔고, 실제로 그 학과에 붙은 공지는 198건이었다.
+  //
+  // 조직 이름은 색인에 없다. 이름 자리(o)는 24,324건 전부 비어 있고, 대상(a)에
+  // "org:<id>"로 식별자만 들어 있다. 이름은 organizations.json 에 있으므로 화면에서
+  // 이어 붙인다 - 색인을 다시 만들 일이 아니다.
+  const entries = [
+    { id: "dept-job", t: "2026 하반기 신입사원 채용", c: "career", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T06:00:00Z", v: "2026-09-14T06:00:00Z", a: ["org:org-dept"] },
+    { id: "college-note", t: "단과대 행사 안내", c: "event", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T05:00:00Z", v: "2026-09-14T05:00:00Z", a: ["org:org-college"] },
+    { id: "univ-change", t: "[학적] 2026-2 전과신청안내", c: "academic", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T04:00:00Z", v: "2026-09-14T04:00:00Z", a: ["university"] },
+    { id: "title-hit", t: "스페인어학과 학생회 안내", c: "event", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T03:00:00Z", v: "2026-09-14T03:00:00Z", a: ["campus:campus-global"] },
+  ];
+  const campuses = [{ id: "campus-global", name: "국제캠퍼스" }];
+  // path 를 실제 공개 파일처럼 넣어 둔다. 넣어 두어야 "상위 경로는 안 본다"를 확인할 수 있다.
+  const organizations = page([
+    { id: "org-college", name: "외국어대학", type: coded("college", "단과대"), parent_id: null, campuses, has_children: true, path: ["경희대학교", "외국어대학"] },
+    { id: "org-dept", name: "스페인어학과", type: coded("department", "학과·전공"), parent_id: "org-college", campuses, has_children: false, path: ["경희대학교", "외국어대학", "스페인어학과"] },
+  ]);
+  const pages = noticePages(entries);
+  const asked = [];
+  const fetchImpl = async (url) => {
+    const path = staticPath(url);
+    asked.push(path);
+    if (path === "/v1/latest.json") return { ok: true, json: async () => latest() };
+    if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(), count: entries.length, entries }) };
+    if (path.endsWith("/organizations.json")) return { ok: true, json: async () => organizations };
+    const pageFile = pages(path);
+    if (pageFile) return { ok: true, json: async () => pageFile };
+    throw new Error(`Unexpected path ${path}`);
+  };
+  const api = await loadApi(fetchImpl);
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+
+  // (가) 제목에 학과 이름이 없어도 그 학과에 붙은 공지가 나온다. 제목으로 걸린 것과 합쳐진다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", limit: 20 })), ["dept-job", "title-hit"]);
+  // 캠퍼스·조직 필터가 없어도 조직 목록을 받아 와야 이름을 볼 수 있다. 예전에는
+  // 캠퍼스를 고른 경우에만 받아 와서, 검색이 이름을 아예 못 봤다.
+  assert.equal(asked.some((path) => path.endsWith("/organizations.json")), true);
+
+  // (나) 조직 자기 이름만 본다. 상위 경로(경희대학교·외국어대학)까지 합치면 거의 모든
+  // 공지가 '경희대학교' 하나로 걸려 검색이 사실상 꺼진다.
+  assert.deepEqual(ids(await api.listNotices({ q: "외국어대학", limit: 20 })), ["college-note"]);
+  assert.deepEqual(ids(await api.listNotices({ q: "경희대학교", limit: 20 })), []);
+
+  // (다) "낱말이 전부 있어야 한다"는 규칙은 그대로다. 그래서 '스페인어학과 전과'는
+  // 여전히 0건이다 - 전과 공지는 전교 공지라 그 학과가 붙어 있지 않다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 전과", limit: 20 })), []);
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 채용", limit: 20 })), ["dept-job"]);
+
+  // (라) '내 공지'도 같은 규칙을 쓴다.
+  const mine = await api.previewFeed({ campus_id: null, organization_ids: [], subscribed_source_ids: [], filters: { q: "스페인어학과" }, limit: 20 });
+  assert.deepEqual(ids(mine), ["dept-job", "title-hit"]);
+
+  // (마) 검색어가 없는 기본 목록은 예전처럼 목록 페이지를 훑는 경로로 돈다.
+  assert.deepEqual(ids(await api.listNotices({ limit: 20 })), ["dept-job", "college-note", "univ-change", "title-hit"]);
+});
+
+test("조직 이름을 붙인 검색 글자는 개정에 묶인다", async () => {
+  // 항목마다 검색 글자를 미리 만들어 두지 않으면 글자 하나 칠 때마다 24,000줄을 조인한다.
+  // 그 캐시는 반드시 개정에 묶여야 한다 - 개정이 바뀌면 같은 id 라도 이름이 달라질 수 있다.
+  const realNow = Date.now;
+  let now = realNow();
+  let revision = "r1";
+  Date.now = () => now;
+  try {
+    const entry = { id: "only", t: "채용 안내", c: "career", o: null, s: "src-web", d: "2026-09-14", p: "2026-09-14T06:00:00Z", v: "2026-09-14T06:00:00Z", a: ["org:org-dept"] };
+    const campuses = [{ id: "campus-global", name: "국제캠퍼스" }];
+    const orgName = () => (revision === "r1" ? "스페인어학과" : "서반아어학과");
+    const fetchImpl = async (url) => {
+      const path = staticPath(url);
+      if (path === "/v1/latest.json") return { ok: true, json: async () => latest(revision) };
+      if (path.endsWith("/notices/index.json")) return { ok: true, json: async () => ({ ...latest(revision), count: 1, entries: [entry] }) };
+      if (path.endsWith("/organizations.json")) {
+        return { ok: true, json: async () => page([{ id: "org-dept", name: orgName(), type: coded("department", "학과·전공"), parent_id: null, campuses, has_children: false }], revision) };
+      }
+      if (/\/notices\/page\/1\.json$/.test(path)) return { ok: true, json: async () => page([noticeFromEntry(entry)], revision, false) };
+      throw new Error(`Unexpected path ${path}`);
+    };
+    const api = await loadApi(fetchImpl);
+    const ids = (response) => Array.from(response.data, (item) => item.id);
+
+    assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", limit: 20 })), ["only"]);
+
+    revision = "r2";
+    now += 10_001;
+    // 새 개정의 새 이름으로 찾힌다. 캐시가 개정에 묶여 있지 않으면 여기서 0건이 나온다.
+    assert.deepEqual(ids(await api.listNotices({ q: "서반아어학과", limit: 20 })), ["only"]);
+    // 그리고 옛 이름은 더 이상 찾히지 않는다.
+    assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", limit: 20 })), []);
+  } finally {
+    Date.now = realNow;
+  }
 });
