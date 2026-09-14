@@ -814,3 +814,47 @@ test("검색어가 없으면 연관도는 뜻이 없다 - 언제나 최신순이
   assert.equal(asked.some((path) => path.endsWith("/sources.json")), true);
   assert.equal(asked.some((path) => path.endsWith("/catalog.json")), true);
 });
+
+test("한 낱말이 여러 밭에서 맞아도 가장 높은 밭 하나만 센다", async () => {
+  // 2026-09-14 사용자 결정. 게시판 이름은 거의 언제나 조직 이름을 되풀이하고
+  // ('스페인어학과 커뮤니티'), 학과 이름은 그 학과 공지 제목에도 흔히 들어간다. 밭별
+  // 점수를 더하면 '스페인어학과' 한 낱말이 제목·조직·출처에서 세 번 세어져(100+55+25=180)
+  // 제목 한 밭에서 맞은 '전과'(100)를 이겼다. 같은 사실을 세 번 세는 것이라 뒤집었다.
+  const campuses = [{ id: "campus-global", name: "국제캠퍼스" }];
+  const organizations = [
+    { id: "org-dept", name: "스페인어학과", type: coded("department", "학과·전공"), parent_id: null, campuses, has_children: false },
+  ];
+  const board = { id: "src-dept", name: "스페인어학과 커뮤니티", medium: coded("web", "웹") };
+  const sources = [...Object.values(sourceRefs), board];
+  const entries = [
+    // 제목에만 맞는데 가장 새것도 아니다. 그런데도 세 밭에서 겹쳐 맞은 것을 앞선다.
+    entry("board-only", "가을 축제 안내", { s: "src-dept", c: "event", p: "2026-09-14T11:00:00Z" }),
+    entry("change", "2026-2학기 전과 신청 안내", { c: "academic", p: "2026-09-14T10:00:00Z" }),
+    entry("title-only", "스페인어학과 소식", { c: "other", p: "2026-09-14T09:00:00Z" }),
+    entry("overlap", "스페인어학과 학생회 안내", { a: ["org:org-dept"], s: "src-dept", c: "event", p: "2026-09-14T08:00:00Z" }),
+  ];
+  const api = await loadApi(searchFetch({ entries, organizations, sources }));
+  const ids = (response) => Array.from(response.data, (item) => item.id);
+
+  // (가) 낱말 하나짜리 검색. overlap 은 제목·조직·출처 셋에서 맞고 title-only 는 제목
+  //      하나에서만 맞는다. 둘 다 제목에서 맞았으니 점수가 같고, 같으면 새것이 위다.
+  //      밭별로 더하던 옛 규칙이라면 overlap(180)이 title-only(100)를 눌렀을 자리다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과", limit: 20 })), ["title-only", "overlap", "board-only"]);
+  // 그래도 밭의 차례는 그대로다. board-only 는 게시판 이름에서만 맞아(가장 낮은 밭)
+  //      가장 새 공지인데도 맨 아래다 - 최댓값으로 바꿔도 밭 무게가 날짜를 이긴다.
+
+  // (나) 낱말 둘짜리 검색. 학생이 찾는 것은 전과 쪽이다. 옛 규칙이라면 overlap(180)이
+  //      change(100)를 눌러 전과 공지가 아래로 밀렸다.
+  assert.deepEqual(ids(await api.listNotices({ q: "스페인어학과 전과", limit: 20 })), ["change", "title-only", "overlap", "board-only"]);
+
+  // (다) 낱말을 전부 맞히면 여전히 맨 위다. 보너스는 그대로 둔다.
+  const both = await loadApi(searchFetch({
+    entries: [
+      entry("one-word", "2026-2학기 전과 신청 안내", { c: "academic", p: "2026-09-14T11:00:00Z" }),
+      entry("two-words", "스페인어학과 전과 신청 안내", { c: "academic", p: "2026-09-13T08:00:00Z" }),
+    ],
+    organizations,
+    sources,
+  }));
+  assert.deepEqual(ids(await both.listNotices({ q: "스페인어학과 전과", limit: 20 })), ["two-words", "one-word"]);
+});

@@ -523,8 +523,11 @@ const noticeSearchFields = (
  * - **출처**가 가장 낮다. 게시판 이름은 대개 `<조직 이름> + 공지사항·장학·취업정보` 라
  *   조직 밭과 겹친다. 새로 알려 주는 것이 가장 적어서 가장 낮다.
  *
- * 값 자체보다 사이 간격이 뜻을 가진다. 제목 하나 맞은 것(100)이 조직+분류+출처가 모두
- * 맞은 것(55+40+25=120)보다 낮지 않도록 조직·분류·출처의 합을 제목 근처에 두었다.
+ * 한 낱말이 여러 밭에서 맞아도 **가장 높은 밭 하나만** 센다(합치지 않는다. scoreNoticeFields
+ * 참고). 그래서 값 자체보다 밭 사이의 **차례**가 뜻을 가진다.
+ *
+ * 아래 SEARCH_FIELDS 는 이 무게가 큰 것부터 작은 것 순으로 늘어서 있어야 한다.
+ * 채점이 그 차례를 믿고 중간에 멈춘다.
  */
 const SEARCH_WEIGHTS = {
   alias: { phrase: 200, token: 120 },
@@ -546,7 +549,12 @@ const COMPACT_ONLY = 0.6;
  */
 const ALL_TOKENS_BONUS = 25;
 
-/** 점수를 매기는 차례. 조회마다 배열을 새로 만들지 않으려고 밖에 둔다. */
+/**
+ * 점수를 매기는 차례. 조회마다 배열을 새로 만들지 않으려고 밖에 둔다.
+ *
+ * **무게가 큰 밭부터** 늘어놓았다. 한 낱말은 가장 높은 밭 하나로만 세므로, 앞에서 이미
+ * 뒤 밭의 최고점보다 높은 점수를 얻었으면 뒤는 볼 필요가 없다(scoreNoticeFields 의 break).
+ */
 const SEARCH_FIELDS: readonly (readonly [(fields: NoticeSearchFields) => SearchField, { phrase: number; token: number }])[] = [
   [(fields) => fields.alias, SEARCH_WEIGHTS.alias],
   [(fields) => fields.title, SEARCH_WEIGHTS.title],
@@ -637,20 +645,43 @@ type PreparedQuery = {
   phrase: { text: string; compact: string } | null;
 };
 
+/**
+ * 낱말(또는 검색어 통째) 하나가 이 공지에서 얻는 점수 — **가장 높은 밭 하나뿐**이다.
+ *
+ * 2026-09-14 사용자 결정. 밭별 점수를 더하던 것을 최댓값으로 바꿨다. 게시판 이름은
+ * 거의 언제나 조직 이름을 되풀이하고(`스페인어학과 커뮤니티`), 학과 이름은 그 학과
+ * 공지 제목에도 흔히 들어간다. 그래서 '스페인어학과'라는 **한 낱말**이 제목·조직·출처
+ * 세 밭에서 겹쳐 세어져(100+55+25=180) 제목 한 밭에서 맞은 '전과'(100)를 이겼다.
+ * 같은 사실을 세 번 세는 것이라 뒤집는 게 맞다 — 학생이 '스페인어학과 전과'로 찾는 것은
+ * 전과 쪽이다.
+ *
+ * 무게가 큰 밭부터 보므로, 이미 얻은 점수가 다음 밭의 최고점 이상이면 거기서 멈춘다.
+ * 제목에서 제값(100)을 얻으면 조직(55)·분류(40)·출처(25)는 열어 보지 않는다.
+ */
+function bestFieldScore(fields: NoticeSearchFields, text: string, compact: string, phrase: boolean): number {
+  let best = 0;
+  for (const [pick, weight] of SEARCH_FIELDS) {
+    const max = phrase ? weight.phrase : weight.token;
+    if (best >= max) break;
+    const hit = fieldScore(pick(fields), text, compact, max);
+    if (hit > best) best = hit;
+  }
+  return best;
+}
+
 function scoreNoticeFields(fields: NoticeSearchFields, query: PreparedQuery): number {
   const blob = fields.blob;
   let score = 0;
+  // 검색어를 통째로 맞힌 점수도 같은 규칙이다. 겹쳐 세는 문제는 낱말이든 검색어 전체든
+  // 똑같이 생기고, 여기만 합으로 두면 낱말 둘짜리 검색에서 그 문제가 되살아난다.
   if (query.phrase && blob.includes(query.phrase.compact)) {
-    for (const [pick, weight] of SEARCH_FIELDS) {
-      score += fieldScore(pick(fields), query.phrase.text, query.phrase.compact, weight.phrase);
-    }
+    score += bestFieldScore(fields, query.phrase.text, query.phrase.compact, true);
   }
   let matchedTokens = 0;
   for (const token of query.tokens) {
     // 어느 밭에도 없는 낱말은 여기서 끝난다. 다섯 밭을 열어 볼 필요가 없다.
     if (!blob.includes(token)) continue;
-    let hit = 0;
-    for (const [pick, weight] of SEARCH_FIELDS) hit += fieldScore(pick(fields), token, token, weight.token);
+    const hit = bestFieldScore(fields, token, token, false);
     if (hit > 0) {
       matchedTokens += 1;
       score += hit;
