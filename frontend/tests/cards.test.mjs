@@ -31,10 +31,10 @@ async function load(specifier, parent) {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
     fileName: file,
   }).outputText;
-  const module = new vm.SourceTextModule(output, { context, identifier: file });
-  modules.set(file, module);
-  await module.link((child, referencing) => load(child, referencing.identifier));
-  return module;
+  const loaded = new vm.SourceTextModule(output, { context, identifier: file });
+  modules.set(file, loaded);
+  await loaded.link((child, referencing) => load(child, referencing.identifier));
+  return loaded;
 }
 
 const cardsPath = resolve(sourceRoot, "lib/cards.ts");
